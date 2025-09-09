@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/select";
 import { Task, TaskActionType, Comment } from "./KanbanCard";
 import { useState, useEffect } from "react";
-import { Trash2, Upload, Calendar as CalendarIcon } from "lucide-react";
+import { Trash2, Upload, Calendar as CalendarIcon, Download } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { showError, showSuccess } from "@/utils/toast";
 import { format } from "date-fns";
@@ -33,11 +33,12 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import { AspectRatio } from "./ui/aspect-ratio";
 
 interface TaskModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (task: Partial<Task>) => void; // Changed to Partial<Task>
+  onSave: (task: Partial<Task>) => void;
   onDelete?: (taskId: string) => void;
   task: Task | null;
   columnId?: string;
@@ -84,6 +85,8 @@ export function TaskModal({
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
       setSelectedFile(event.target.files[0]);
+      // Create a temporary URL for instant preview
+      setAttachmentUrl(URL.createObjectURL(event.target.files[0]));
     }
   };
 
@@ -97,6 +100,25 @@ export function TaskModal({
     };
     setComments([...comments, comment]);
     setNewComment("");
+  };
+
+  const handleDownload = async () => {
+    if (!attachmentUrl) return;
+    try {
+      const response = await fetch(attachmentUrl);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `imagem_${task?.title || Date.now()}.jpg`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Erro ao baixar imagem:", error);
+      window.open(attachmentUrl, '_blank');
+    }
   };
 
   const handleSave = async () => {
@@ -132,8 +154,8 @@ export function TaskModal({
       setIsUploading(false);
     }
 
-    const savedTask: Partial<Task> = { // Changed to Partial<Task>
-      id: task?.id, // Pass existing id if it's an edit
+    const savedTask: Partial<Task> = {
+      id: task?.id,
       columnId: task?.columnId || columnId,
       title: title || "Nova Tarefa",
       description: description,
@@ -184,12 +206,23 @@ export function TaskModal({
             </div>
             <div className="space-y-2">
               <Label htmlFor="attachment">Imagem de Capa</Label>
+              {attachmentUrl && (
+                <div className="space-y-2">
+                  <AspectRatio ratio={16 / 9} className="bg-muted rounded-md">
+                    <img src={attachmentUrl} alt="Pré-visualização" className="rounded-md object-cover w-full h-full" />
+                  </AspectRatio>
+                  <Button onClick={handleDownload} variant="outline" size="sm" className="w-full">
+                    <Download className="mr-2 h-4 w-4" />
+                    Baixar Imagem
+                  </Button>
+                </div>
+              )}
               <div className="flex items-center gap-2">
                 <Input
                   id="attachment-url"
-                  value={attachmentUrl}
+                  value={attachmentUrl.startsWith('blob:') ? '' : attachmentUrl}
                   onChange={(e) => setAttachmentUrl(e.target.value)}
-                  placeholder="Ou cole uma URL de imagem aqui"
+                  placeholder="Cole uma URL de imagem aqui"
                   className="flex-grow"
                 />
                 <Button asChild variant="outline" size="icon">
