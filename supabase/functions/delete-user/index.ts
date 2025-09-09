@@ -12,9 +12,9 @@ serve(async (req) => {
   }
 
   try {
-    const { full_name, password } = await req.json();
-    if (!full_name || !password) {
-      throw new Error("Full name and password are required.");
+    const { userId } = await req.json();
+    if (!userId) {
+      throw new Error("User ID is required.");
     }
 
     const supabaseAdmin = createClient(
@@ -22,24 +22,14 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    // Use a unique email based on timestamp to avoid conflicts
-    const email = `user_${Date.now()}@app.local`;
-
-    const { data: { user }, error } = await supabaseAdmin.auth.admin.createUser({
-      email: email,
-      password: password,
-      email_confirm: true,
-      user_metadata: { full_name: full_name },
-    });
-
+    const { error } = await supabaseAdmin.auth.admin.deleteUser(userId);
     if (error) throw error;
 
-    return new Response(JSON.stringify({ user }), {
+    return new Response(JSON.stringify({ message: "User deleted successfully" }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
   } catch (error) {
-    console.error(error);
     return new Response(JSON.stringify({ error: error.message }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 400,

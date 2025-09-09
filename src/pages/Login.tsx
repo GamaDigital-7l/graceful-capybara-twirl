@@ -28,6 +28,8 @@ const Login = () => {
           supabaseClient={supabase}
           appearance={{ theme: ThemeSupa }}
           providers={[]}
+          view="sign_in"
+          showLinks={false}
           theme="light"
           localization={{
             variables: {
@@ -35,22 +37,7 @@ const Login = () => {
                 email_label: "Endereço de e-mail",
                 password_label: "Sua senha",
                 button_label: "Entrar",
-                social_provider_text: "Entrar com {{provider}}",
-                link_text: "Já tem uma conta? Entre",
               },
-              sign_up: {
-                email_label: "Endereço de e-mail",
-                password_label: "Crie uma senha",
-                button_label: "Cadastrar",
-                social_provider_text: "Cadastrar com {{provider}}",
-                link_text: "Não tem uma conta? Cadastre-se",
-              },
-              forgotten_password: {
-                email_label: "Endereço de e-mail",
-                password_label: "Sua senha",
-                button_label: "Enviar instruções",
-                link_text: "Esqueceu sua senha?",
-              }
             },
           }}
         />

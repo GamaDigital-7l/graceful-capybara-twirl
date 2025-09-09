@@ -6,40 +6,33 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
-  }
-
+serve(async (_req) => {
   try {
-    const { full_name, password } = await req.json();
-    if (!full_name || !password) {
-      throw new Error("Full name and password are required.");
-    }
-
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    // Use a unique email based on timestamp to avoid conflicts
-    const email = `user_${Date.now()}@app.local`;
+    const { data: { users }, error: usersError } = await supabaseAdmin.auth.admin.listUsers();
+    if (usersError) throw usersError;
 
-    const { data: { user }, error } = await supabaseAdmin.auth.admin.createUser({
-      email: email,
-      password: password,
-      email_confirm: true,
-      user_metadata: { full_name: full_name },
+    const { data: profiles, error: profilesError } = await supabaseAdmin.from('profiles').select('*');
+    if (profilesError) throw profilesError;
+
+    const combined = users.map(user => {
+      const profile = profiles.find(p => p.id === user.id);
+      return {
+        ...user,
+        full_name: profile?.full_name,
+        avatar_url: profile?.avatar_url,
+      };
     });
 
-    if (error) throw error;
-
-    return new Response(JSON.stringify({ user }), {
+    return new Response(JSON.stringify(combined), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
   } catch (error) {
-    console.error(error);
     return new Response(JSON.stringify({ error: error.message }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 400,

@@ -1,80 +1,155 @@
 "use client";
 
 import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { showError, showSuccess } from "@/utils/toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Link } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, PlusCircle, Trash2 } from "lucide-react";
+
+const fetchUsers = async () => {
+  const { data, error } = await supabase.functions.invoke("list-users");
+  if (error) throw error;
+  return data;
+};
 
 const AdminPage = () => {
-  const [username, setUsername] = useState("");
+  const queryClient = useQueryClient();
+  const [isCreateModalOpen, setCreateModalOpen] = useState(false);
+  const [fullName, setFullName] = useState("");
   const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
 
-  const handleCreateUser = async () => {
-    if (!username || !password) {
-      showError("Nome de usuário e senha são obrigatórios.");
-      return;
-    }
-    setIsLoading(true);
-    try {
+  const { data: users, isLoading: isLoadingUsers } = useQuery({
+    queryKey: ["users"],
+    queryFn: fetchUsers,
+  });
+
+  const createUserMutation = useMutation({
+    mutationFn: async () => {
       const { error } = await supabase.functions.invoke("create-user", {
-        body: { username, password },
+        body: { full_name: fullName, password },
       });
       if (error) throw error;
-      showSuccess(`Usuário "${username}" criado com sucesso!`);
-      setUsername("");
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      showSuccess("Usuário criado com sucesso!");
+      setFullName("");
       setPassword("");
-    } catch (e: any) {
-      showError(`Erro ao criar usuário: ${e.message}`);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+      setCreateModalOpen(false);
+    },
+    onError: (e: any) => showError(`Erro: ${e.message}`),
+  });
+
+  const deleteUserMutation = useMutation({
+    mutationFn: async (userId: string) => {
+      const { error } = await supabase.functions.invoke("delete-user", {
+        body: { userId },
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      showSuccess("Usuário deletado com sucesso!");
+    },
+    onError: (e: any) => showError(`Erro: ${e.message}`),
+  });
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 md:p-8">
-       <header className="mb-8">
+      <header className="mb-8 flex justify-between items-center">
         <Button asChild variant="outline">
-            <Link to="/">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Voltar ao Dashboard
-            </Link>
-          </Button>
-       </header>
-      <main className="max-w-md mx-auto">
+          <Link to="/">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Voltar ao Dashboard
+          </Link>
+        </Button>
+        <Dialog open={isCreateModalOpen} onOpenChange={setCreateModalOpen}>
+          <DialogTrigger asChild>
+            <Button>
+              <PlusCircle className="h-4 w-4 mr-2" />
+              Criar Novo Usuário
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Criar Novo Usuário</DialogTitle>
+            </DialogHeader>
+            <div className="py-4 space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="fullName">Nome Completo</Label>
+                <Input id="fullName" value={fullName} onChange={(e) => setFullName(e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="password">Senha</Label>
+                <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+              </div>
+            </div>
+            <DialogFooter>
+              <DialogClose asChild><Button variant="secondary">Cancelar</Button></DialogClose>
+              <Button onClick={() => createUserMutation.mutate()} disabled={createUserMutation.isPending}>
+                {createUserMutation.isPending ? "Criando..." : "Criar"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </header>
+      <main className="max-w-4xl mx-auto">
         <Card>
           <CardHeader>
-            <CardTitle>Administração</CardTitle>
-            <CardDescription>Crie novas contas de usuário para sua equipe.</CardDescription>
+            <CardTitle>Gerenciamento de Usuários</CardTitle>
+            <CardDescription>Adicione, remova e gerencie os membros da sua equipe.</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="username">Nome de Usuário</Label>
-              <Input
-                id="username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="ex: joao.silva"
-              />
+          <CardContent>
+            <div className="space-y-4">
+              {isLoadingUsers ? (
+                [...Array(3)].map((_, i) => <Skeleton key={i} className="h-16 w-full" />)
+              ) : (
+                users?.map((user: any) => (
+                  <div key={user.id} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="flex items-center gap-4">
+                      <Avatar>
+                        <AvatarImage src={user.avatar_url} />
+                        <AvatarFallback>{user.full_name?.charAt(0) || 'U'}</AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <p className="font-semibold">{user.full_name}</p>
+                        <p className="text-sm text-muted-foreground">{user.email}</p>
+                      </div>
+                    </div>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="destructive" size="icon">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Tem certeza que deseja deletar o usuário {user.full_name}? Esta ação é irreversível.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => deleteUserMutation.mutate(user.id)} className="bg-destructive hover:bg-destructive/90">
+                            Deletar
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+                ))
+              )}
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Senha</Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-              />
-            </div>
-            <Button onClick={handleCreateUser} disabled={isLoading} className="w-full">
-              {isLoading ? "Criando..." : "Criar Usuário"}
-            </Button>
           </CardContent>
         </Card>
       </main>
