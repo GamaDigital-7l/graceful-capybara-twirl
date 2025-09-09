@@ -104,10 +104,17 @@ export function TaskModal({
 
     if (selectedFile) {
       setIsUploading(true);
-      const fileName = `${Date.now()}_${selectedFile.name}`;
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        showError("Você precisa estar logado para enviar imagens.");
+        setIsUploading(false);
+        return;
+      }
+
+      const filePath = `${user.id}/${Date.now()}_${selectedFile.name}`;
       const { data, error } = await supabase.storage
         .from("attachments")
-        .upload(fileName, selectedFile);
+        .upload(filePath, selectedFile);
 
       if (error) {
         showError("Erro ao enviar a imagem. Tente novamente.");
