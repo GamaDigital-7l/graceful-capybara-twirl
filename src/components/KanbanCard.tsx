@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { CalendarDays, MessageSquare } from "lucide-react";
 import { format } from "date-fns";
+import { AspectRatio } from "@/components/ui/aspect-ratio";
 
 export interface Attachment {
   id: string;
@@ -99,11 +100,13 @@ export function KanbanCard({
       className="touch-none cursor-pointer hover:ring-2 hover:ring-primary transition-shadow"
     >
       {coverImage && (
-        <img
-          src={coverImage}
-          alt={task.title}
-          className="w-full h-32 object-cover rounded-t-lg"
-        />
+        <AspectRatio ratio={16 / 9} className="rounded-t-lg overflow-hidden">
+          <img
+            src={coverImage}
+            alt={task.title}
+            className="w-full h-full object-cover"
+          />
+        </AspectRatio>
       )}
       <CardContent className={cn("p-4 pb-2", coverImage && "pt-2")}>
         <p>{task.title}</p>

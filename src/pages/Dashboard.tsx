@@ -15,6 +15,7 @@ import { WorkspaceSettingsModal } from "@/components/WorkspaceSettingsModal";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MyTasks } from "@/components/MyTasks";
 import ClientDashboard from "./ClientDashboard";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export interface Workspace {
   id: string;
@@ -166,6 +167,7 @@ const Dashboard = () => {
               </Link>
             </Button>
           )}
+          <ThemeToggle />
           <Button onClick={handleLogout} variant="outline">
             <LogOut className="h-4 w-4 mr-2" />
             Sair

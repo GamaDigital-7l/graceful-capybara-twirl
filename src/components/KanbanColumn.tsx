@@ -25,6 +25,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { Badge } from "./ui/badge";
 
 export interface Column {
   id: string;
@@ -117,7 +118,10 @@ export function KanbanColumn({
               onClick={(e) => e.stopPropagation()}
             />
           ) : (
-            <h3 className="font-bold">{column.title}</h3>
+            <div className="flex items-center gap-2">
+              <h3 className="font-bold">{column.title}</h3>
+              <Badge variant="secondary" className="h-5">{tasks.length}</Badge>
+            </div>
           )}
         </div>
         <AlertDialog>

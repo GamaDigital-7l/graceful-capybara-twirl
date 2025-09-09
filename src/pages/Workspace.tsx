@@ -8,6 +8,7 @@ import { showError, showSuccess } from "@/utils/toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, LogOut, BookOpen } from "lucide-react";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 const fetchGroups = async (workspaceId: string) => {
   if (!workspaceId) return [];
@@ -117,10 +118,13 @@ const Workspace = () => {
             </Link>
           </Button>
         </div>
-        <Button onClick={handleLogout} variant="outline">
-          <LogOut className="h-4 w-4 mr-2" />
-          Sair
-        </Button>
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          <Button onClick={handleLogout} variant="outline">
+            <LogOut className="h-4 w-4 mr-2" />
+            Sair
+          </Button>
+        </div>
       </header>
       <main>
         {workspaceId ? (

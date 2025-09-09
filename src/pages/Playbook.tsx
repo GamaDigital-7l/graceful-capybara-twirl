@@ -9,7 +9,7 @@ import { MadeWithDyad } from "@/components/made-with-dyad";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, BookOpen, FileText, KeyRound, Link as LinkIcon, Pencil } from "lucide-react";
+import { ArrowLeft, BookOpen, FileText, KeyRound, Link as LinkIcon, Pencil, Paperclip } from "lucide-react";
 import { PlaybookEditor } from "@/components/PlaybookEditor";
 
 export interface Playbook {
@@ -19,6 +19,7 @@ export interface Playbook {
   contract_url: string | null;
   asset_links: { name: string; url: string }[];
   social_media_logins: { platform: string; username: string; password?: string }[];
+  documents: { name: string; url: string }[];
 }
 
 const fetchPlaybook = async (workspaceId: string): Promise<Playbook | null> => {
@@ -82,6 +83,7 @@ const PlaybookPage = () => {
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <Skeleton className="h-64 w-full" />
       <Skeleton className="h-64 w-full" />
+      <Skeleton className="h-64 w-full" />
       <Skeleton className="h-64 w-full col-span-1 lg:col-span-2" />
     </div>
   );
@@ -109,18 +111,6 @@ const PlaybookPage = () => {
         {isLoadingPlaybook ? renderSkeletons() : (
           playbook ? (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card className="lg:col-span-2">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2"><FileText /> Briefing</CardTitle>
-                  <CardDescription>Respostas e informações chave do projeto.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="prose dark:prose-invert max-w-none whitespace-pre-wrap">
-                    {playbook.briefing || <p className="text-muted-foreground">Nenhum briefing preenchido.</p>}
-                  </div>
-                </CardContent>
-              </Card>
-
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2"><LinkIcon /> Ativos e Links</CardTitle>
@@ -145,6 +135,23 @@ const PlaybookPage = () => {
 
               <Card>
                 <CardHeader>
+                  <CardTitle className="flex items-center gap-2"><Paperclip /> Documentos</CardTitle>
+                  <CardDescription>Anexos e documentos importantes.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-1">
+                    {playbook.documents?.map((doc, index) => (
+                      <li key={index}>
+                        <a href={doc.url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">{doc.name}</a>
+                      </li>
+                    ))}
+                  </ul>
+                  {playbook.documents?.length === 0 && <p className="text-sm text-muted-foreground">Nenhum documento adicionado.</p>}
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
                   <CardTitle className="flex items-center gap-2"><KeyRound /> Logins de Redes Sociais</CardTitle>
                   <CardDescription>Credenciais para as plataformas do cliente.</CardDescription>
                 </CardHeader>
@@ -159,6 +166,18 @@ const PlaybookPage = () => {
                     ))}
                   </ul>
                   {playbook.social_media_logins?.length === 0 && <p className="text-sm text-muted-foreground">Nenhum login adicionado.</p>}
+                </CardContent>
+              </Card>
+
+              <Card className="lg:col-span-2">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2"><FileText /> Briefing</CardTitle>
+                  <CardDescription>Respostas e informações chave do projeto.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="prose dark:prose-invert max-w-none whitespace-pre-wrap">
+                    {playbook.briefing || <p className="text-muted-foreground">Nenhum briefing preenchido.</p>}
+                  </div>
                 </CardContent>
               </Card>
             </div>
