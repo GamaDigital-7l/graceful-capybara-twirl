@@ -12,7 +12,7 @@ export interface Attachment {
   isCover: boolean;
 }
 
-export type TaskActionType = "approve" | "edit" | "none";
+export type TaskActionType = "review" | "none";
 
 export interface Task {
   id: string;
@@ -98,27 +98,27 @@ export function KanbanCard({
       <CardContent className={cn("p-4", coverImage && "pt-2")}>
         <p>{task.title}</p>
       </CardContent>
-      {task.actionType === "approve" && onApprove && (
-        <CardFooter className="p-2 pt-0">
-          <Button
-            onClick={(e) => handleActionClick(e, onApprove)}
-            size="sm"
-            className="w-full"
-          >
-            Aprovar Job
-          </Button>
-        </CardFooter>
-      )}
-      {task.actionType === "edit" && onEditRequest && (
-        <CardFooter className="p-2 pt-0">
-          <Button
-            onClick={(e) => handleActionClick(e, onEditRequest)}
-            variant="secondary"
-            size="sm"
-            className="w-full"
-          >
-            Solicitar Edição
-          </Button>
+      {task.actionType === "review" && (
+        <CardFooter className="p-2 pt-0 flex gap-2">
+          {onApprove && (
+            <Button
+              onClick={(e) => handleActionClick(e, onApprove)}
+              size="sm"
+              className="w-full"
+            >
+              Aprovar
+            </Button>
+          )}
+          {onEditRequest && (
+            <Button
+              onClick={(e) => handleActionClick(e, onEditRequest)}
+              variant="secondary"
+              size="sm"
+              className="w-full"
+            >
+              Editar
+            </Button>
+          )}
         </CardFooter>
       )}
     </Card>

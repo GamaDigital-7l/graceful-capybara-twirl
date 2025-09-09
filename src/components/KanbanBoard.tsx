@@ -33,13 +33,13 @@ const initialTasks: Task[] = [
     id: "3",
     columnId: "in-progress",
     title: "Criar a lógica de autenticação",
-    actionType: "approve",
+    actionType: "review",
   },
   {
     id: "4",
     columnId: "in-progress",
     title: "Revisar o código do backend",
-    actionType: "edit",
+    actionType: "review",
   },
   { id: "5", columnId: "done", title: "Deploy da versão alpha" },
 ];

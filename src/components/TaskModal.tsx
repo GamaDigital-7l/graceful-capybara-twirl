@@ -126,8 +126,7 @@ export function TaskModal({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="none">Nenhuma</SelectItem>
-                <SelectItem value="approve">Aprovar Job</SelectItem>
-                <SelectItem value="edit">Solicitar Edição</SelectItem>
+                <SelectItem value="review">Revisão do Cliente (Aprovar/Editar)</SelectItem>
               </SelectContent>
             </Select>
           </div>
