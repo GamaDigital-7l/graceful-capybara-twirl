@@ -101,7 +101,7 @@ export function SecondBrainClientModal({
       photo_url: finalPhotoUrl,
       created_by: existingClient?.created_by,
     });
-    onClose();
+    // onClose(); // Removed this line
   };
 
   return (

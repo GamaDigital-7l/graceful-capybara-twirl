@@ -63,6 +63,7 @@ const SecondBrainDashboard = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["secondBrainClients"] });
       showSuccess("Cliente adicionado ao Segundo Cérebro!");
+      setIsClientModalOpen(false); // Close modal on success
     },
     onError: (e: Error) => showError(e.message),
   });
@@ -76,6 +77,7 @@ const SecondBrainDashboard = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["secondBrainClients"] });
       showSuccess("Cliente atualizado!");
+      setIsClientModalOpen(false); // Close modal on success
     },
     onError: (e: Error) => showError(e.message),
   });
