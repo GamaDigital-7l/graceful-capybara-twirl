@@ -10,6 +10,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "./ui/badge";
 import { Briefcase } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { ClientProgress } from "./ClientProgress"; // Import ClientProgress
+import { useIsMobile } from "@/hooks/use-mobile"; // Import useIsMobile
 
 const fetchUserTasks = async () => {
   const { data, error } = await supabase.rpc("get_user_tasks");
@@ -23,13 +25,15 @@ export function MyTasks() {
     queryFn: fetchUserTasks,
   });
 
+  const isMobile = useIsMobile(); // Use o hook para detectar mobile
+
   const { pendingTasks, completedTasks } = useMemo(() => {
     if (!tasks) return { pendingTasks: [], completedTasks: [] };
     const pending = tasks.filter(
       (task) => task.column_title === "Em Produção" || task.column_title === "Editar"
     );
     const completed = tasks.filter(
-      (task) => task.column_title === "Para aprovação" || task.column_title === "Aprovado" // Incluído 'Aprovado'
+      (task) => task.column_title === "Para aprovação" || task.column_title === "Aprovado"
     );
     return { pendingTasks: pending, completedTasks: completed };
   }, [tasks]);
@@ -70,8 +74,13 @@ export function MyTasks() {
   return (
     <div>
       <TaskStats pendingCount={pendingTasks.length} completedCount={completedTasks.length} />
-      <div className="flex flex-col-reverse lg:grid lg:grid-cols-3 gap-8 items-start">
-        <div className="lg:col-span-3"> {/* Adjusted to take full width */}
+      <div className="flex flex-col lg:grid lg:grid-cols-3 gap-8 items-start">
+        {isMobile && (
+          <div className="w-full lg:col-span-1"> {/* No mobile, ocupa a largura total e vem primeiro */}
+            <ClientProgress tasks={tasks} isLoading={isLoading} />
+          </div>
+        )}
+        <div className="lg:col-span-2 w-full"> {/* Conteúdo principal para tarefas */}
           <h2 className="text-2xl font-bold mb-4">Caixa de Entrada de Tarefas</h2>
           {pendingTasks.length > 0 ? (
             <div className="space-y-6">
@@ -103,6 +112,11 @@ export function MyTasks() {
             <p className="text-muted-foreground mt-4">Nenhuma tarefa pendente. Bom trabalho!</p>
           )}
         </div>
+        {!isMobile && (
+          <div className="lg:col-span-1 w-full"> {/* No desktop, ocupa 1/3 da largura e vem por último */}
+            <ClientProgress tasks={tasks} isLoading={isLoading} />
+          </div>
+        )}
       </div>
     </div>
   );
