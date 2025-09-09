@@ -64,20 +64,35 @@ const Index = () => {
 
   const createGroupMutation = useMutation({
     mutationFn: async (name: string) => {
-      const { data, error } = await supabase.from("groups").insert({
+      // 1. Create the group
+      const { data: newGroup, error: groupError } = await supabase.from("groups").insert({
         name,
         workspace_id: activeWorkspaceId,
         position: groups?.length || 0,
       }).select().single();
-      if (error) throw error;
-      return data;
+      if (groupError) throw groupError;
+
+      // 2. Create default columns for the new group
+      const defaultColumns = [
+        { title: "Para aprovação", position: 0, group_id: newGroup.id },
+        { title: "Em Produção", position: 1, group_id: newGroup.id },
+        { title: "Aprovado", position: 2, group_id: newGroup.id },
+        { title: "Editar", position: 3, group_id: newGroup.id },
+      ];
+      const { error: columnsError } = await supabase.from("columns").insert(defaultColumns);
+      if (columnsError) {
+        // If columns fail, maybe delete the group for consistency? For now, just throw.
+        throw columnsError;
+      }
+      
+      return newGroup;
     },
     onSuccess: (newGroup) => {
       queryClient.invalidateQueries({ queryKey: ["groups", activeWorkspaceId] });
       setActiveGroupId(newGroup.id);
-      showSuccess("Grupo criado!");
+      showSuccess("Grupo criado com colunas padrão!");
     },
-    onError: (e: Error) => showError(e.message),
+    onError: (e: Error) => showError(`Erro ao criar grupo: ${e.message}`),
   });
 
   useEffect(() => {
