@@ -17,6 +17,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { PlusCircle, Settings, LogOut, UserCog } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { WorkspaceSettingsModal } from "@/components/WorkspaceSettingsModal";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { MyTasks } from "@/components/MyTasks";
 
 export interface Workspace {
   id: string;
@@ -67,7 +69,7 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <header className="p-4 bg-white dark:bg-gray-800 shadow-sm flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Dashboard de Clientes</h1>
+        <h1 className="text-2xl font-bold">Dashboard</h1>
         <div className="flex items-center gap-2">
             <Button asChild variant="outline">
                 <Link to="/admin">
@@ -82,43 +84,54 @@ const Dashboard = () => {
         </div>
       </header>
       <main className="p-4 md:p-8">
-        <div className="mb-6 flex justify-end">
-          <Button onClick={() => createWorkspaceMutation.mutate("Novo Workspace")}>
-            <PlusCircle className="h-4 w-4 mr-2" />
-            Novo Cliente (Workspace)
-          </Button>
-        </div>
-        {isLoading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-48 w-full" />)}
+        <Tabs defaultValue="tasks">
+          <div className="flex justify-between items-center mb-6">
+            <TabsList>
+              <TabsTrigger value="tasks">Minhas Tarefas</TabsTrigger>
+              <TabsTrigger value="clients">Clientes</TabsTrigger>
+            </TabsList>
+            <Button onClick={() => createWorkspaceMutation.mutate("Novo Workspace")}>
+              <PlusCircle className="h-4 w-4 mr-2" />
+              Novo Cliente (Workspace)
+            </Button>
           </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {workspaces?.map((ws) => (
-              <Card key={ws.id} className="hover:shadow-lg transition-shadow">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-lg font-medium flex-grow truncate pr-2">
-                    {ws.name}
-                  </CardTitle>
-                  <Button variant="ghost" size="icon" onClick={() => handleOpenSettings(ws)}>
-                    <Settings className="h-4 w-4" />
-                  </Button>
-                </CardHeader>
-                <Link to={`/workspace/${ws.id}`}>
-                  <CardContent className="flex flex-col items-center justify-center pt-4">
-                    <Avatar className="h-24 w-24 mb-4">
-                      <AvatarImage src={ws.logo_url || undefined} alt={ws.name} />
-                      <AvatarFallback>{ws.name.charAt(0).toUpperCase()}</AvatarFallback>
-                    </Avatar>
-                    <Button variant="outline" className="w-full">
-                      Ver Quadro
-                    </Button>
-                  </CardContent>
-                </Link>
-              </Card>
-            ))}
-          </div>
-        )}
+          <TabsContent value="tasks">
+            <MyTasks />
+          </TabsContent>
+          <TabsContent value="clients">
+            {isLoading ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-48 w-full" />)}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                {workspaces?.map((ws) => (
+                  <Card key={ws.id} className="hover:shadow-lg transition-shadow">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-lg font-medium flex-grow truncate pr-2">
+                        {ws.name}
+                      </CardTitle>
+                      <Button variant="ghost" size="icon" onClick={() => handleOpenSettings(ws)}>
+                        <Settings className="h-4 w-4" />
+                      </Button>
+                    </CardHeader>
+                    <Link to={`/workspace/${ws.id}`}>
+                      <CardContent className="flex flex-col items-center justify-center pt-4">
+                        <Avatar className="h-24 w-24 mb-4">
+                          <AvatarImage src={ws.logo_url || undefined} alt={ws.name} />
+                          <AvatarFallback>{ws.name.charAt(0).toUpperCase()}</AvatarFallback>
+                        </Avatar>
+                        <Button variant="outline" className="w-full">
+                          Ver Quadro
+                        </Button>
+                      </CardContent>
+                    </Link>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
       </main>
       <MadeWithDyad />
       <WorkspaceSettingsModal
