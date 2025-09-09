@@ -25,7 +25,7 @@ const SecondBrainDashboard = () => {
   const navigate = useNavigate();
   const [isClientModalOpen, setIsClientModalOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState<SecondBrainClient | null>(null);
-  const [userRole, setUserRole] = useState<string | null>(null);
+  const [userRole, setUserRole] = useState<string | undefined>(undefined); // Changed initial state to undefined
   const [isProfileLoading, setProfileLoading] = useState(true);
 
   const { data: clients, isLoading: isLoadingClients } = useQuery<SecondBrainClient[]>({
@@ -60,7 +60,8 @@ const SecondBrainDashboard = () => {
 
   useEffect(() => {
     if (!isProfileLoading && userRole !== 'admin') {
-      navigate("/"); // Redirect non-admins
+      // Only redirect if userRole is definitively not admin (could be 'user' or null)
+      navigate("/");
     }
   }, [isProfileLoading, userRole, navigate]);
 
@@ -102,12 +103,20 @@ const SecondBrainDashboard = () => {
     await saveClientMutation.mutateAsync(client);
   };
 
-  if (isProfileLoading || userRole === null) {
+  if (isProfileLoading || userRole === undefined) { // Check for undefined
     return <div className="flex justify-center items-center min-h-screen">Carregando...</div>;
   }
 
   if (userRole !== 'admin') {
-    return null; // Should be redirected by useEffect
+    // If not admin, show access denied message before redirecting
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <Card className="w-full max-w-md text-center">
+          <CardHeader><CardTitle>Acesso Negado</CardTitle></CardHeader>
+          <CardContent><p>Você não tem permissão para acessar esta página.</p></CardContent>
+        </Card>
+      </div>
+    );
   }
 
   return (

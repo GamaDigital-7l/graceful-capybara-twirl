@@ -32,7 +32,7 @@ const ClientPromptsPage = () => {
   const navigate = useNavigate();
   const [isPromptModalOpen, setIsPromptModalOpen] = useState(false);
   const [selectedPrompt, setSelectedPrompt] = useState<Prompt | null>(null);
-  const [userRole, setUserRole] = useState<string | null>(null);
+  const [userRole, setUserRole] = useState<string | undefined>(undefined); // Changed initial state to undefined
   const [isProfileLoading, setProfileLoading] = useState(true);
 
   const { data: clientDetails, isLoading: isLoadingClientDetails } = useQuery({
@@ -130,12 +130,19 @@ const ClientPromptsPage = () => {
     toast.success("Prompt copiado para a área de transferência!");
   };
 
-  if (isProfileLoading || userRole === null) {
+  if (isProfileLoading || userRole === undefined) { // Check for undefined
     return <div className="flex justify-center items-center min-h-screen">Carregando...</div>;
   }
 
   if (userRole !== 'admin') {
-    return null; // Should be redirected by useEffect
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <Card className="w-full max-w-md text-center">
+          <CardHeader><CardTitle>Acesso Negado</CardTitle></CardHeader>
+          <CardContent><p>Você não tem permissão para acessar esta página.</p></CardContent>
+        </Card>
+      </div>
+    );
   }
 
   return (
