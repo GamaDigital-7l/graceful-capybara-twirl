@@ -7,12 +7,19 @@ import { supabase } from "@/integrations/supabase/client";
 import { showError, showSuccess } from "@/utils/toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"; // Removido AvatarImage
 import { Skeleton } from "@/components/ui/skeleton";
 import { PlusCircle, ArrowLeft, Edit, Trash2, MoreVertical } from "lucide-react";
 import { SecondBrainClientModal, SecondBrainClient } from "@/components/SecondBrainClientModal";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+
+// Atualizada a interface para remover photo_url
+export interface SecondBrainClient {
+  id: string;
+  name: string;
+  created_by?: string;
+}
 
 const fetchSecondBrainClients = async (): Promise<SecondBrainClient[]> => {
   const { data, error } = await supabase.from("second_brain_clients").select("*").order("name");
@@ -65,18 +72,13 @@ const SecondBrainDashboard = () => {
   }, [isProfileLoading, userRole, navigate]);
 
   const saveClientMutation = useMutation({
-    mutationFn: async ({ client, file }: { client: Partial<SecondBrainClient>, file: File | null }) => {
-      // Garante que a sessão do usuário está fresca antes de qualquer operação que exija autenticação
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      if (sessionError || !session || !session.user) {
-        throw new Error("Usuário não autenticado ou sessão inválida. Por favor, faça login novamente.");
-      }
-      const user = session.user;
+    mutationFn: async (client: Partial<SecondBrainClient>) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Usuário não autenticado.");
 
       let currentClientId = client.id;
-      let finalPhotoUrl = client.photo_url;
 
-      // Passo 1: Criar o registro do cliente se for novo (sem photo_url inicialmente)
+      // Passo 1: Criar o registro do cliente se for novo
       if (!currentClientId) {
         const { data: newClient, error: insertError } = await supabase
           .from("second_brain_clients")
@@ -87,25 +89,10 @@ const SecondBrainDashboard = () => {
         currentClientId = newClient.id;
       }
 
-      // Passo 2: Fazer upload do arquivo se fornecido
-      if (file && currentClientId) {
-        const filePath = `second-brain-client-photos/${currentClientId}/${Date.now()}_${file.name}`;
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from("second-brain-assets")
-          .upload(filePath, file, { upsert: true });
-
-        if (uploadError) throw uploadError;
-
-        const { data: publicUrlData } = supabase.storage
-          .from("second-brain-assets")
-          .getPublicUrl(uploadData.path);
-        finalPhotoUrl = publicUrlData.publicUrl;
-      }
-
-      // Passo 3: Atualizar o registro do cliente com o photo_url (se alterado) e o nome
+      // Passo 2: Atualizar o registro do cliente com o nome
       const { error: updateError } = await supabase
         .from("second_brain_clients")
-        .update({ name: client.name, photo_url: finalPhotoUrl })
+        .update({ name: client.name })
         .eq("id", currentClientId);
       if (updateError) throw updateError;
     },
@@ -128,8 +115,8 @@ const SecondBrainDashboard = () => {
     onError: (e: Error) => showError(e.message),
   });
 
-  const handleSaveClient = async (client: Partial<SecondBrainClient>, file: File | null) => {
-    await saveClientMutation.mutateAsync({ client, file });
+  const handleSaveClient = async (client: Partial<SecondBrainClient>) => {
+    await saveClientMutation.mutateAsync(client);
   };
 
   if (isProfileLoading || userRole === undefined) {
@@ -220,8 +207,8 @@ const SecondBrainDashboard = () => {
                     <Link to={`/second-brain/${client.id}`} className="flex flex-col flex-grow">
                       <CardContent className="flex flex-col items-center justify-center pt-4 flex-grow">
                         <Avatar className="h-24 w-24 mb-4">
-                          <AvatarImage src={client.photo_url || undefined} alt={client.name} />
-                          <AvatarFallback>{client.name.charAt(0).toUpperCase()}</AvatarFallback>
+                          {/* Removido AvatarImage, agora sempre usará AvatarFallback */}
+                          <AvatarFallback className="text-4xl">{client.name.charAt(0).toUpperCase()}</AvatarFallback>
                         </Avatar>
                         <Button variant="outline" className="w-full mt-auto">Ver Prompts</Button>
                       </CardContent>
