@@ -6,6 +6,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { showError, showSuccess } from "@/utils/toast";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 interface Workspace {
   id: string;
@@ -19,9 +21,12 @@ const fetchWorkspaces = async () => {
 };
 
 const createWorkspace = async (name: string) => {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Usuário não autenticado.");
+
   const { data, error } = await supabase
     .from("workspaces")
-    .insert({ name })
+    .insert({ name, user_id: user.id })
     .select()
     .single();
   if (error) throw new Error(error.message);
@@ -33,6 +38,7 @@ const Index = () => {
     localStorage.getItem("activeWorkspaceId")
   );
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const {
     data: workspaces,
@@ -67,23 +73,31 @@ const Index = () => {
     }
   }, [activeWorkspaceId]);
 
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    // The ProtectedRoute component will handle the redirect
+  };
+
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
       <header className="p-4 bg-white dark:bg-gray-800 shadow-md flex justify-between items-center">
         <h1 className="text-2xl font-bold">Quadro Kanban</h1>
-        {isLoading ? (
-          <div className="flex items-center gap-4">
-            <Skeleton className="h-10 w-[200px]" />
-            <Skeleton className="h-10 w-[160px]" />
-          </div>
-        ) : (
-          <WorkspaceSwitcher
-            workspaces={workspaces || []}
-            activeWorkspaceId={activeWorkspaceId}
-            onWorkspaceChange={setActiveWorkspaceId}
-            onCreateWorkspace={(name) => createWorkspaceMutation.mutate(name)}
-          />
-        )}
+        <div className="flex items-center gap-4">
+          {isLoading ? (
+            <div className="flex items-center gap-4">
+              <Skeleton className="h-10 w-[200px]" />
+              <Skeleton className="h-10 w-[160px]" />
+            </div>
+          ) : (
+            <WorkspaceSwitcher
+              workspaces={workspaces || []}
+              activeWorkspaceId={activeWorkspaceId}
+              onWorkspaceChange={setActiveWorkspaceId}
+              onCreateWorkspace={(name) => createWorkspaceMutation.mutate(name)}
+            />
+          )}
+          <Button onClick={handleLogout} variant="outline">Sair</Button>
+        </div>
       </header>
       <main>
         {activeWorkspaceId ? (
