@@ -8,9 +8,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { showError } from "@/utils/toast";
 import { PasswordInput } from "@/components/PasswordInput";
+import { useSettings } from "@/contexts/SettingsContext";
 
 const Login = () => {
   const navigate = useNavigate();
+  const settings = useSettings();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -37,7 +39,13 @@ const Login = () => {
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-100 dark:bg-gray-900">
       <div className="w-full max-w-md p-8 bg-white dark:bg-gray-800 rounded-lg shadow-md">
-        <h1 className="text-2xl font-bold text-center mb-6">Bem-vindo</h1>
+        <div className="flex justify-center mb-6">
+          {settings?.logo_url ? (
+            <img src={settings.logo_url} alt="Logo" className="h-16 w-auto" />
+          ) : (
+            <h1 className="text-2xl font-bold text-center">Bem-vindo</h1>
+          )}
+        </div>
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
             <Label htmlFor="email">Endereço de e-mail</Label>

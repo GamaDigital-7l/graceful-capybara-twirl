@@ -9,14 +9,14 @@ import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { PlusCircle, Settings, LogOut, UserCog, BookOpen } from "lucide-react";
+import { PlusCircle, Settings, LogOut, UserCog, BookOpen, Palette } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { WorkspaceSettingsModal } from "@/components/WorkspaceSettingsModal";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MyTasks } from "@/components/MyTasks";
 import ClientDashboard from "./ClientDashboard";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import AgencyPlaybookPage from "./AgencyPlaybookPage"; // Import the new page
+import AgencyPlaybookPage from "./AgencyPlaybookPage";
 
 export interface Workspace {
   id: string;
@@ -168,12 +168,20 @@ const Dashboard = () => {
         <h1 className="text-2xl font-bold">Dashboard</h1>
         <div className="flex items-center gap-2">
           {userRole === 'admin' && (
-            <Button asChild variant="outline">
-              <Link to="/admin">
-                <UserCog className="h-4 w-4 mr-2" />
-                Admin
-              </Link>
-            </Button>
+            <>
+              <Button asChild variant="outline">
+                <Link to="/settings">
+                  <Palette className="h-4 w-4 mr-2" />
+                  Configurações
+                </Link>
+              </Button>
+              <Button asChild variant="outline">
+                <Link to="/admin">
+                  <UserCog className="h-4 w-4 mr-2" />
+                  Admin
+                </Link>
+              </Button>
+            </>
           )}
           <ThemeToggle />
           <Button onClick={handleLogout} variant="outline">
