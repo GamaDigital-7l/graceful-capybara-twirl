@@ -12,9 +12,9 @@ serve(async (req) => {
   }
 
   try {
-    const { email, full_name, password } = await req.json();
-    if (!email || !full_name || !password) {
-      throw new Error("Email, full name, and password are required.");
+    const { email, full_name, password, role } = await req.json();
+    if (!email || !full_name || !password || !role) {
+      throw new Error("Email, full name, password, and role are required.");
     }
 
     const supabaseAdmin = createClient(
@@ -26,7 +26,10 @@ serve(async (req) => {
       email: email,
       password: password,
       email_confirm: true,
-      user_metadata: { full_name: full_name },
+      user_metadata: { 
+        full_name: full_name,
+        role: role 
+      },
     });
 
     if (error) throw error;

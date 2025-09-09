@@ -15,6 +15,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Link } from "react-router-dom";
 import { ArrowLeft, PlusCircle, Trash2 } from "lucide-react";
 import { PasswordInput } from "@/components/PasswordInput";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const fetchUsers = async () => {
   const { data, error } = await supabase.functions.invoke("list-users");
@@ -28,6 +29,7 @@ const AdminPage = () => {
   const [email, setEmail] = useState("");
   const [fullName, setFullName] = useState("");
   const [password, setPassword] = useState("");
+  const [role, setRole] = useState("user");
 
   const { data: users, isLoading: isLoadingUsers } = useQuery({
     queryKey: ["users"],
@@ -37,7 +39,7 @@ const AdminPage = () => {
   const createUserMutation = useMutation({
     mutationFn: async () => {
       const { error } = await supabase.functions.invoke("create-user", {
-        body: { email, full_name: fullName, password },
+        body: { email, full_name: fullName, password, role },
       });
       if (error) throw error;
     },
@@ -47,6 +49,7 @@ const AdminPage = () => {
       setEmail("");
       setFullName("");
       setPassword("");
+      setRole("user");
       setCreateModalOpen(false);
     },
     onError: (e: any) => showError(`Erro: ${e.message}`),
@@ -98,6 +101,18 @@ const AdminPage = () => {
               <div className="space-y-2">
                 <Label htmlFor="password">Senha</Label>
                 <PasswordInput id="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="role">Papel</Label>
+                <Select value={role} onValueChange={setRole}>
+                  <SelectTrigger id="role">
+                    <SelectValue placeholder="Selecione um papel" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="user">Usuário (Cliente)</SelectItem>
+                    <SelectItem value="admin">Admin (Funcionário)</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
             <DialogFooter>
