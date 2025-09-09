@@ -7,12 +7,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "./ui/textarea";
-import { supabase } from "@/integrations/supabase/client";
+import { Switch } from "@/components/ui/switch";
 import { Workspace } from "@/pages/Dashboard";
 
 export interface FinancialData {
   id?: string;
-  workspace_id: string;
+  workspace_id: string | null;
+  client_name?: string;
   service_description: string;
   payment_day: number;
   amount: number;
@@ -32,13 +33,25 @@ interface FinancialControlModalProps {
 
 export function FinancialControlModal({ isOpen, onClose, onSave, existingData, workspaces, usedWorkspaceIds }: FinancialControlModalProps) {
   const [formData, setFormData] = useState<Partial<FinancialData>>({});
+  const [isAvulso, setIsAvulso] = useState(false);
 
   useEffect(() => {
+    const isExistingAvulso = existingData ? !existingData.workspace_id : false;
+    setIsAvulso(isExistingAvulso);
     setFormData(existingData || { status: 'Ativo', contract_type: 'Mensal', client_type: 'Fixo' });
   }, [existingData, isOpen]);
 
   const handleChange = (field: keyof FinancialData, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleAvulsoToggle = (checked: boolean) => {
+    setIsAvulso(checked);
+    if (checked) {
+      setFormData(prev => ({ ...prev, workspace_id: null }));
+    } else {
+      setFormData(prev => ({ ...prev, client_name: undefined }));
+    }
   };
 
   const handleSave = () => {
@@ -52,26 +65,39 @@ export function FinancialControlModal({ isOpen, onClose, onSave, existingData, w
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{existingData?.id ? "Editar" : "Adicionar"} Controle Financeiro</DialogTitle>
+          <DialogTitle>{existingData?.id ? "Editar" : "Adicionar"} Lançamento Financeiro</DialogTitle>
         </DialogHeader>
         <div className="py-4 grid grid-cols-2 gap-4">
-          <div className="col-span-2 space-y-2">
-            <Label htmlFor="workspace_id">Cliente (Workspace)</Label>
-            <Select
-              value={formData.workspace_id}
-              onValueChange={(value) => handleChange('workspace_id', value)}
-              disabled={!!existingData?.id}
-            >
-              <SelectTrigger id="workspace_id">
-                <SelectValue placeholder="Selecione um cliente" />
-              </SelectTrigger>
-              <SelectContent>
-                {availableWorkspaces.map(ws => (
-                  <SelectItem key={ws.id} value={ws.id}>{ws.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="col-span-2 flex items-center space-x-2">
+            <Switch id="avulso-switch" checked={isAvulso} onCheckedChange={handleAvulsoToggle} disabled={!!existingData?.id} />
+            <Label htmlFor="avulso-switch">É um serviço avulso?</Label>
           </div>
+
+          {isAvulso ? (
+            <div className="col-span-2 space-y-2">
+              <Label htmlFor="client_name">Nome do Cliente (Avulso)</Label>
+              <Input id="client_name" value={formData.client_name || ''} onChange={(e) => handleChange('client_name', e.target.value)} />
+            </div>
+          ) : (
+            <div className="col-span-2 space-y-2">
+              <Label htmlFor="workspace_id">Cliente (Workspace)</Label>
+              <Select
+                value={formData.workspace_id || ''}
+                onValueChange={(value) => handleChange('workspace_id', value)}
+                disabled={!!existingData?.id}
+              >
+                <SelectTrigger id="workspace_id">
+                  <SelectValue placeholder="Selecione um cliente" />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableWorkspaces.map(ws => (
+                    <SelectItem key={ws.id} value={ws.id}>{ws.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
           <div className="col-span-2 space-y-2">
             <Label htmlFor="service_description">Serviço Contratado</Label>
             <Textarea id="service_description" value={formData.service_description || ''} onChange={(e) => handleChange('service_description', e.target.value)} />

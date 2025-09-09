@@ -7,12 +7,7 @@ import { TaskSummaryCard } from "./TaskSummaryCard";
 import { TaskStats } from "./TaskStats";
 import { useMemo } from "react";
 import { ClientProgress } from "./ClientProgress";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "./ui/badge";
 
 const fetchUserTasks = async () => {
@@ -60,9 +55,8 @@ export function MyTasks() {
         <div className="grid lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 space-y-4">
                 <Skeleton className="h-8 w-48 mb-4" />
-                <Skeleton className="h-20" />
-                <Skeleton className="h-20" />
-                <Skeleton className="h-20" />
+                <Skeleton className="h-40" />
+                <Skeleton className="h-40" />
             </div>
             <div>
                 <Skeleton className="h-64" />
@@ -79,23 +73,23 @@ export function MyTasks() {
         <div className="lg:col-span-2">
           <h2 className="text-2xl font-bold mb-4">Caixa de Entrada de Tarefas</h2>
           {pendingTasks.length > 0 ? (
-            <Accordion type="multiple" defaultValue={Object.keys(groupedTasks)}>
+            <div className="space-y-6">
               {Object.entries(groupedTasks).map(([workspaceId, { name, tasks }]) => (
-                <AccordionItem value={workspaceId} key={workspaceId}>
-                  <AccordionTrigger className="text-lg font-semibold">
-                    <div className="flex items-center gap-3">
+                <Card key={workspaceId}>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-3">
                       {name}
                       <Badge>{tasks.length}</Badge>
-                    </div>
-                  </AccordionTrigger>
-                  <AccordionContent className="space-y-3 pt-2">
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
                     {tasks.map((task) => (
                       <TaskSummaryCard key={task.id} task={task} />
                     ))}
-                  </AccordionContent>
-                </AccordionItem>
+                  </CardContent>
+                </Card>
               ))}
-            </Accordion>
+            </div>
           ) : (
             <p className="text-muted-foreground mt-4">Nenhuma tarefa pendente. Bom trabalho!</p>
           )}

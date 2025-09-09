@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, PlusCircle, MoreVertical, Edit, Trash2, TrendingUp, Users, DollarSign } from "lucide-react";
+import { ArrowLeft, PlusCircle, MoreVertical, Edit, Trash2, TrendingUp, Users, DollarSign, RefreshCw } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { FinancialControlModal, FinancialData } from "@/components/FinancialControlModal";
@@ -69,6 +69,18 @@ const FinancialDashboard = () => {
     onError: (e: Error) => showError(e.message),
   });
 
+  const resetMonthMutation = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.rpc('reset_financial_month');
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["financialData"] });
+      showSuccess("Mês zerado! Apenas clientes fixos foram mantidos.");
+    },
+    onError: (e: Error) => showError(e.message),
+  });
+
   const { totalRevenue, activeClients, averageTicket } = useMemo(() => {
     if (!financialData) return { totalRevenue: 0, activeClients: 0, averageTicket: 0 };
     const activeData = financialData.filter(d => d.status === 'Ativo');
@@ -83,7 +95,7 @@ const FinancialDashboard = () => {
 
   const formatCurrency = (value: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
 
-  const usedWorkspaceIds = financialData?.map(d => d.workspace_id) || [];
+  const usedWorkspaceIds = financialData?.filter(d => d.workspace_id).map(d => d.workspace_id!) || [];
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 md:p-8">
@@ -97,10 +109,34 @@ const FinancialDashboard = () => {
           </Button>
           <h1 className="text-2xl font-bold">Dashboard Financeiro</h1>
         </div>
-        <Button onClick={() => { setSelectedData(null); setIsModalOpen(true); }}>
-          <PlusCircle className="h-4 w-4 mr-2" />
-          Adicionar Cliente
-        </Button>
+        <div className="flex items-center gap-2">
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="outline">
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Zerar Mês
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Confirmar Ação</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Isso removerá todos os clientes do tipo "Freela" e contratos do tipo "Pacote". Apenas clientes "Fixos" com contrato "Mensal" permanecerão. Esta ação não pode ser desfeita.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction onClick={() => resetMonthMutation.mutate()} className="bg-destructive hover:bg-destructive/90">
+                  Sim, zerar mês
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+          <Button onClick={() => { setSelectedData(null); setIsModalOpen(true); }}>
+            <PlusCircle className="h-4 w-4 mr-2" />
+            Adicionar Lançamento
+          </Button>
+        </div>
       </header>
       <main>
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-8">
@@ -160,7 +196,10 @@ const FinancialDashboard = () => {
                 ) : (
                   financialData?.map(item => (
                     <TableRow key={item.id}>
-                      <TableCell className="font-medium">{item.workspace.name}</TableCell>
+                      <TableCell className="font-medium flex items-center gap-2">
+                        {item.workspace ? item.workspace.name : item.client_name}
+                        {!item.workspace_id && <Badge variant="outline">Avulso</Badge>}
+                      </TableCell>
                       <TableCell><Badge variant={item.status === 'Ativo' ? 'default' : 'destructive'}>{item.status}</Badge></TableCell>
                       <TableCell>{formatCurrency(Number(item.amount))}</TableCell>
                       <TableCell>{item.payment_day}</TableCell>
