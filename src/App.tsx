@@ -10,6 +10,7 @@ import Workspace from "./pages/Workspace";
 import PlaybookPage from "./pages/Playbook";
 import AdminPage from "./pages/Admin";
 import SettingsPage from "./pages/Settings";
+import FinancialDashboard from "./pages/FinancialDashboard";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -62,6 +63,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <SettingsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/financial"
+              element={
+                <ProtectedRoute>
+                  <FinancialDashboard />
                 </ProtectedRoute>
               }
             />

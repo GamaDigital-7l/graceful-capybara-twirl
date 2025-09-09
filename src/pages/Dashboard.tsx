@@ -9,7 +9,7 @@ import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { PlusCircle, Settings, LogOut, UserCog, BookOpen, Palette, MoreVertical } from "lucide-react";
+import { PlusCircle, Settings, LogOut, UserCog, BookOpen, Palette, MoreVertical, Banknote } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { WorkspaceSettingsModal } from "@/components/WorkspaceSettingsModal";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -109,6 +109,7 @@ const Dashboard = () => {
           <DropdownMenuContent align="end">
             {userRole === 'admin' && (
               <>
+                <DropdownMenuItem asChild><Link to="/financial" className="flex items-center"><Banknote className="h-4 w-4 mr-2" />Financeiro</Link></DropdownMenuItem>
                 <DropdownMenuItem asChild><Link to="/settings" className="flex items-center"><Palette className="h-4 w-4 mr-2" />Configurações</Link></DropdownMenuItem>
                 <DropdownMenuItem asChild><Link to="/admin" className="flex items-center"><UserCog className="h-4 w-4 mr-2" />Admin</Link></DropdownMenuItem>
                 <DropdownMenuSeparator />
@@ -130,6 +131,12 @@ const Dashboard = () => {
       <div className="flex items-center gap-2">
         {userRole === 'admin' && (
           <>
+            <Button asChild variant="outline">
+              <Link to="/financial">
+                <Banknote className="h-4 w-4 mr-2" />
+                Financeiro
+              </Link>
+            </Button>
             <Button asChild variant="outline">
               <Link to="/settings">
                 <Palette className="h-4 w-4 mr-2" />
