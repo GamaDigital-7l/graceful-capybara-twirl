@@ -108,19 +108,27 @@ export function KanbanBoard({ groupId }: KanbanBoardProps) {
 
   const saveTaskMutation = useMutation({
     mutationFn: async (task: Partial<Task>) => {
-      const { id, ...taskData } = task;
-      const dataToSave = {
-        ...taskData,
-        column_id: task.columnId,
-        due_date: task.dueDate,
-        action_type: task.actionType,
+      const { id, columnId, dueDate, actionType, ...restOfTask } = task;
+
+      const dataToSave: { [key: string]: any } = {
+        ...restOfTask,
+        column_id: columnId,
+        due_date: dueDate,
+        action_type: actionType,
       };
+
+      // Remove undefined keys so they don't overwrite existing values with null
+      Object.keys(dataToSave).forEach(key => {
+        if (dataToSave[key] === undefined) {
+          delete dataToSave[key];
+        }
+      });
 
       if (id) {
         const { error } = await supabase.from("tasks").update(dataToSave).eq("id", id);
         if (error) throw error;
       } else {
-        const tasksInColumn = tasks.filter(t => t.columnId === task.columnId).length;
+        const tasksInColumn = tasks.filter(t => t.columnId === columnId).length;
         const { error } = await supabase.from("tasks").insert({ ...dataToSave, position: tasksInColumn });
         if (error) throw error;
       }
