@@ -66,8 +66,12 @@ const SecondBrainDashboard = () => {
 
   const saveClientMutation = useMutation({
     mutationFn: async ({ client, file }: { client: Partial<SecondBrainClient>, file: File | null }) => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Usuário não autenticado.");
+      // Garante que a sessão do usuário está fresca antes de qualquer operação que exija autenticação
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !session || !session.user) {
+        throw new Error("Usuário não autenticado ou sessão inválida. Por favor, faça login novamente.");
+      }
+      const user = session.user;
 
       let currentClientId = client.id;
       let finalPhotoUrl = client.photo_url;
