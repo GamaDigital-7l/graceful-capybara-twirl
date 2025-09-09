@@ -50,12 +50,24 @@ const ClientPromptsPage = () => {
   useEffect(() => {
     const fetchUserRole = async () => {
       setProfileLoading(true);
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
-        setUserRole(profile?.role || null);
+      try {
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        if (userError) throw userError;
+
+        if (user) {
+          const { data: profile, error: profileError } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+          if (profileError) throw profileError;
+          setUserRole(profile?.role || null);
+        } else {
+          setUserRole(null); // User is not logged in
+        }
+      } catch (error: any) {
+        console.error("Error fetching user role:", error.message);
+        showError(`Erro ao carregar perfil: ${error.message}`);
+        setUserRole(null); // Ensure role is null on error
+      } finally {
+        setProfileLoading(false);
       }
-      setProfileLoading(false);
     };
     fetchUserRole();
   }, []);
@@ -74,6 +86,7 @@ const ClientPromptsPage = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["secondBrainPrompts", clientId] });
       showSuccess("Prompt adicionado!");
+      setIsPromptModalOpen(false); // Close modal on success
     },
     onError: (e: Error) => showError(e.message),
   });
@@ -87,6 +100,7 @@ const ClientPromptsPage = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["secondBrainPrompts", clientId] });
       showSuccess("Prompt atualizado!");
+      setIsPromptModalOpen(false); // Close modal on success
     },
     onError: (e: Error) => showError(e.message),
   });

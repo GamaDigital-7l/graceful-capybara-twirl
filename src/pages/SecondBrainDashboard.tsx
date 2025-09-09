@@ -36,12 +36,24 @@ const SecondBrainDashboard = () => {
   useEffect(() => {
     const fetchUserRole = async () => {
       setProfileLoading(true);
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
-        setUserRole(profile?.role || null);
+      try {
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        if (userError) throw userError;
+
+        if (user) {
+          const { data: profile, error: profileError } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+          if (profileError) throw profileError;
+          setUserRole(profile?.role || null);
+        } else {
+          setUserRole(null); // User is not logged in
+        }
+      } catch (error: any) {
+        console.error("Error fetching user role:", error.message);
+        showError(`Erro ao carregar perfil: ${error.message}`);
+        setUserRole(null); // Ensure role is null on error
+      } finally {
+        setProfileLoading(false);
       }
-      setProfileLoading(false);
     };
     fetchUserRole();
   }, []);
@@ -52,32 +64,24 @@ const SecondBrainDashboard = () => {
     }
   }, [isProfileLoading, userRole, navigate]);
 
-  const createClientMutation = useMutation({
+  // This mutation will now only handle updates, as creation is handled within the modal if a file is present.
+  // If no file is present, the modal will call this for creation too.
+  const saveClientMutation = useMutation({
     mutationFn: async (client: Partial<SecondBrainClient>) => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Usuário não autenticado.");
-      const { data, error } = await supabase.from("second_brain_clients").insert({ ...client, created_by: user.id }).select().single();
-      if (error) throw error;
-      return data;
+      if (client.id) {
+        const { error } = await supabase.from("second_brain_clients").update(client).eq("id", client.id);
+        if (error) throw error;
+      } else {
+        // This path should ideally only be hit if no photo was uploaded for a new client
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error("Usuário não autenticado.");
+        const { error } = await supabase.from("second_brain_clients").insert({ ...client, created_by: user.id });
+        if (error) throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["secondBrainClients"] });
-      showSuccess("Cliente adicionado ao Segundo Cérebro!");
-      setIsClientModalOpen(false); // Close modal on success
-    },
-    onError: (e: Error) => showError(e.message),
-  });
-
-  const updateClientMutation = useMutation({
-    mutationFn: async (client: Partial<SecondBrainClient>) => {
-      if (!client.id) throw new Error("ID do cliente é necessário para atualização.");
-      const { error } = await supabase.from("second_brain_clients").update(client).eq("id", client.id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["secondBrainClients"] });
-      showSuccess("Cliente atualizado!");
-      setIsClientModalOpen(false); // Close modal on success
+      showSuccess("Cliente salvo com sucesso!");
     },
     onError: (e: Error) => showError(e.message),
   });
@@ -94,12 +98,8 @@ const SecondBrainDashboard = () => {
     onError: (e: Error) => showError(e.message),
   });
 
-  const handleSaveClient = (client: Partial<SecondBrainClient>) => {
-    if (client.id) {
-      updateClientMutation.mutate(client);
-    } else {
-      createClientMutation.mutate(client);
-    }
+  const handleSaveClient = async (client: Partial<SecondBrainClient>) => {
+    await saveClientMutation.mutateAsync(client);
   };
 
   if (isProfileLoading || userRole === null) {

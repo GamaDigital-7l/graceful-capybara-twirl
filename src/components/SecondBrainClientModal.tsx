@@ -26,7 +26,7 @@ export interface SecondBrainClient {
 interface SecondBrainClientModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (client: Partial<SecondBrainClient>) => void;
+  onSave: (client: Partial<SecondBrainClient>) => Promise<void>; // onSave now returns a Promise
   existingClient: SecondBrainClient | null;
 }
 
@@ -40,6 +40,7 @@ export function SecondBrainClientModal({
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [photoPreviewUrl, setPhotoPreviewUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     if (existingClient) {
@@ -65,44 +66,69 @@ export function SecondBrainClientModal({
       return;
     }
 
+    setIsSaving(true);
     let finalPhotoUrl = existingClient?.photo_url || null;
+    let clientIdToUse = existingClient?.id;
+    let createdByToUse = existingClient?.created_by;
 
-    if (selectedFile) {
-      setIsUploading(true);
+    try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        showError("Você precisa estar logado para enviar imagens.");
-        setIsUploading(false);
+        showError("Você precisa estar logado para realizar esta ação.");
+        setIsSaving(false);
         return;
       }
+      createdByToUse = user.id; // Ensure created_by is always the current user for new clients or updates
 
-      const filePath = `second-brain-client-photos/${existingClient?.id || Date.now()}_${selectedFile.name}`;
-      const { data, error } = await supabase.storage
-        .from("second-brain-assets")
-        .upload(filePath, selectedFile, { upsert: true });
+      // If it's a new client and has a file, we need to create the client first to get an ID
+      if (!existingClient && selectedFile) {
+        const { data: newClientData, error: createError } = await supabase
+          .from("second_brain_clients")
+          .insert({ name: name.trim(), created_by: user.id })
+          .select("id")
+          .single();
 
-      if (error) {
-        showError("Erro ao enviar a foto. Tente novamente.");
-        setIsUploading(false);
-        return;
+        if (createError) throw createError;
+        clientIdToUse = newClientData.id;
+        showSuccess("Cliente criado com sucesso!");
       }
 
-      const { data: publicUrlData } = supabase.storage
-        .from("second-brain-assets")
-        .getPublicUrl(data.path);
+      if (selectedFile && clientIdToUse) {
+        setIsUploading(true);
+        const filePath = `second-brain-client-photos/${clientIdToUse}/${Date.now()}_${selectedFile.name}`;
+        const { data, error: uploadError } = await supabase.storage
+          .from("second-brain-assets")
+          .upload(filePath, selectedFile, { upsert: true });
 
-      finalPhotoUrl = publicUrlData.publicUrl;
+        if (uploadError) throw uploadError;
+
+        const { data: publicUrlData } = supabase.storage
+          .from("second-brain-assets")
+          .getPublicUrl(data.path);
+
+        finalPhotoUrl = publicUrlData.publicUrl;
+        setIsUploading(false);
+      }
+
+      // Now call onSave with the complete data
+      await onSave({
+        id: clientIdToUse, // Use the new ID if created, otherwise existing
+        name: name.trim(),
+        photo_url: finalPhotoUrl,
+        created_by: createdByToUse,
+      });
+
+      onClose(); // Close only after all operations are successful
+    } catch (error: any) {
+      console.error("Erro ao salvar cliente:", error);
+      showError(`Erro ao salvar cliente: ${error.message}`);
+    } finally {
+      setIsSaving(false);
       setIsUploading(false);
     }
-
-    onSave({
-      id: existingClient?.id,
-      name: name.trim(),
-      photo_url: finalPhotoUrl,
-      created_by: existingClient?.created_by,
-    });
-    // onClose(); // Removed this line
   };
+
+  const isDisabled = isUploading || isSaving;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -118,6 +144,7 @@ export function SecondBrainClientModal({
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Ex: Cliente XYZ"
+              disabled={isDisabled}
             />
           </div>
           <div className="space-y-2">
@@ -131,7 +158,7 @@ export function SecondBrainClientModal({
               <div className="flex-grow p-2 border rounded-md h-10 text-sm truncate">
                 {selectedFile ? selectedFile.name : (photoPreviewUrl ? "Foto existente" : "Nenhum arquivo selecionado")}
               </div>
-              <Button asChild variant="outline">
+              <Button asChild variant="outline" disabled={isDisabled}>
                 <Label htmlFor="photo-upload" className="cursor-pointer">
                   <Upload className="h-4 w-4 mr-2" />
                   Selecionar
@@ -141,6 +168,7 @@ export function SecondBrainClientModal({
                     className="sr-only"
                     onChange={handleFileChange}
                     accept="image/*"
+                    disabled={isDisabled}
                   />
                 </Label>
               </Button>
@@ -149,12 +177,12 @@ export function SecondBrainClientModal({
         </div>
         <DialogFooter>
           <DialogClose asChild>
-            <Button type="button" variant="secondary">
+            <Button type="button" variant="secondary" disabled={isDisabled}>
               Cancelar
             </Button>
           </DialogClose>
-          <Button type="button" onClick={handleSave} disabled={isUploading}>
-            {isUploading ? "Enviando..." : "Salvar"}
+          <Button type="button" onClick={handleSave} disabled={isDisabled}>
+            {isSaving ? "Salvando..." : (isUploading ? "Enviando..." : "Salvar")}
           </Button>
         </DialogFooter>
       </DialogContent>
