@@ -41,6 +41,7 @@ interface KanbanColumnProps {
   onUpdateColumn: (columnId: string, title: string) => void;
   onApproveTask: (taskId: string) => void;
   onEditRequestTask: (taskId: string) => void;
+  onImageClick: (imageUrl: string) => void;
 }
 
 export function KanbanColumn({
@@ -52,6 +53,7 @@ export function KanbanColumn({
   onUpdateColumn,
   onApproveTask,
   onEditRequestTask,
+  onImageClick,
 }: KanbanColumnProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [title, setTitle] = useState(column.title);
@@ -168,6 +170,7 @@ export function KanbanColumn({
               onClick={() => onCardClick(task)}
               onApprove={onApproveTask}
               onEditRequest={onEditRequestTask}
+              onImageClick={onImageClick}
             />
           ))}
         </SortableContext>

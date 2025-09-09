@@ -33,6 +33,7 @@ export interface Task {
   attachments?: Attachment[];
   actionType?: TaskActionType;
   comments?: Comment[];
+  position: number;
 }
 
 interface KanbanCardProps {
@@ -40,6 +41,7 @@ interface KanbanCardProps {
   onClick: () => void;
   onApprove?: (taskId: string) => void;
   onEditRequest?: (taskId: string) => void;
+  onImageClick: (imageUrl: string) => void;
 }
 
 export function KanbanCard({
@@ -47,6 +49,7 @@ export function KanbanCard({
   onClick,
   onApprove,
   onEditRequest,
+  onImageClick,
 }: KanbanCardProps) {
   const {
     setNodeRef,
@@ -100,13 +103,20 @@ export function KanbanCard({
       className="cursor-pointer hover:ring-2 hover:ring-primary transition-shadow"
     >
       {coverImage && (
-        <AspectRatio ratio={16 / 9} className="rounded-t-lg overflow-hidden">
-          <img
-            src={coverImage}
-            alt={task.title}
-            className="w-full h-full object-cover"
-          />
-        </AspectRatio>
+        <div
+          onClick={(e) => {
+            e.stopPropagation();
+            onImageClick(coverImage);
+          }}
+        >
+          <AspectRatio ratio={16 / 9} className="rounded-t-lg overflow-hidden">
+            <img
+              src={coverImage}
+              alt={task.title}
+              className="w-full h-full object-cover"
+            />
+          </AspectRatio>
+        </div>
       )}
       <CardContent className={cn("p-4 pb-2", coverImage && "pt-2")}>
         <p>{task.title}</p>

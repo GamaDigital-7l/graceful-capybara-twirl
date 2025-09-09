@@ -4,7 +4,6 @@ import React, { useState, useMemo, useEffect } from "react";
 import {
   DndContext,
   DragEndEvent,
-  DragOverEvent,
   DragOverlay,
   DragStartEvent,
   PointerSensor,
@@ -22,6 +21,7 @@ import { Plus } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { showError, showSuccess } from "@/utils/toast";
+import { ImagePreviewModal } from "./ImagePreviewModal";
 
 interface KanbanBoardProps {
   groupId: string;
@@ -70,6 +70,8 @@ export function KanbanBoard({ groupId }: KanbanBoardProps) {
   const [isEditRequestModalOpen, setIsEditRequestModalOpen] = useState(false);
   const [taskForEditRequest, setTaskForEditRequest] = useState<(Task & { columnId: string }) | null>(null);
   const [currentUser, setCurrentUser] = useState<{ full_name: string, role: string } | null>(null);
+  const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
+  const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -228,6 +230,11 @@ export function KanbanBoard({ groupId }: KanbanBoardProps) {
     }
   };
 
+  const handleImageClick = (imageUrl: string) => {
+    setPreviewImageUrl(imageUrl);
+    setIsPreviewModalOpen(true);
+  };
+
   const onDragStart = (event: DragStartEvent) => {
     const { active } = event;
     if (active.data.current?.type === "Column") {
@@ -240,31 +247,74 @@ export function KanbanBoard({ groupId }: KanbanBoardProps) {
   const onDragEnd = (event: DragEndEvent) => {
     setActiveEl(null);
     const { active, over } = event;
-    if (!over || active.id === over.id) return;
+    if (!over) return;
 
-    const activeType = active.data.current?.type;
-    if (activeType === "Column") {
-      const activeIndex = columns.findIndex(c => c.id === active.id);
-      const overIndex = columns.findIndex(c => c.id === over.id);
-      updateColumnPositionMutation.mutate(arrayMove(columns, activeIndex, overIndex).map((c, i) => ({ ...c, position: i })));
+    const activeId = active.id;
+    const overId = over.id;
+
+    if (activeId === overId) return;
+
+    const isActiveAColumn = active.data.current?.type === "Column";
+    if (isActiveAColumn) {
+        const activeIndex = columns.findIndex((c) => c.id === activeId);
+        const overIndex = columns.findIndex((c) => c.id === overId);
+        if (activeIndex !== overIndex) {
+            const reorderedColumns = arrayMove(columns, activeIndex, overIndex);
+            updateColumnPositionMutation.mutate(reorderedColumns.map((col, index) => ({ ...col, position: index })));
+        }
+        return;
     }
-  };
 
-  const onDragOver = (event: DragOverEvent) => {
-    const { active, over } = event;
-    if (!over || active.id === over.id || active.data.current?.type !== "Task") return;
-    
-    const activeTask = tasks.find(t => t.id === active.id);
-    const overColumnId = over.data.current?.type === "Column" ? over.id : over.data.current?.task.columnId;
-    
-    if (activeTask && overColumnId && activeTask.columnId !== overColumnId) {
-      const updatedTasks = tasks.map(t => t.id === active.id ? { ...t, columnId: overColumnId as string } : t);
-      updateTaskPositionMutation.mutate(updatedTasks.map((t, i) => ({ ...t, position: i })));
-      
-      const destColumn = columns.find(c => c.id === overColumnId);
-      if (destColumn) {
-        triggerNotification(`*${currentUser?.full_name}* moveu a tarefa "${activeTask.title}" para a coluna *${destColumn.title}* no workspace *${workspaceName}*.`);
-      }
+    const isActiveATask = active.data.current?.type === "Task";
+    if (isActiveATask) {
+        const activeTask = tasks.find(t => t.id === activeId);
+        if (!activeTask) return;
+
+        const overIsAColumn = over.data.current?.type === "Column";
+        const overIsATask = over.data.current?.type === "Task";
+
+        const sourceColumnId = activeTask.columnId;
+        let destinationColumnId: string;
+        if (overIsAColumn) {
+            destinationColumnId = over.id as string;
+        } else if (overIsATask) {
+            const overTask = tasks.find(t => t.id === overId);
+            if (!overTask) return;
+            destinationColumnId = overTask.columnId;
+        } else {
+            return;
+        }
+
+        const sourceTasks = tasks.filter(t => t.columnId === sourceColumnId);
+        const destTasks = tasks.filter(t => t.columnId === destinationColumnId);
+        let finalTasksToUpdate: Task[] = [];
+
+        if (sourceColumnId === destinationColumnId) {
+            const activeIndex = sourceTasks.findIndex(t => t.id === activeId);
+            const overIndex = destTasks.findIndex(t => t.id === overId);
+            const reordered = arrayMove(sourceTasks, activeIndex, overIndex);
+            finalTasksToUpdate = reordered.map((task, index) => ({ ...task, position: index }));
+        } else {
+            const activeIndex = sourceTasks.findIndex(t => t.id === activeId);
+            const [movedTask] = sourceTasks.splice(activeIndex, 1);
+
+            let overIndex = destTasks.findIndex(t => t.id === overId);
+            if (overIndex === -1) {
+                overIndex = destTasks.length;
+            }
+            destTasks.splice(overIndex, 0, { ...movedTask, columnId: destinationColumnId });
+
+            const sourceUpdates = sourceTasks.map((t, i) => ({ ...t, position: i }));
+            const destUpdates = destTasks.map((t, i) => ({ ...t, position: i }));
+            finalTasksToUpdate = [...sourceUpdates, ...destUpdates];
+
+            const destColumn = columns.find(c => c.id === destinationColumnId);
+            if (destColumn) {
+                triggerNotification(`*${currentUser?.full_name}* moveu a tarefa "${activeTask.title}" para a coluna *${destColumn.title}* no workspace *${workspaceName}*.`);
+            }
+        }
+        
+        updateTaskPositionMutation.mutate(finalTasksToUpdate);
     }
   };
 
@@ -272,7 +322,7 @@ export function KanbanBoard({ groupId }: KanbanBoardProps) {
 
   return (
     <div>
-      <DndContext sensors={sensors} onDragStart={onDragStart} onDragEnd={onDragEnd} onDragOver={onDragOver}>
+      <DndContext sensors={sensors} onDragStart={onDragStart} onDragEnd={onDragEnd}>
         <div className="w-full overflow-x-auto pb-4">
           <div className="inline-flex gap-6">
             <SortableContext items={columnsId}>
@@ -287,6 +337,7 @@ export function KanbanBoard({ groupId }: KanbanBoardProps) {
                   onUpdateColumn={(id, title) => updateColumnMutation.mutate({ id, title })}
                   onApproveTask={handleApproveTask}
                   onEditRequestTask={handleEditRequestTask}
+                  onImageClick={handleImageClick}
                 />
               ))}
             </SortableContext>
@@ -296,15 +347,20 @@ export function KanbanBoard({ groupId }: KanbanBoardProps) {
           </div>
         </div>
         {createPortal(<DragOverlay>{
-          activeEl?.type === "Task" && <KanbanCard task={activeEl.data as Task} onClick={() => {}} />
+          activeEl?.type === "Task" && <KanbanCard task={activeEl.data as Task} onClick={() => {}} onImageClick={() => {}} />
         }
         {
-          activeEl?.type === "Column" && <KanbanColumn column={activeEl.data as Column} tasks={[]} onCardClick={() => {}} onAddTask={() => {}} onDeleteColumn={() => {}} onUpdateColumn={() => {}} onApproveTask={() => {}} onEditRequestTask={() => {}} />
+          activeEl?.type === "Column" && <KanbanColumn column={activeEl.data as Column} tasks={[]} onCardClick={() => {}} onAddTask={() => {}} onDeleteColumn={() => {}} onUpdateColumn={() => {}} onApproveTask={() => {}} onEditRequestTask={() => {}} onImageClick={() => {}} />
         }
         </DragOverlay>, document.body)}
       </DndContext>
       <TaskModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSave={(task) => saveTaskMutation.mutate(task)} onDelete={(id) => deleteTaskMutation.mutate(id)} task={selectedTask} columnId={newCardColumn || undefined} />
       <EditRequestModal isOpen={isEditRequestModalOpen} onClose={() => setIsEditRequestModalOpen(false)} onConfirm={(taskId, comment, targetColumnId) => requestEditMutation.mutate({ taskId, comment, targetColumnId })} task={taskForEditRequest} />
+      <ImagePreviewModal 
+        isOpen={isPreviewModalOpen} 
+        onClose={() => setIsPreviewModalOpen(false)} 
+        imageUrl={previewImageUrl} 
+      />
     </div>
   );
 }
