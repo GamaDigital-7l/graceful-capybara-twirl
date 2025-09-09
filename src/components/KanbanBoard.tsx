@@ -28,16 +28,42 @@ interface KanbanBoardProps {
 
 // API Functions
 const fetchKanbanData = async (groupId: string) => {
+  // 1. Fetch columns for the group
   const { data: columns, error: columnsError } = await supabase
     .from("columns")
-    .select("*, tasks(*)")
+    .select("id, title, position")
     .eq("group_id", groupId)
-    .order("position")
-    .order("position", { foreignTable: "tasks" });
+    .order("position");
 
   if (columnsError) throw new Error(columnsError.message);
+  if (!columns) return { columns: [], tasks: [] };
 
-  const tasks = columns.flatMap((col) => col.tasks || []);
+  const columnIds = columns.map((c) => c.id);
+  if (columnIds.length === 0) return { columns, tasks: [] };
+
+  // 2. Fetch all tasks for those columns
+  const { data: tasksData, error: tasksError } = await supabase
+    .from("tasks")
+    .select("*")
+    .in("column_id", columnIds)
+    .order("position");
+
+  if (tasksError) throw new Error(tasksError.message);
+
+  // 3. Map snake_case from DB to camelCase for frontend components
+  const tasks = tasksData.map((task) => ({
+    id: task.id,
+    columnId: task.column_id,
+    title: task.title,
+    description: task.description,
+    position: task.position,
+    dueDate: task.due_date,
+    actionType: task.action_type,
+    attachments: task.attachments,
+    comments: task.comments,
+    created_at: task.created_at,
+  }));
+
   return { columns, tasks };
 };
 
