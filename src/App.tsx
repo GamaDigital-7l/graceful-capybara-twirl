@@ -11,6 +11,8 @@ import PlaybookPage from "./pages/Playbook";
 import AdminPage from "./pages/Admin";
 import SettingsPage from "./pages/Settings";
 import FinancialDashboard from "./pages/FinancialDashboard";
+import SecondBrainDashboard from "./pages/SecondBrainDashboard"; // Import new dashboard
+import ClientPromptsPage from "./pages/ClientPromptsPage"; // Import new page
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -71,6 +73,22 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <FinancialDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/second-brain"
+              element={
+                <ProtectedRoute>
+                  <SecondBrainDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/second-brain/:clientId"
+              element={
+                <ProtectedRoute>
+                  <ClientPromptsPage />
                 </ProtectedRoute>
               }
             />

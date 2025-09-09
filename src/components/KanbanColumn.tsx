@@ -100,7 +100,7 @@ export function KanbanColumn({
   }
 
   return (
-    <Card ref={setNodeRef} style={style} className="flex flex-col min-h-[200px] w-[300px] flex-shrink-0">
+    <Card ref={setNodeRef} style={style} className="flex flex-col w-[300px] flex-shrink-0">
       <CardHeader
         {...attributes}
         {...listeners}
