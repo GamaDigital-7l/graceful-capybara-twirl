@@ -9,7 +9,7 @@ import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, BookOpen, FileText, KeyRound, Link as LinkIcon, Pencil, Paperclip } from "lucide-react";
+import { ArrowLeft, BookOpen, FileText, KeyRound, Link as LinkIcon, Pencil, Paperclip, Eye, EyeOff } from "lucide-react";
 import { PlaybookEditor } from "@/components/PlaybookEditor";
 
 export interface Playbook {
@@ -48,6 +48,7 @@ const fetchWorkspaceName = async (workspaceId: string): Promise<string> => {
 const PlaybookPage = () => {
   const { workspaceId } = useParams<{ workspaceId: string }>();
   const [isEditorOpen, setIsEditorOpen] = useState(false);
+  const [visiblePasswords, setVisiblePasswords] = useState<Set<string>>(new Set());
   const queryClient = useQueryClient();
 
   const { data: playbook, isLoading: isLoadingPlaybook } = useQuery({
@@ -78,6 +79,18 @@ const PlaybookPage = () => {
     },
     onError: (e: Error) => showError(e.message),
   });
+
+  const togglePasswordVisibility = (platform: string) => {
+    setVisiblePasswords(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(platform)) {
+        newSet.delete(platform);
+      } else {
+        newSet.add(platform);
+      }
+      return newSet;
+    });
+  };
 
   const renderSkeletons = () => (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -161,7 +174,19 @@ const PlaybookPage = () => {
                       <li key={index} className="p-2 border rounded-md bg-muted/50">
                         <p className="font-bold">{login.platform}</p>
                         <p className="text-sm">Usuário: {login.username}</p>
-                        {login.password && <p className="text-sm">Senha: ********</p>}
+                        {login.password && (
+                          <div className="flex items-center gap-2 text-sm">
+                            <span>Senha: {visiblePasswords.has(login.platform) ? login.password : '********'}</span>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-6 w-6"
+                              onClick={() => togglePasswordVisibility(login.platform)}
+                            >
+                              {visiblePasswords.has(login.platform) ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                            </Button>
+                          </div>
+                        )}
                       </li>
                     ))}
                   </ul>

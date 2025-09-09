@@ -240,7 +240,7 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <header className="p-4 bg-white dark:bg-gray-800 shadow-sm flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Dashboard</h1>
+        <h1 className="text-xl sm:text-2xl font-bold whitespace-nowrap">Dashboard Gama Creative</h1>
         {renderHeaderActions()}
       </header>
       <main className="p-4 md:p-8">
