@@ -11,11 +11,11 @@ interface AppSettings {
   background_color?: string;
 }
 
-const SettingsContext = createContext<AppSettings | null>(null);
+const SettingsContext = createContext<AppSettings | null | undefined>(undefined);
 
 export const useSettings = () => {
   const context = useContext(SettingsContext);
-  if (!context) {
+  if (context === undefined) {
     throw new Error("useSettings must be used within a SettingsProvider");
   }
   return context;
