@@ -7,10 +7,11 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { showError, showSuccess } from "@/utils/toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, LogOut, BookOpen, MoreVertical } from "lucide-react";
+import { ArrowLeft, LogOut, BookOpen, MoreVertical, CalendarCheck } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 const fetchGroups = async (workspaceId: string) => {
   if (!workspaceId) return [];
@@ -28,12 +29,39 @@ const Workspace = () => {
   const [activeGroupId, setActiveGroupId] = useState<string | null>(null);
   const queryClient = useQueryClient();
   const isMobile = useIsMobile();
+  const [userRole, setUserRole] = useState<string | null>(null);
+  const [isProfileLoading, setProfileLoading] = useState(true);
 
   const { data: groups, isLoading: isLoadingGroups } = useQuery<Group[]>({
     queryKey: ["groups", workspaceId],
     queryFn: () => fetchGroups(workspaceId!),
     enabled: !!workspaceId,
   });
+
+  useEffect(() => {
+    const fetchUserRole = async () => {
+      setProfileLoading(true);
+      try {
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        if (userError) throw userError;
+
+        if (user) {
+          const { data: profile, error: profileError } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+          if (profileError) throw profileError;
+          setUserRole(profile?.role || null);
+        } else {
+          setUserRole(null);
+        }
+      } catch (error: any) {
+        console.error("Error fetching user role:", error.message);
+        showError(`Erro ao carregar perfil: ${error.message}`);
+        setUserRole(null);
+      } finally {
+        setProfileLoading(false);
+      }
+    };
+    fetchUserRole();
+  }, []);
 
   const createGroupMutation = useMutation({
     mutationFn: async (name: string) => {
@@ -92,6 +120,20 @@ const Workspace = () => {
     onError: (e: Error) => showError(`Erro ao reordenar grupos: ${e.message}`),
   });
 
+  const endMonthMutation = useMutation({
+    mutationFn: async (groupId: string) => {
+      const { data: newGroupId, error } = await supabase.rpc('end_kanban_month_for_group', { p_group_id: groupId });
+      if (error) throw error;
+      return newGroupId;
+    },
+    onSuccess: (newGroupId) => {
+      queryClient.invalidateQueries({ queryKey: ["groups", workspaceId] });
+      setActiveGroupId(newGroupId);
+      showSuccess("Mês finalizado! Novo grupo criado com tarefas copiadas.");
+    },
+    onError: (e: Error) => showError(`Erro ao finalizar o mês: ${e.message}`),
+  });
+
   useEffect(() => {
     if (groups && groups.length > 0 && !activeGroupId) {
       setActiveGroupId(groups[0].id);
@@ -120,6 +162,30 @@ const Workspace = () => {
                 Ver Playbook
               </Link>
             </DropdownMenuItem>
+            {userRole === 'admin' && activeGroupId && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <DropdownMenuItem className="flex items-center text-primary">
+                    <CalendarCheck className="h-4 w-4 mr-2" />
+                    Finalizar Mês
+                  </DropdownMenuItem>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Finalizar Mês do Grupo?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Esta ação moverá todas as tarefas do grupo atual para 'Aprovado' e criará um novo grupo para o próximo mês com as tarefas recorrentes copiadas. Deseja continuar?
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                    <AlertDialogAction onClick={() => endMonthMutation.mutate(activeGroupId)}>
+                      Sim, Finalizar Mês
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
             <DropdownMenuItem>
               <ThemeToggle />
             </DropdownMenuItem>
@@ -141,6 +207,30 @@ const Workspace = () => {
             Ver Playbook
           </Link>
         </Button>
+        {userRole === 'admin' && activeGroupId && (
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="outline" className="text-primary border-primary hover:bg-primary/10">
+                <CalendarCheck className="h-4 w-4 mr-2" />
+                Finalizar Mês
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Finalizar Mês do Grupo?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Esta ação moverá todas as tarefas do grupo atual para 'Aprovado' e criará um novo grupo para o próximo mês com as tarefas recorrentes copiadas. Deseja continuar?
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction onClick={() => endMonthMutation.mutate(activeGroupId)}>
+                  Sim, Finalizar Mês
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        )}
         <ThemeToggle />
         <Button onClick={handleLogout} variant="outline">
           <LogOut className="h-4 w-4 mr-2" />
@@ -165,7 +255,7 @@ const Workspace = () => {
       </header>
       <main>
         {workspaceId ? (
-          isLoadingGroups ? (
+          isLoadingGroups || isProfileLoading ? (
             <div className="p-8 text-center">
               <Skeleton className="h-10 w-1/2 mx-auto" />
             </div>
