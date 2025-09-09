@@ -63,7 +63,7 @@ const fetchKanbanData = async (groupId: string) => {
 
 export function KanbanBoard({ groupId }: KanbanBoardProps) {
   const queryClient = useQueryClient();
-  const [activeTask, setActiveTask] = useState<Task | null>(null);
+  const [activeEl, setActiveEl] = useState<{ type: "Column" | "Task", data: Column | Task } | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [newCardColumn, setNewCardColumn] = useState<string | null>(null);
@@ -90,6 +90,15 @@ export function KanbanBoard({ groupId }: KanbanBoardProps) {
 
   const updateColumnMutation = useMutation({
     mutationFn: async ({ id, title }: { id: string; title: string }) => supabase.from("columns").update({ title }).eq("id", id),
+    onSuccess: invalidateKanbanData,
+    onError: (e: Error) => showError(e.message),
+  });
+
+  const updateColumnPositionMutation = useMutation({
+    mutationFn: async (updatedColumns: Column[]) => {
+      const updates = updatedColumns.map(col => supabase.from('columns').update({ position: col.position }).eq('id', col.id));
+      await Promise.all(updates);
+    },
     onSuccess: invalidateKanbanData,
     onError: (e: Error) => showError(e.message),
   });
@@ -168,28 +177,40 @@ export function KanbanBoard({ groupId }: KanbanBoardProps) {
     }
   };
 
+  const onDragStart = (event: DragStartEvent) => {
+    const { active } = event;
+    if (active.data.current?.type === "Column") {
+      setActiveEl({ type: "Column", data: active.data.current.column });
+    } else if (active.data.current?.type === "Task") {
+      setActiveEl({ type: "Task", data: active.data.current.task });
+    }
+  };
+
   const onDragEnd = (event: DragEndEvent) => {
-    setActiveTask(null);
+    setActiveEl(null);
     const { active, over } = event;
     if (!over || active.id === over.id) return;
-    const activeTask = tasks.find(t => t.id === active.id);
-    const overTask = tasks.find(t => t.id === over.id);
-    if (activeTask && overTask) {
-      const activeIndex = tasks.indexOf(activeTask);
-      const overIndex = tasks.indexOf(overTask);
-      updateTaskPositionMutation.mutate(arrayMove(tasks, activeIndex, overIndex).map((t, i) => ({ ...t, position: i })));
+
+    const activeType = active.data.current?.type;
+    if (activeType === "Column") {
+      const activeIndex = columns.findIndex(c => c.id === active.id);
+      const overIndex = columns.findIndex(c => c.id === over.id);
+      updateColumnPositionMutation.mutate(arrayMove(columns, activeIndex, overIndex).map((c, i) => ({ ...c, position: i })));
     }
   };
 
   const onDragOver = (event: DragOverEvent) => {
     const { active, over } = event;
     if (!over || active.id === over.id || active.data.current?.type !== "Task") return;
-    if (over.data.current?.type === "Column") {
+    
+    const isActiveATask = active.data.current?.type === "Task";
+    const isOverAColumn = over.data.current?.type === "Column";
+
+    if (isActiveATask && isOverAColumn) {
       const activeTask = tasks.find(t => t.id === active.id);
       if (activeTask && activeTask.columnId !== over.id) {
-        const newTasks = tasks.filter(t => t.id !== active.id);
-        newTasks.splice(0, 0, { ...activeTask, columnId: over.id as string });
-        updateTaskPositionMutation.mutate(newTasks.map((t, i) => ({ ...t, position: i })));
+        const updatedTasks = tasks.map(t => t.id === active.id ? { ...t, columnId: over.id as string } : t);
+        updateTaskPositionMutation.mutate(updatedTasks.map((t, i) => ({ ...t, position: i })));
       }
     }
   };
@@ -198,7 +219,7 @@ export function KanbanBoard({ groupId }: KanbanBoardProps) {
 
   return (
     <div>
-      <DndContext sensors={sensors} onDragStart={(e) => e.active.data.current?.type === "Task" && setActiveTask(e.active.data.current.task)} onDragEnd={onDragEnd} onDragOver={onDragOver}>
+      <DndContext sensors={sensors} onDragStart={onDragStart} onDragEnd={onDragEnd} onDragOver={onDragOver}>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-6">
           <SortableContext items={columnsId}>
             {columns.map((col) => (
@@ -219,7 +240,13 @@ export function KanbanBoard({ groupId }: KanbanBoardProps) {
             <Plus className="h-4 w-4 mr-2" /> Adicionar Coluna
           </Button>
         </div>
-        {createPortal(<DragOverlay>{activeTask && <KanbanCard task={activeTask} onClick={() => {}} />}</DragOverlay>, document.body)}
+        {createPortal(<DragOverlay>{
+          activeEl?.type === "Task" && <KanbanCard task={activeEl.data as Task} onClick={() => {}} />
+        }
+        {
+          activeEl?.type === "Column" && <KanbanColumn column={activeEl.data as Column} tasks={[]} onCardClick={() => {}} onAddTask={() => {}} onDeleteColumn={() => {}} onUpdateColumn={() => {}} onApproveTask={() => {}} onEditRequestTask={() => {}} />
+        }
+        </DragOverlay>, document.body)}
       </DndContext>
       <TaskModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSave={(task) => saveTaskMutation.mutate(task)} onDelete={(id) => deleteTaskMutation.mutate(id)} task={selectedTask} columnId={newCardColumn || undefined} />
       <EditRequestModal isOpen={isEditRequestModalOpen} onClose={() => setIsEditRequestModalOpen(false)} onConfirm={(taskId, comment, targetColumnId) => requestEditMutation.mutate({ taskId, comment, targetColumnId })} task={taskForEditRequest} />

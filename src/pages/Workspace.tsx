@@ -41,10 +41,11 @@ const Workspace = () => {
       if (groupError) throw groupError;
 
       const defaultColumns = [
-        { title: "Para aprovação", position: 0, group_id: newGroup.id },
+        { title: "Solicitações", position: 0, group_id: newGroup.id },
         { title: "Em Produção", position: 1, group_id: newGroup.id },
-        { title: "Aprovado", position: 2, group_id: newGroup.id },
-        { title: "Editar", position: 3, group_id: newGroup.id },
+        { title: "Para aprovação", position: 2, group_id: newGroup.id },
+        { title: "Aprovado", position: 3, group_id: newGroup.id },
+        { title: "Editar", position: 4, group_id: newGroup.id },
       ];
       const { error: columnsError } = await supabase.from("columns").insert(defaultColumns);
       if (columnsError) throw columnsError;
