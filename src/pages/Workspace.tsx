@@ -7,7 +7,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { showError, showSuccess } from "@/utils/toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, LogOut } from "lucide-react";
+import { ArrowLeft, LogOut, BookOpen } from "lucide-react";
 
 const fetchGroups = async (workspaceId: string) => {
   if (!workspaceId) return [];
@@ -74,12 +74,20 @@ const Workspace = () => {
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
       <header className="p-4 bg-white dark:bg-gray-800 shadow-md flex justify-between items-center">
-        <Button asChild variant="outline">
-          <Link to="/">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Voltar ao Dashboard
-          </Link>
-        </Button>
+        <div className="flex items-center gap-4">
+          <Button asChild variant="outline">
+            <Link to="/">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Voltar ao Dashboard
+            </Link>
+          </Button>
+          <Button asChild variant="outline">
+            <Link to={`/workspace/${workspaceId}/playbook`}>
+              <BookOpen className="h-4 w-4 mr-2" />
+              Ver Playbook
+            </Link>
+          </Button>
+        </div>
         <Button onClick={handleLogout} variant="outline">
           <LogOut className="h-4 w-4 mr-2" />
           Sair

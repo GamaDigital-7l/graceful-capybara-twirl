@@ -1,0 +1,181 @@
+"use client";
+
+import { useState } from "react";
+import { useParams, Link } from "react-router-dom";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { showError, showSuccess } from "@/utils/toast";
+import { MadeWithDyad } from "@/components/made-with-dyad";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ArrowLeft, BookOpen, FileText, KeyRound, Link as LinkIcon, Pencil } from "lucide-react";
+import { PlaybookEditor } from "@/components/PlaybookEditor";
+
+export interface Playbook {
+  id: string;
+  workspace_id: string;
+  briefing: string | null;
+  contract_url: string | null;
+  asset_links: { name: string; url: string }[];
+  social_media_logins: { platform: string; username: string; password?: string }[];
+}
+
+const fetchPlaybook = async (workspaceId: string): Promise<Playbook | null> => {
+  const { data, error } = await supabase
+    .from("playbooks")
+    .select("*")
+    .eq("workspace_id", workspaceId)
+    .single();
+  if (error) {
+    if (error.code === 'PGRST116') return null; // No rows found is not an error here
+    throw new Error(error.message);
+  }
+  return data;
+};
+
+const fetchWorkspaceName = async (workspaceId: string): Promise<string> => {
+    const { data, error } = await supabase
+        .from("workspaces")
+        .select("name")
+        .eq("id", workspaceId)
+        .single();
+    if (error) throw new Error(error.message);
+    return data.name;
+};
+
+const PlaybookPage = () => {
+  const { workspaceId } = useParams<{ workspaceId: string }>();
+  const [isEditorOpen, setIsEditorOpen] = useState(false);
+  const queryClient = useQueryClient();
+
+  const { data: playbook, isLoading: isLoadingPlaybook } = useQuery({
+    queryKey: ["playbook", workspaceId],
+    queryFn: () => fetchPlaybook(workspaceId!),
+    enabled: !!workspaceId,
+  });
+
+  const { data: workspaceName, isLoading: isLoadingName } = useQuery({
+    queryKey: ["workspaceName", workspaceId],
+    queryFn: () => fetchWorkspaceName(workspaceId!),
+    enabled: !!workspaceId,
+  });
+
+  const updatePlaybookMutation = useMutation({
+    mutationFn: async (updatedData: Partial<Playbook>) => {
+      if (!playbook) throw new Error("Playbook não encontrado.");
+      const { error } = await supabase
+        .from("playbooks")
+        .update(updatedData)
+        .eq("id", playbook.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["playbook", workspaceId] });
+      showSuccess("Playbook atualizado com sucesso!");
+      setIsEditorOpen(false);
+    },
+    onError: (e: Error) => showError(e.message),
+  });
+
+  const renderSkeletons = () => (
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <Skeleton className="h-64 w-full" />
+      <Skeleton className="h-64 w-full" />
+      <Skeleton className="h-64 w-full col-span-1 lg:col-span-2" />
+    </div>
+  );
+
+  return (
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <header className="p-4 bg-white dark:bg-gray-800 shadow-sm flex justify-between items-center">
+        <div className="flex items-center gap-4">
+            <Button asChild variant="outline" size="icon">
+                <Link to={`/workspace/${workspaceId}`}>
+                    <ArrowLeft className="h-4 w-4" />
+                </Link>
+            </Button>
+            <div>
+                <h1 className="text-2xl font-bold">Playbook</h1>
+                <p className="text-sm text-muted-foreground">{isLoadingName ? <Skeleton className="h-4 w-32 mt-1" /> : workspaceName}</p>
+            </div>
+        </div>
+        <Button onClick={() => setIsEditorOpen(true)}>
+          <Pencil className="h-4 w-4 mr-2" />
+          Editar Playbook
+        </Button>
+      </header>
+      <main className="p-4 md:p-8">
+        {isLoadingPlaybook ? renderSkeletons() : (
+          playbook ? (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card className="lg:col-span-2">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2"><FileText /> Briefing</CardTitle>
+                  <CardDescription>Respostas e informações chave do projeto.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="prose dark:prose-invert max-w-none whitespace-pre-wrap">
+                    {playbook.briefing || <p className="text-muted-foreground">Nenhum briefing preenchido.</p>}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2"><LinkIcon /> Ativos e Links</CardTitle>
+                  <CardDescription>Links para contrato, logos, fontes, etc.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  {playbook.contract_url ? (
+                    <a href={playbook.contract_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-blue-500 hover:underline">
+                      <BookOpen className="h-4 w-4" /> Ver Contrato
+                    </a>
+                  ) : <p className="text-sm text-muted-foreground">Nenhum link de contrato.</p>}
+                  <ul className="space-y-1">
+                    {playbook.asset_links?.map((link, index) => (
+                      <li key={index}>
+                        <a href={link.url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">{link.name}</a>
+                      </li>
+                    ))}
+                  </ul>
+                  {playbook.asset_links?.length === 0 && !playbook.contract_url && <p className="text-sm text-muted-foreground">Nenhum link de material adicionado.</p>}
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2"><KeyRound /> Logins de Redes Sociais</CardTitle>
+                  <CardDescription>Credenciais para as plataformas do cliente.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-2">
+                    {playbook.social_media_logins?.map((login, index) => (
+                      <li key={index} className="p-2 border rounded-md bg-muted/50">
+                        <p className="font-bold">{login.platform}</p>
+                        <p className="text-sm">Usuário: {login.username}</p>
+                        {login.password && <p className="text-sm">Senha: ********</p>}
+                      </li>
+                    ))}
+                  </ul>
+                  {playbook.social_media_logins?.length === 0 && <p className="text-sm text-muted-foreground">Nenhum login adicionado.</p>}
+                </CardContent>
+              </Card>
+            </div>
+          ) : <p className="text-center text-muted-foreground">Nenhum playbook encontrado para este workspace.</p>
+        )}
+      </main>
+      <MadeWithDyad />
+      {playbook && (
+        <PlaybookEditor
+          isOpen={isEditorOpen}
+          onClose={() => setIsEditorOpen(false)}
+          playbook={playbook}
+          onSave={(data) => updatePlaybookMutation.mutate(data)}
+        />
+      )}
+    </div>
+  );
+};
+
+export default PlaybookPage;

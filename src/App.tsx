@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Dashboard from "./pages/Dashboard";
 import Workspace from "./pages/Workspace";
+import PlaybookPage from "./pages/Playbook";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -32,6 +33,14 @@ const App = () => (
             element={
               <ProtectedRoute>
                 <Workspace />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/workspace/:workspaceId/playbook"
+            element={
+              <ProtectedRoute>
+                <PlaybookPage />
               </ProtectedRoute>
             }
           />
