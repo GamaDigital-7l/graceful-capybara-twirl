@@ -30,7 +30,7 @@ export function MyTasks() {
       (task) => task.column_title === "Em Produção" || task.column_title === "Editar"
     );
     const completed = tasks.filter(
-      (task) => task.column_title === "Para aprovação"
+      (task) => task.column_title === "Para aprovação" || task.column_title === "Aprovado" // Incluído 'Aprovado'
     );
     return { pendingTasks: pending, completedTasks: completed };
   }, [tasks]);

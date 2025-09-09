@@ -44,7 +44,7 @@ export function ClientProgress({ tasks }: ClientProgressProps) {
 
       if (task.column_title === "Em Produção" || task.column_title === "Editar") {
         workspaces[task.workspace_id].pending++;
-      } else if (task.column_title === "Para aprovação") {
+      } else if (task.column_title === "Para aprovação" || task.column_title === "Aprovado") { // Incluído 'Aprovado'
         workspaces[task.workspace_id].completed++;
       }
     });
