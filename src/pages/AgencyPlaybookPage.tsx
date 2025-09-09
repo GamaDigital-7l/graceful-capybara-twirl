@@ -8,15 +8,16 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Pencil, Link as LinkIcon, FileText, KeyRound, Cloud, Lightbulb, Users } from "lucide-react";
-import { AgencyPlaybookEditor, AgencyPlaybook } from "@/components/AgencyPlaybookEditor";
+import { AgencyPlaybookEditor } from "@/components/AgencyPlaybookEditor";
+import type { AgencyPlaybook } from "@/components/AgencyPlaybookEditor";
 
 const fetchAgencyPlaybook = async (): Promise<AgencyPlaybook | null> => {
   const { data, error } = await supabase
     .from("agency_playbook")
-    .select("*")
+    .select("*, briefings:briefings, ai_agents:ai_agents")
     .single();
   if (error) {
-    if (error.code === 'PGRST116') return null; // No rows found is not an error here
+    if (error.code === 'PGRST116') return null;
     throw new Error(error.message);
   }
   return data;
@@ -53,6 +54,7 @@ const AgencyPlaybookPage = () => {
       <Skeleton className="h-48 w-full" />
       <Skeleton className="h-48 w-full" />
       <Skeleton className="h-48 w-full" />
+      <Skeleton className="h-48 w-full" />
       <Skeleton className="h-48 w-full col-span-1 lg:col-span-2" />
     </div>
   );
@@ -74,41 +76,58 @@ const AgencyPlaybookPage = () => {
                 <CardTitle className="flex items-center gap-2"><LinkIcon /> Links Essenciais</CardTitle>
                 <CardDescription>Acessos rápidos para ferramentas e documentos.</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-2">
-                {playbook.briefings_link && (
-                  <a href={playbook.briefings_link} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-blue-500 hover:underline">
-                    <FileText className="h-4 w-4" /> Link dos Briefings
-                  </a>
-                )}
-                {playbook.ai_agents_link && (
-                  <a href={playbook.ai_agents_link} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-blue-500 hover:underline">
-                    <Lightbulb className="h-4 w-4" /> Link dos Agentes de IA
-                  </a>
-                )}
-                {playbook.commercial_proposal_link && (
-                  <a href={playbook.commercial_proposal_link} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-blue-500 hover:underline">
-                    <FileText className="h-4 w-4" /> Proposta Comercial
-                  </a>
-                )}
-                {playbook.drive_link && (
-                  <a href={playbook.drive_link} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-blue-500 hover:underline">
-                    <Cloud className="h-4 w-4" /> Link para o Drive (Nextcloud)
-                  </a>
-                )}
-                {playbook.useful_links?.length > 0 && (
-                  <div className="pt-2">
-                    <h4 className="font-semibold text-sm mb-1">Links Úteis:</h4>
-                    <ul className="space-y-1">
-                      {playbook.useful_links.map((link, index) => (
-                        <li key={index}>
-                          <a href={link.url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">{link.name}</a>
-                        </li>
+              <CardContent className="space-y-4">
+                <div>
+                  <h4 className="font-semibold text-sm mb-2 flex items-center gap-2"><FileText className="h-4 w-4" /> Briefings</h4>
+                  {playbook.briefings?.length > 0 ? (
+                    <ul className="space-y-1 list-disc list-inside">
+                      {playbook.briefings.map((link, index) => (
+                        <li key={index}><a href={link.url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">{link.name}</a></li>
                       ))}
                     </ul>
+                  ) : <p className="text-sm text-muted-foreground">Nenhum link de briefing.</p>}
+                </div>
+                <div>
+                  <h4 className="font-semibold text-sm mb-2 flex items-center gap-2"><Lightbulb className="h-4 w-4" /> Agentes de IA</h4>
+                  {playbook.ai_agents?.length > 0 ? (
+                    <ul className="space-y-1 list-disc list-inside">
+                      {playbook.ai_agents.map((link, index) => (
+                        <li key={index}><a href={link.url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">{link.name}</a></li>
+                      ))}
+                    </ul>
+                  ) : <p className="text-sm text-muted-foreground">Nenhum link de agente de IA.</p>}
+                </div>
+                <div>
+                  <h4 className="font-semibold text-sm mb-2 flex items-center gap-2"><LinkIcon className="h-4 w-4" /> Links Úteis</h4>
+                  {playbook.useful_links?.length > 0 ? (
+                    <ul className="space-y-1 list-disc list-inside">
+                      {playbook.useful_links.map((link, index) => (
+                        <li key={index}><a href={link.url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">{link.name}</a></li>
+                      ))}
+                    </ul>
+                  ) : <p className="text-sm text-muted-foreground">Nenhum link útil.</p>}
+                </div>
+                {playbook.drive_link && (
+                  <div>
+                    <h4 className="font-semibold text-sm mb-2 flex items-center gap-2"><Cloud className="h-4 w-4" /> Drive (Nextcloud)</h4>
+                    <a href={playbook.drive_link} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">Acessar Drive</a>
                   </div>
                 )}
-                {!playbook.briefings_link && !playbook.ai_agents_link && !playbook.commercial_proposal_link && !playbook.drive_link && playbook.useful_links?.length === 0 && (
-                  <p className="text-sm text-muted-foreground">Nenhum link essencial configurado.</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2"><FileText /> Proposta Comercial</CardTitle>
+                <CardDescription>Link para o modelo de proposta comercial.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {playbook.commercial_proposal_link ? (
+                  <a href={playbook.commercial_proposal_link} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-blue-500 hover:underline">
+                    Acessar Proposta Comercial
+                  </a>
+                ) : (
+                  <p className="text-sm text-muted-foreground">Nenhum link de proposta comercial configurado.</p>
                 )}
               </CardContent>
             </Card>
@@ -144,7 +163,7 @@ const AgencyPlaybookPage = () => {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="lg:col-span-2">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2"><FileText /> Cultura e Valores</CardTitle>
                 <CardDescription>Informações sobre a empresa, o que fazer, prazos, etc.</CardDescription>

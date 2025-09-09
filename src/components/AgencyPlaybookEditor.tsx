@@ -18,8 +18,8 @@ import { Trash2 } from "lucide-react";
 
 export interface AgencyPlaybook {
   id: string;
-  briefings_link: string | null;
-  ai_agents_link: string | null;
+  briefings: { name: string; url: string }[];
+  ai_agents: { name: string; url: string }[];
   useful_links: { name: string; url: string }[];
   commercial_proposal_link: string | null;
   agency_processes: string | null;
@@ -36,8 +36,8 @@ interface AgencyPlaybookEditorProps {
 }
 
 export function AgencyPlaybookEditor({ isOpen, onClose, playbook, onSave }: AgencyPlaybookEditorProps) {
-  const [briefingsLink, setBriefingsLink] = useState("");
-  const [aiAgentsLink, setAiAgentsLink] = useState("");
+  const [briefings, setBriefings] = useState<{ name: string; url: string }[]>([]);
+  const [aiAgents, setAiAgents] = useState<{ name: string; url: string }[]>([]);
   const [usefulLinks, setUsefulLinks] = useState<{ name: string; url: string }[]>([]);
   const [commercialProposalLink, setCommercialProposalLink] = useState("");
   const [agencyProcesses, setAgencyProcesses] = useState("");
@@ -47,8 +47,8 @@ export function AgencyPlaybookEditor({ isOpen, onClose, playbook, onSave }: Agen
 
   useEffect(() => {
     if (playbook) {
-      setBriefingsLink(playbook.briefings_link || "");
-      setAiAgentsLink(playbook.ai_agents_link || "");
+      setBriefings(playbook.briefings || []);
+      setAiAgents(playbook.ai_agents || []);
       setUsefulLinks(playbook.useful_links || []);
       setCommercialProposalLink(playbook.commercial_proposal_link || "");
       setAgencyProcesses(playbook.agency_processes || "");
@@ -60,8 +60,8 @@ export function AgencyPlaybookEditor({ isOpen, onClose, playbook, onSave }: Agen
 
   const handleSave = () => {
     onSave({
-      briefings_link: briefingsLink,
-      ai_agents_link: aiAgentsLink,
+      briefings,
+      ai_agents: aiAgents,
       useful_links: usefulLinks,
       commercial_proposal_link: commercialProposalLink,
       agency_processes: agencyProcesses,
@@ -70,6 +70,22 @@ export function AgencyPlaybookEditor({ isOpen, onClose, playbook, onSave }: Agen
       culture_and_values: cultureAndValues,
     });
   };
+
+  const addBriefing = () => setBriefings([...briefings, { name: "", url: "" }]);
+  const updateBriefing = (index: number, field: 'name' | 'url', value: string) => {
+    const newBriefings = [...briefings];
+    newBriefings[index][field] = value;
+    setBriefings(newBriefings);
+  };
+  const removeBriefing = (index: number) => setBriefings(briefings.filter((_, i) => i !== index));
+
+  const addAiAgent = () => setAiAgents([...aiAgents, { name: "", url: "" }]);
+  const updateAiAgent = (index: number, field: 'name' | 'url', value: string) => {
+    const newAgents = [...aiAgents];
+    newAgents[index][field] = value;
+    setAiAgents(newAgents);
+  };
+  const removeAiAgent = (index: number) => setAiAgents(aiAgents.filter((_, i) => i !== index));
 
   const addUsefulLink = () => setUsefulLinks([...usefulLinks, { name: "", url: "" }]);
   const updateUsefulLink = (index: number, field: 'name' | 'url', value: string) => {
@@ -93,23 +109,48 @@ export function AgencyPlaybookEditor({ isOpen, onClose, playbook, onSave }: Agen
         <DialogHeader>
           <DialogTitle>Editar Playbook da Agência</DialogTitle>
         </DialogHeader>
-        <Tabs defaultValue="briefings" className="py-4">
+        <Tabs defaultValue="links" className="py-4">
           <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="briefings">Links</TabsTrigger>
+            <TabsTrigger value="links">Links</TabsTrigger>
             <TabsTrigger value="processes">Processos</TabsTrigger>
             <TabsTrigger value="logins">Logins</TabsTrigger>
             <TabsTrigger value="culture">Cultura</TabsTrigger>
           </TabsList>
-          <TabsContent value="briefings" className="pt-4 space-y-4">
+          <TabsContent value="links" className="pt-4 space-y-6">
             <div>
-              <Label htmlFor="briefings-link">Link dos Briefings</Label>
-              <Input id="briefings-link" value={briefingsLink} onChange={(e) => setBriefingsLink(e.target.value)} placeholder="https://..." />
+              <Label className="text-lg font-semibold">Briefings</Label>
+              {briefings.map((link, index) => (
+                <div key={index} className="flex items-center gap-2 mt-2">
+                  <Input placeholder="Nome do Briefing" value={link.name} onChange={(e) => updateBriefing(index, 'name', e.target.value)} />
+                  <Input placeholder="URL" value={link.url} onChange={(e) => updateBriefing(index, 'url', e.target.value)} />
+                  <Button variant="ghost" size="icon" onClick={() => removeBriefing(index)}><Trash2 className="h-4 w-4" /></Button>
+                </div>
+              ))}
+              <Button variant="outline" onClick={addBriefing} className="mt-2">Adicionar Link de Briefing</Button>
             </div>
             <div>
-              <Label htmlFor="ai-agents-link">Link dos Agentes de IA</Label>
-              <Input id="ai-agents-link" value={aiAgentsLink} onChange={(e) => setAiAgentsLink(e.target.value)} placeholder="https://..." />
+              <Label className="text-lg font-semibold">Agentes de IA</Label>
+              {aiAgents.map((link, index) => (
+                <div key={index} className="flex items-center gap-2 mt-2">
+                  <Input placeholder="Nome do Agente" value={link.name} onChange={(e) => updateAiAgent(index, 'name', e.target.value)} />
+                  <Input placeholder="URL" value={link.url} onChange={(e) => updateAiAgent(index, 'url', e.target.value)} />
+                  <Button variant="ghost" size="icon" onClick={() => removeAiAgent(index)}><Trash2 className="h-4 w-4" /></Button>
+                </div>
+              ))}
+              <Button variant="outline" onClick={addAiAgent} className="mt-2">Adicionar Link de Agente</Button>
             </div>
             <div>
+              <Label className="text-lg font-semibold">Links Úteis</Label>
+              {usefulLinks.map((link, index) => (
+                <div key={index} className="flex items-center gap-2 mt-2">
+                  <Input placeholder="Nome (Ex: Modelo de Contrato)" value={link.name} onChange={(e) => updateUsefulLink(index, 'name', e.target.value)} />
+                  <Input placeholder="URL" value={link.url} onChange={(e) => updateUsefulLink(index, 'url', e.target.value)} />
+                  <Button variant="ghost" size="icon" onClick={() => removeUsefulLink(index)}><Trash2 className="h-4 w-4" /></Button>
+                </div>
+              ))}
+              <Button variant="outline" onClick={addUsefulLink} className="mt-2">Adicionar Link Útil</Button>
+            </div>
+            <div className="border-t pt-6">
               <Label htmlFor="commercial-proposal-link">Link da Proposta Comercial</Label>
               <Input id="commercial-proposal-link" value={commercialProposalLink} onChange={(e) => setCommercialProposalLink(e.target.value)} placeholder="https://..." />
             </div>
@@ -117,15 +158,6 @@ export function AgencyPlaybookEditor({ isOpen, onClose, playbook, onSave }: Agen
               <Label htmlFor="drive-link">Link para o Drive (Nextcloud)</Label>
               <Input id="drive-link" value={driveLink} onChange={(e) => setDriveLink(e.target.value)} placeholder="https://..." />
             </div>
-            <Label>Links Úteis (Documentos, Contratos)</Label>
-            {usefulLinks.map((link, index) => (
-              <div key={index} className="flex items-center gap-2">
-                <Input placeholder="Nome (Ex: Modelo de Contrato)" value={link.name} onChange={(e) => updateUsefulLink(index, 'name', e.target.value)} />
-                <Input placeholder="URL" value={link.url} onChange={(e) => updateUsefulLink(index, 'url', e.target.value)} />
-                <Button variant="ghost" size="icon" onClick={() => removeUsefulLink(index)}><Trash2 className="h-4 w-4" /></Button>
-              </div>
-            ))}
-            <Button variant="outline" onClick={addUsefulLink}>Adicionar Link Útil</Button>
           </TabsContent>
           <TabsContent value="processes" className="pt-4">
             <Label htmlFor="agency-processes">Processos da Agência (Passo a passo)</Label>
