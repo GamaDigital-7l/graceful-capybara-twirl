@@ -9,13 +9,14 @@ import { MadeWithDyad } from "@/components/made-with-dyad";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { PlusCircle, Settings, LogOut, UserCog } from "lucide-react";
+import { PlusCircle, Settings, LogOut, UserCog, BookOpen } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { WorkspaceSettingsModal } from "@/components/WorkspaceSettingsModal";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MyTasks } from "@/components/MyTasks";
 import ClientDashboard from "./ClientDashboard";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import AgencyPlaybookPage from "./AgencyPlaybookPage"; // Import the new page
 
 export interface Workspace {
   id: string;
@@ -99,6 +100,10 @@ const Dashboard = () => {
         <TabsList>
           <TabsTrigger value="tasks">Minhas Tarefas</TabsTrigger>
           <TabsTrigger value="clients">Clientes</TabsTrigger>
+          <TabsTrigger value="agency-playbook">
+            <BookOpen className="h-4 w-4 mr-2" />
+            Playbook da Agência
+          </TabsTrigger>
         </TabsList>
         <Button onClick={() => createWorkspaceMutation.mutate("Novo Workspace")}>
           <PlusCircle className="h-4 w-4 mr-2" />
@@ -136,6 +141,9 @@ const Dashboard = () => {
             ))}
           </div>
         )}
+      </TabsContent>
+      <TabsContent value="agency-playbook">
+        <AgencyPlaybookPage />
       </TabsContent>
     </Tabs>
   );
