@@ -220,7 +220,7 @@ export function KanbanBoard({ groupId }: KanbanBoardProps) {
   return (
     <div>
       <DndContext sensors={sensors} onDragStart={onDragStart} onDragEnd={onDragEnd} onDragOver={onDragOver}>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+        <div className="flex gap-6 overflow-x-auto pb-4">
           <SortableContext items={columnsId}>
             {columns.map((col) => (
               <KanbanColumn
@@ -236,7 +236,7 @@ export function KanbanBoard({ groupId }: KanbanBoardProps) {
               />
             ))}
           </SortableContext>
-          <Button onClick={() => createColumnMutation.mutate()} variant="outline" className="h-full min-h-[100px]">
+          <Button onClick={() => createColumnMutation.mutate()} variant="outline" className="h-full min-h-[100px] flex-shrink-0 w-[300px]">
             <Plus className="h-4 w-4 mr-2" /> Adicionar Coluna
           </Button>
         </div>

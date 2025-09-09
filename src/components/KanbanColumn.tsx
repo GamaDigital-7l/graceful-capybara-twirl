@@ -92,13 +92,13 @@ export function KanbanColumn({
       <div
         ref={setNodeRef}
         style={style}
-        className="w-full bg-gray-200 dark:bg-gray-800 rounded-lg border-2 border-primary opacity-50 h-[500px]"
+        className="w-[300px] flex-shrink-0 bg-gray-200 dark:bg-gray-800 rounded-lg border-2 border-primary opacity-50 h-[500px]"
       />
     );
   }
 
   return (
-    <Card ref={setNodeRef} style={style} className="flex flex-col min-h-[200px]">
+    <Card ref={setNodeRef} style={style} className="flex flex-col min-h-[200px] w-[300px] flex-shrink-0">
       <CardHeader
         {...attributes}
         {...listeners}
