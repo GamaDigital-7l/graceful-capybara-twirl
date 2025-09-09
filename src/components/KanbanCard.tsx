@@ -97,7 +97,7 @@ export function KanbanCard({
       {...attributes}
       {...listeners}
       onClick={onClick}
-      className="touch-none cursor-pointer hover:ring-2 hover:ring-primary transition-shadow"
+      className="cursor-pointer hover:ring-2 hover:ring-primary transition-shadow"
     >
       {coverImage && (
         <AspectRatio ratio={16 / 9} className="rounded-t-lg overflow-hidden">

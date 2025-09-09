@@ -5,7 +5,7 @@ import { useParams, Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { showError, showSuccess } from "@/utils/toast";
-import { MadeWithDyad } from "@/components/made-with-dyad";
+import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -184,7 +184,7 @@ const PlaybookPage = () => {
           ) : <p className="text-center text-muted-foreground">Nenhum playbook encontrado para este workspace.</p>
         )}
       </main>
-      <MadeWithDyad />
+      <Footer />
       {playbook && (
         <PlaybookEditor
           isOpen={isEditorOpen}

@@ -78,7 +78,14 @@ export function KanbanBoard({ groupId }: KanbanBoardProps) {
   const columns = data?.columns || [];
   const tasks = data?.tasks || [];
   const columnsId = useMemo(() => columns.map((col) => col.id), [columns]);
-  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 10 } }));
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        delay: 150, // User must press and hold for 150ms to start a drag
+        tolerance: 5, // User can move 5px before the drag is cancelled
+      },
+    })
+  );
 
   const invalidateKanbanData = () => queryClient.invalidateQueries({ queryKey: ["kanbanData", groupId] });
 
@@ -220,25 +227,27 @@ export function KanbanBoard({ groupId }: KanbanBoardProps) {
   return (
     <div>
       <DndContext sensors={sensors} onDragStart={onDragStart} onDragEnd={onDragEnd} onDragOver={onDragOver}>
-        <div className="flex gap-6 overflow-x-auto pb-4">
-          <SortableContext items={columnsId}>
-            {columns.map((col) => (
-              <KanbanColumn
-                key={col.id}
-                column={col}
-                tasks={tasks.filter((task) => task.columnId === col.id)}
-                onCardClick={(task) => { setSelectedTask(task); setIsModalOpen(true); }}
-                onAddTask={(colId) => { setSelectedTask(null); setNewCardColumn(colId); setIsModalOpen(true); }}
-                onDeleteColumn={(id) => deleteColumnMutation.mutate(id)}
-                onUpdateColumn={(id, title) => updateColumnMutation.mutate({ id, title })}
-                onApproveTask={handleApproveTask}
-                onEditRequestTask={handleEditRequestTask}
-              />
-            ))}
-          </SortableContext>
-          <Button onClick={() => createColumnMutation.mutate()} variant="outline" className="h-full min-h-[100px] flex-shrink-0 w-[300px]">
-            <Plus className="h-4 w-4 mr-2" /> Adicionar Coluna
-          </Button>
+        <div className="w-full overflow-x-auto pb-4">
+          <div className="inline-flex gap-6">
+            <SortableContext items={columnsId}>
+              {columns.map((col) => (
+                <KanbanColumn
+                  key={col.id}
+                  column={col}
+                  tasks={tasks.filter((task) => task.columnId === col.id)}
+                  onCardClick={(task) => { setSelectedTask(task); setIsModalOpen(true); }}
+                  onAddTask={(colId) => { setSelectedTask(null); setNewCardColumn(colId); setIsModalOpen(true); }}
+                  onDeleteColumn={(id) => deleteColumnMutation.mutate(id)}
+                  onUpdateColumn={(id, title) => updateColumnMutation.mutate({ id, title })}
+                  onApproveTask={handleApproveTask}
+                  onEditRequestTask={handleEditRequestTask}
+                />
+              ))}
+            </SortableContext>
+            <Button onClick={() => createColumnMutation.mutate()} variant="outline" className="h-full min-h-[100px] flex-shrink-0 w-[300px]">
+              <Plus className="h-4 w-4 mr-2" /> Adicionar Coluna
+            </Button>
+          </div>
         </div>
         {createPortal(<DragOverlay>{
           activeEl?.type === "Task" && <KanbanCard task={activeEl.data as Task} onClick={() => {}} />

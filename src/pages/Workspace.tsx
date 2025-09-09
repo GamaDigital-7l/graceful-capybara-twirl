@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { MadeWithDyad } from "@/components/made-with-dyad";
+import { Footer } from "@/components/Footer";
 import { GroupTabs, Group } from "@/components/GroupTabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -148,7 +148,7 @@ const Workspace = () => {
           </div>
         )}
       </main>
-      <MadeWithDyad />
+      <Footer />
     </div>
   );
 };
