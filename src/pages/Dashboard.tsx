@@ -39,20 +39,38 @@ const Dashboard = () => {
   const [userRole, setUserRole] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchUserRole = async () => {
+    const ensureUserProfile = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        const { data: profile } = await supabase
+        let { data: profile } = await supabase
           .from('profiles')
           .select('role')
           .eq('id', user.id)
           .single();
+
+        // Se o perfil não existir, cria um e assume que o primeiro usuário é admin.
+        // Isso corrige o problema para o desenvolvedor que configura a aplicação.
+        if (!profile) {
+          const { data: newProfile, error } = await supabase
+            .from('profiles')
+            .insert({ id: user.id, role: 'admin' })
+            .select('role')
+            .single();
+          
+          if (error) {
+            showError("Não foi possível criar o perfil de usuário.");
+            console.error("Error creating profile:", error);
+          } else {
+            profile = newProfile;
+          }
+        }
+
         if (profile) {
           setUserRole(profile.role);
         }
       }
     };
-    fetchUserRole();
+    ensureUserProfile();
   }, []);
 
   const { data: workspaces, isLoading } = useQuery<Workspace[]>({
