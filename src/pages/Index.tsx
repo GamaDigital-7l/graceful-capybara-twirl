@@ -1,13 +1,12 @@
 import { useState, useEffect } from "react";
-import { KanbanBoard } from "@/components/KanbanBoard";
 import { MadeWithDyad } from "@/components/made-with-dyad";
 import { WorkspaceSwitcher } from "@/components/WorkspaceSwitcher";
+import { GroupTabs, Group } from "@/components/GroupTabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { showError, showSuccess } from "@/utils/toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
 
 interface Workspace {
   id: string;
@@ -20,15 +19,13 @@ const fetchWorkspaces = async () => {
   return data;
 };
 
-const createWorkspace = async (name: string) => {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error("Usuário não autenticado.");
-
+const fetchGroups = async (workspaceId: string) => {
+  if (!workspaceId) return [];
   const { data, error } = await supabase
-    .from("workspaces")
-    .insert({ name, user_id: user.id })
-    .select()
-    .single();
+    .from("groups")
+    .select("id, name")
+    .eq("workspace_id", workspaceId)
+    .order("position");
   if (error) throw new Error(error.message);
   return data;
 };
@@ -37,28 +34,50 @@ const Index = () => {
   const [activeWorkspaceId, setActiveWorkspaceId] = useState<string | null>(
     localStorage.getItem("activeWorkspaceId")
   );
+  const [activeGroupId, setActiveGroupId] = useState<string | null>(null);
   const queryClient = useQueryClient();
-  const navigate = useNavigate();
 
-  const {
-    data: workspaces,
-    isLoading,
-    isError,
-  } = useQuery<Workspace[]>({
+  const { data: workspaces, isLoading: isLoadingWorkspaces } = useQuery<Workspace[]>({
     queryKey: ["workspaces"],
     queryFn: fetchWorkspaces,
   });
 
+  const { data: groups, isLoading: isLoadingGroups } = useQuery<Group[]>({
+    queryKey: ["groups", activeWorkspaceId],
+    queryFn: () => fetchGroups(activeWorkspaceId!),
+    enabled: !!activeWorkspaceId,
+  });
+
   const createWorkspaceMutation = useMutation({
-    mutationFn: createWorkspace,
+    mutationFn: async (name: string) => {
+      const { data, error } = await supabase.from("workspaces").insert({ name }).select().single();
+      if (error) throw error;
+      return data;
+    },
     onSuccess: (newWorkspace) => {
       queryClient.invalidateQueries({ queryKey: ["workspaces"] });
       setActiveWorkspaceId(newWorkspace.id);
-      showSuccess("Workspace criado com sucesso!");
+      showSuccess("Workspace criado!");
     },
-    onError: (error) => {
-      showError(`Erro ao criar workspace: ${error.message}`);
+    onError: (e: Error) => showError(e.message),
+  });
+
+  const createGroupMutation = useMutation({
+    mutationFn: async (name: string) => {
+      const { data, error } = await supabase.from("groups").insert({
+        name,
+        workspace_id: activeWorkspaceId,
+        position: groups?.length || 0,
+      }).select().single();
+      if (error) throw error;
+      return data;
     },
+    onSuccess: (newGroup) => {
+      queryClient.invalidateQueries({ queryKey: ["groups", activeWorkspaceId] });
+      setActiveGroupId(newGroup.id);
+      showSuccess("Grupo criado!");
+    },
+    onError: (e: Error) => showError(e.message),
   });
 
   useEffect(() => {
@@ -70,12 +89,18 @@ const Index = () => {
   useEffect(() => {
     if (activeWorkspaceId) {
       localStorage.setItem("activeWorkspaceId", activeWorkspaceId);
+      setActiveGroupId(null); // Reset group when workspace changes
     }
   }, [activeWorkspaceId]);
 
+  useEffect(() => {
+    if (groups && groups.length > 0 && !activeGroupId) {
+      setActiveGroupId(groups[0].id);
+    }
+  }, [groups, activeGroupId]);
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    // The ProtectedRoute component will handle the redirect
   };
 
   return (
@@ -83,11 +108,8 @@ const Index = () => {
       <header className="p-4 bg-white dark:bg-gray-800 shadow-md flex justify-between items-center">
         <h1 className="text-2xl font-bold">Quadro Kanban</h1>
         <div className="flex items-center gap-4">
-          {isLoading ? (
-            <div className="flex items-center gap-4">
-              <Skeleton className="h-10 w-[200px]" />
-              <Skeleton className="h-10 w-[160px]" />
-            </div>
+          {isLoadingWorkspaces ? (
+            <Skeleton className="h-10 w-[380px]" />
           ) : (
             <WorkspaceSwitcher
               workspaces={workspaces || []}
@@ -101,16 +123,19 @@ const Index = () => {
       </header>
       <main>
         {activeWorkspaceId ? (
-          <KanbanBoard key={activeWorkspaceId} workspaceId={activeWorkspaceId} />
+          isLoadingGroups ? (
+            <div className="p-8 text-center">Carregando grupos...</div>
+          ) : (
+            <GroupTabs
+              groups={groups || []}
+              activeGroupId={activeGroupId}
+              onGroupChange={setActiveGroupId}
+              onCreateGroup={(name) => createGroupMutation.mutate(name)}
+            />
+          )
         ) : (
           <div className="p-8 text-center">
-            {isLoading ? (
-              <p>Carregando workspaces...</p>
-            ) : isError ? (
-              <p className="text-red-500">Erro ao carregar workspaces.</p>
-            ) : (
-              <p>Crie seu primeiro workspace para começar.</p>
-            )}
+            {isLoadingWorkspaces ? "Carregando..." : "Crie ou selecione um workspace para começar."}
           </div>
         )}
       </main>

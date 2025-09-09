@@ -37,7 +37,7 @@ import { cn } from "@/lib/utils";
 interface TaskModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (task: Task) => void;
+  onSave: (task: Partial<Task>) => void; // Changed to Partial<Task>
   onDelete?: (taskId: string) => void;
   task: Task | null;
   columnId?: string;
@@ -132,9 +132,9 @@ export function TaskModal({
       setIsUploading(false);
     }
 
-    const savedTask: Task = {
-      id: task?.id || new Date().getTime().toString(),
-      columnId: task?.columnId || columnId || "todo",
+    const savedTask: Partial<Task> = { // Changed to Partial<Task>
+      id: task?.id, // Pass existing id if it's an edit
+      columnId: task?.columnId || columnId,
       title: title || "Nova Tarefa",
       description: description,
       actionType: actionType,

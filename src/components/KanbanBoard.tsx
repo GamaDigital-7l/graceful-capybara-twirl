@@ -23,15 +23,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { showError, showSuccess } from "@/utils/toast";
 
 interface KanbanBoardProps {
-  workspaceId: string;
+  groupId: string;
 }
 
 // API Functions
-const fetchKanbanData = async (workspaceId: string) => {
+const fetchKanbanData = async (groupId: string) => {
   const { data: columns, error: columnsError } = await supabase
     .from("columns")
     .select("*, tasks(*)")
-    .eq("workspace_id", workspaceId)
+    .eq("group_id", groupId)
     .order("position");
 
   if (columnsError) throw new Error(columnsError.message);
@@ -40,7 +40,7 @@ const fetchKanbanData = async (workspaceId: string) => {
   return { columns, tasks };
 };
 
-export function KanbanBoard({ workspaceId }: KanbanBoardProps) {
+export function KanbanBoard({ groupId }: KanbanBoardProps) {
   const queryClient = useQueryClient();
   const [activeTask, setActiveTask] = useState<Task | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -48,8 +48,8 @@ export function KanbanBoard({ workspaceId }: KanbanBoardProps) {
   const [newCardColumn, setNewCardColumn] = useState<string | null>(null);
 
   const { data, isLoading } = useQuery({
-    queryKey: ["kanbanData", workspaceId],
-    queryFn: () => fetchKanbanData(workspaceId),
+    queryKey: ["kanbanData", groupId],
+    queryFn: () => fetchKanbanData(groupId),
   });
 
   const columns = data?.columns || [];
@@ -65,13 +65,13 @@ export function KanbanBoard({ workspaceId }: KanbanBoardProps) {
 
   // Mutations
   const invalidateKanbanData = () => {
-    queryClient.invalidateQueries({ queryKey: ["kanbanData", workspaceId] });
+    queryClient.invalidateQueries({ queryKey: ["kanbanData", groupId] });
   };
 
   const createColumnMutation = useMutation({
     mutationFn: async () => {
       const { data, error } = await supabase.from("columns").insert({
-        workspace_id: workspaceId,
+        group_id: groupId,
         title: "Nova Coluna",
         position: columns.length,
       });
@@ -107,9 +107,8 @@ export function KanbanBoard({ workspaceId }: KanbanBoardProps) {
   });
 
   const saveTaskMutation = useMutation({
-    mutationFn: async (task: Task) => {
+    mutationFn: async (task: Partial<Task>) => {
       const { id, ...taskData } = task;
-      const taskExists = tasks.some((t) => t.id === id);
       const dataToSave = {
         ...taskData,
         column_id: task.columnId,
@@ -117,11 +116,12 @@ export function KanbanBoard({ workspaceId }: KanbanBoardProps) {
         action_type: task.actionType,
       };
 
-      if (taskExists) {
+      if (id) {
         const { error } = await supabase.from("tasks").update(dataToSave).eq("id", id);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from("tasks").insert({ ...dataToSave, position: 0 });
+        const tasksInColumn = tasks.filter(t => t.columnId === task.columnId).length;
+        const { error } = await supabase.from("tasks").insert({ ...dataToSave, position: tasksInColumn });
         if (error) throw error;
       }
     },
@@ -210,7 +210,7 @@ export function KanbanBoard({ workspaceId }: KanbanBoardProps) {
   if (isLoading) return <div className="p-8 text-center">Carregando quadro...</div>;
 
   return (
-    <div className="p-4 md:p-8">
+    <div>
       <DndContext sensors={sensors} onDragStart={onDragStart} onDragEnd={onDragEnd} onDragOver={onDragOver}>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
           <SortableContext items={columnsId}>
