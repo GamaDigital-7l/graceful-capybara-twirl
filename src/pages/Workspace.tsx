@@ -12,7 +12,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { ClientProgress } from "@/components/ClientProgress"; // Import ClientProgress
+// import { ClientProgress } from "@/components/ClientProgress"; // Removido
 
 const fetchGroups = async (workspaceId: string) => {
   if (!workspaceId) return [];
@@ -130,7 +130,7 @@ const Workspace = () => {
     onSuccess: (processedGroupId) => {
       queryClient.invalidateQueries({ queryKey: ["groups", workspaceId] });
       queryClient.invalidateQueries({ queryKey: ["kanbanData", processedGroupId] }); // Invalida os dados do kanban específico
-      queryClient.invalidateQueries({ queryKey: ["tasksByGroup", processedGroupId] }); // Invalida os dados do ClientProgress
+      // queryClient.invalidateQueries({ queryKey: ["tasksByGroup", processedGroupId] }); // Removido
       showSuccess("Mês finalizado! Todas as tarefas foram movidas para 'Aprovado'.");
     },
     onError: (e: Error) => showError(`Erro ao finalizar o mês: ${e.message}`),
@@ -262,23 +262,14 @@ const Workspace = () => {
               <Skeleton className="h-10 w-1/2 mx-auto" />
             </div>
           ) : (
-            <div className="flex flex-col lg:flex-row gap-4 p-4 md:p-8">
-              <div className="lg:w-1/4">
-                {activeGroupId && workspaceId && (
-                  <ClientProgress groupId={activeGroupId} workspaceId={workspaceId} />
-                )}
-              </div>
-              <div className="lg:w-3/4">
-                <GroupTabs
-                  groups={groups || []}
-                  activeGroupId={activeGroupId}
-                  onGroupChange={setActiveGroupId}
-                  onCreateGroup={(name) => createGroupMutation.mutate(name)}
-                  onDeleteGroup={(groupId) => deleteGroupMutation.mutate(groupId)}
-                  onReorderGroups={(reordered) => reorderGroupsMutation.mutate(reordered)}
-                />
-              </div>
-            </div>
+            <GroupTabs
+              groups={groups || []}
+              activeGroupId={activeGroupId}
+              onGroupChange={setActiveGroupId}
+              onCreateGroup={(name) => createGroupMutation.mutate(name)}
+              onDeleteGroup={(groupId) => deleteGroupMutation.mutate(groupId)}
+              onReorderGroups={(reordered) => reorderGroupsMutation.mutate(reordered)}
+            />
           )
         ) : (
           <div className="p-8 text-center">
