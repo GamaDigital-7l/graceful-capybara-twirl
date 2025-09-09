@@ -6,7 +6,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { TaskSummaryCard } from "./TaskSummaryCard";
 import { TaskStats } from "./TaskStats";
 import { useMemo } from "react";
-import { ClientProgress } from "./ClientProgress";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "./ui/badge";
 import { Briefcase } from "lucide-react";
@@ -72,7 +71,7 @@ export function MyTasks() {
     <div>
       <TaskStats pendingCount={pendingTasks.length} completedCount={completedTasks.length} />
       <div className="flex flex-col-reverse lg:grid lg:grid-cols-3 gap-8 items-start">
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-3"> {/* Adjusted to take full width */}
           <h2 className="text-2xl font-bold mb-4">Caixa de Entrada de Tarefas</h2>
           {pendingTasks.length > 0 ? (
             <div className="space-y-6">
@@ -103,9 +102,6 @@ export function MyTasks() {
           ) : (
             <p className="text-muted-foreground mt-4">Nenhuma tarefa pendente. Bom trabalho!</p>
           )}
-        </div>
-        <div className="lg:col-span-1 w-full">
-            <ClientProgress tasks={tasks || []} />
         </div>
       </div>
     </div>

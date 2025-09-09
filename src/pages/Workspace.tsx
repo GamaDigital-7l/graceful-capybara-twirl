@@ -12,6 +12,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { ClientProgress } from "@/components/ClientProgress"; // Import ClientProgress
 
 const fetchGroups = async (workspaceId: string) => {
   if (!workspaceId) return [];
@@ -263,14 +264,23 @@ const Workspace = () => {
               <Skeleton className="h-10 w-1/2 mx-auto" />
             </div>
           ) : (
-            <GroupTabs
-              groups={groups || []}
-              activeGroupId={activeGroupId}
-              onGroupChange={setActiveGroupId}
-              onCreateGroup={(name) => createGroupMutation.mutate(name)}
-              onDeleteGroup={(groupId) => deleteGroupMutation.mutate(groupId)}
-              onReorderGroups={(reordered) => reorderGroupsMutation.mutate(reordered)}
-            />
+            <div className="flex flex-col lg:flex-row gap-4 p-4 md:p-8"> {/* Added flex container */}
+              <div className="lg:w-1/4"> {/* Sidebar for ClientProgress */}
+                {activeGroupId && workspaceId && (
+                  <ClientProgress groupId={activeGroupId} workspaceId={workspaceId} />
+                )}
+              </div>
+              <div className="lg:w-3/4"> {/* Main content for GroupTabs */}
+                <GroupTabs
+                  groups={groups || []}
+                  activeGroupId={activeGroupId}
+                  onGroupChange={setActiveGroupId}
+                  onCreateGroup={(name) => createGroupMutation.mutate(name)}
+                  onDeleteGroup={(groupId) => deleteGroupMutation.mutate(groupId)}
+                  onReorderGroups={(reordered) => reorderGroupsMutation.mutate(reordered)}
+                />
+              </div>
+            </div>
           )
         ) : (
           <div className="p-8 text-center">
