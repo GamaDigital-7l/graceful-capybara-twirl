@@ -69,6 +69,20 @@ const AdminPage = () => {
     onError: (e: any) => showError(`Erro: ${e.message}`),
   });
 
+  const updateUserRoleMutation = useMutation({
+    mutationFn: async ({ userId, role }: { userId: string, role: string }) => {
+      const { error } = await supabase.functions.invoke("update-user-role", {
+        body: { userId, role },
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      showSuccess("Papel do usuário atualizado!");
+    },
+    onError: (e: any) => showError(`Erro: ${e.message}`),
+  });
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 md:p-8">
       <header className="mb-8 flex justify-between items-center">
@@ -103,7 +117,7 @@ const AdminPage = () => {
                 <PasswordInput id="password" value={password} onChange={(e) => setPassword(e.target.value)} />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="role">Papel</Label>
+                <Label htmlFor="role">Papel Global</Label>
                 <Select value={role} onValueChange={setRole}>
                   <SelectTrigger id="role">
                     <SelectValue placeholder="Selecione um papel" />
@@ -128,7 +142,7 @@ const AdminPage = () => {
         <Card>
           <CardHeader>
             <CardTitle>Gerenciamento de Usuários</CardTitle>
-            <CardDescription>Adicione, remova e gerencie os membros da sua equipe.</CardDescription>
+            <CardDescription>Adicione, remova e gerencie os papéis globais dos usuários.</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
@@ -147,27 +161,41 @@ const AdminPage = () => {
                         <p className="text-sm text-muted-foreground">{user.email}</p>
                       </div>
                     </div>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button variant="destructive" size="icon">
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            Tem certeza que deseja deletar o usuário {user.full_name}? Esta ação é irreversível.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                          <AlertDialogAction onClick={() => deleteUserMutation.mutate(user.id)} className="bg-destructive hover:bg-destructive/90">
-                            Deletar
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
+                    <div className="flex items-center gap-2">
+                      <Select
+                        value={user.role || 'user'}
+                        onValueChange={(role) => updateUserRoleMutation.mutate({ userId: user.id, role })}
+                      >
+                        <SelectTrigger className="w-[180px]">
+                          <SelectValue placeholder="Definir papel" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="user">Usuário (Cliente)</SelectItem>
+                          <SelectItem value="admin">Admin (Funcionário)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="destructive" size="icon">
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Tem certeza que deseja deletar o usuário {user.full_name}? Esta ação é irreversível.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => deleteUserMutation.mutate(user.id)} className="bg-destructive hover:bg-destructive/90">
+                              Deletar
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
                   </div>
                 ))
               )}

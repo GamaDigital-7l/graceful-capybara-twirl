@@ -6,30 +6,31 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-serve(async (_req) => {
+serve(async (req) => {
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
+  }
+
   try {
+    const { userId, role } = await req.json();
+    if (!userId || !role) {
+      throw new Error("User ID and role are required.");
+    }
+
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    const { data: { users }, error: usersError } = await supabaseAdmin.auth.admin.listUsers();
-    if (usersError) throw usersError;
+    // Atualiza o papel na tabela de perfis
+    const { error } = await supabaseAdmin
+      .from("profiles")
+      .update({ role: role })
+      .eq("id", userId);
 
-    const { data: profiles, error: profilesError } = await supabaseAdmin.from('profiles').select('*');
-    if (profilesError) throw profilesError;
+    if (error) throw error;
 
-    const combined = users.map(user => {
-      const profile = profiles.find(p => p.id === user.id);
-      return {
-        ...user,
-        full_name: profile?.full_name,
-        avatar_url: profile?.avatar_url,
-        role: profile?.role,
-      };
-    });
-
-    return new Response(JSON.stringify(combined), {
+    return new Response(JSON.stringify({ message: "User role updated successfully" }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
