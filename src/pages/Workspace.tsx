@@ -60,6 +60,34 @@ const Workspace = () => {
     onError: (e: Error) => showError(`Erro ao criar grupo: ${e.message}`),
   });
 
+  const deleteGroupMutation = useMutation({
+    mutationFn: async (groupId: string) => {
+      const { error } = await supabase.from("groups").delete().eq("id", groupId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      setActiveGroupId(null);
+      queryClient.invalidateQueries({ queryKey: ["groups", workspaceId] });
+      showSuccess("Grupo deletado com sucesso!");
+    },
+    onError: (e: Error) => showError(`Erro ao deletar grupo: ${e.message}`),
+  });
+
+  const reorderGroupsMutation = useMutation({
+    mutationFn: async (reorderedGroups: Group[]) => {
+      const updates = reorderedGroups.map((group, index) => 
+        supabase.from("groups").update({ position: index }).eq("id", group.id)
+      );
+      const results = await Promise.all(updates);
+      const errorResult = results.find(r => r.error);
+      if (errorResult) throw errorResult.error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["groups", workspaceId] });
+    },
+    onError: (e: Error) => showError(`Erro ao reordenar grupos: ${e.message}`),
+  });
+
   useEffect(() => {
     if (groups && groups.length > 0 && !activeGroupId) {
       setActiveGroupId(groups[0].id);
@@ -106,6 +134,8 @@ const Workspace = () => {
               activeGroupId={activeGroupId}
               onGroupChange={setActiveGroupId}
               onCreateGroup={(name) => createGroupMutation.mutate(name)}
+              onDeleteGroup={(groupId) => deleteGroupMutation.mutate(groupId)}
+              onReorderGroups={(reordered) => reorderGroupsMutation.mutate(reordered)}
             />
           )
         ) : (

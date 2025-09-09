@@ -4,8 +4,33 @@ import { useState } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus } from "lucide-react";
+import { GripVertical, Plus, Trash2 } from "lucide-react";
 import { KanbanBoard } from "./KanbanBoard";
+import {
+  DndContext,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  horizontalListSortingStrategy,
+  useSortable,
+  arrayMove,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 export interface Group {
   id: string;
@@ -17,16 +42,87 @@ interface GroupTabsProps {
   activeGroupId: string | null;
   onGroupChange: (groupId: string) => void;
   onCreateGroup: (name: string) => void;
+  onDeleteGroup: (groupId: string) => void;
+  onReorderGroups: (groups: Group[]) => void;
 }
+
+const SortableGroupTab = ({
+  group,
+  onDeleteGroup,
+}: {
+  group: Group;
+  onDeleteGroup: (groupId: string) => void;
+}) => {
+  const { attributes, listeners, setNodeRef, transform, transition } =
+    useSortable({ id: group.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="flex items-center bg-background rounded-md p-1"
+    >
+      <TabsTrigger
+        value={group.id}
+        className="flex-grow cursor-grab data-[state=active]:shadow-sm"
+        {...attributes}
+        {...listeners}
+      >
+        <GripVertical className="h-4 w-4 mr-2 text-muted-foreground" />
+        {group.name}
+      </TabsTrigger>
+      <AlertDialog>
+        <AlertDialogTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="ml-1 h-8 w-8 flex-shrink-0"
+          >
+            <Trash2 className="h-4 w-4 text-destructive" />
+          </Button>
+        </AlertDialogTrigger>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Isso irá deletar o grupo "{group.name}" e todas as suas colunas e
+              tarefas. Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => onDeleteGroup(group.id)}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              Sim, deletar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
+};
 
 export function GroupTabs({
   groups,
   activeGroupId,
   onGroupChange,
   onCreateGroup,
+  onDeleteGroup,
+  onReorderGroups,
 }: GroupTabsProps) {
   const [isCreating, setIsCreating] = useState(false);
   const [newGroupName, setNewGroupName] = useState("");
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
+  );
 
   const handleCreate = () => {
     if (newGroupName.trim()) {
@@ -36,27 +132,51 @@ export function GroupTabs({
     }
   };
 
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      const oldIndex = groups.findIndex((g) => g.id === active.id);
+      const newIndex = groups.findIndex((g) => g.id === over.id);
+      onReorderGroups(arrayMove(groups, oldIndex, newIndex));
+    }
+  };
+
   return (
-    <Tabs value={activeGroupId || ""} onValueChange={onGroupChange} className="p-4 md:p-8">
+    <Tabs
+      value={activeGroupId || ""}
+      onValueChange={onGroupChange}
+      className="p-4 md:p-8"
+    >
       <div className="flex items-center gap-4 mb-4">
-        <TabsList>
-          {groups.map((group) => (
-            <TabsTrigger key={group.id} value={group.id}>
-              {group.name}
-            </TabsTrigger>
-          ))}
-        </TabsList>
+        <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
+          <SortableContext
+            items={groups.map((g) => g.id)}
+            strategy={horizontalListSortingStrategy}
+          >
+            <TabsList>
+              {groups.map((group) => (
+                <SortableGroupTab
+                  key={group.id}
+                  group={group}
+                  onDeleteGroup={onDeleteGroup}
+                />
+              ))}
+            </TabsList>
+          </SortableContext>
+        </DndContext>
         {isCreating ? (
           <div className="flex items-center gap-2">
             <Input
               value={newGroupName}
               onChange={(e) => setNewGroupName(e.target.value)}
               placeholder="Nome do Grupo (Ex: Setembro)"
-              onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
+              onKeyDown={(e) => e.key === "Enter" && handleCreate()}
               autoFocus
             />
             <Button onClick={handleCreate}>Criar</Button>
-            <Button variant="ghost" onClick={() => setIsCreating(false)}>Cancelar</Button>
+            <Button variant="ghost" onClick={() => setIsCreating(false)}>
+              Cancelar
+            </Button>
           </div>
         ) : (
           <Button variant="outline" onClick={() => setIsCreating(true)}>
