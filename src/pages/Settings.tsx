@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Link } from "react-router-dom";
 import { ArrowLeft, Upload } from "lucide-react";
+import { PasswordInput } from "@/components/PasswordInput";
 
 const fetchSettings = async () => {
   const { data, error } = await supabase.from("app_settings").select("*").eq("id", 1).single();
@@ -24,6 +25,8 @@ const SettingsPage = () => {
   const [backgroundColor, setBackgroundColor] = useState("");
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [faviconFile, setFaviconFile] = useState<File | null>(null);
+  const [telegramBotToken, setTelegramBotToken] = useState("");
+  const [telegramChatId, setTelegramChatId] = useState("");
   const [isUploading, setIsUploading] = useState(false);
 
   const { data: settings } = useQuery({
@@ -36,6 +39,8 @@ const SettingsPage = () => {
       setAppName(settings.app_name || "");
       setPrimaryColor(settings.primary_color || "");
       setBackgroundColor(settings.background_color || "");
+      setTelegramBotToken(settings.telegram_bot_token || "");
+      setTelegramChatId(settings.telegram_chat_id || "");
     }
   }, [settings]);
 
@@ -74,6 +79,8 @@ const SettingsPage = () => {
       background_color: backgroundColor,
       logo_url: logoUrl,
       favicon_url: faviconUrl,
+      telegram_bot_token: telegramBotToken,
+      telegram_chat_id: telegramChatId,
     });
     setIsUploading(false);
   };
@@ -92,7 +99,7 @@ const SettingsPage = () => {
         <Card>
           <CardHeader>
             <CardTitle>Configurações da Aplicação</CardTitle>
-            <CardDescription>Personalize a aparência e identidade do seu aplicativo.</CardDescription>
+            <CardDescription>Personalize a aparência e as integrações do seu aplicativo.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="space-y-2">
@@ -122,6 +129,17 @@ const SettingsPage = () => {
               <Label htmlFor="backgroundColor">Cor de Fundo Principal</Label>
               <Input id="backgroundColor" value={backgroundColor} onChange={(e) => setBackgroundColor(e.target.value)} />
               <p className="text-xs text-muted-foreground">Formato HSL sem 'hsl()'. Ex: 0 0% 100%</p>
+            </div>
+            <div className="border-t pt-6 space-y-4">
+                <h3 className="text-lg font-medium">Notificações do Telegram</h3>
+                <div className="space-y-2">
+                    <Label htmlFor="telegram-token">Token do Bot do Telegram</Label>
+                    <PasswordInput id="telegram-token" value={telegramBotToken} onChange={(e) => setTelegramBotToken(e.target.value)} />
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="telegram-chat-id">Chat ID do Telegram</Label>
+                    <Input id="telegram-chat-id" value={telegramChatId} onChange={(e) => setTelegramChatId(e.target.value)} />
+                </div>
             </div>
             <Button onClick={handleSave} disabled={isUploading || updateSettingsMutation.isPending}>
               {isUploading ? "Enviando..." : "Salvar Alterações"}

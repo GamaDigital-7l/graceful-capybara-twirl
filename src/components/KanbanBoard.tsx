@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   DndContext,
   DragEndEvent,
@@ -69,11 +69,41 @@ export function KanbanBoard({ groupId }: KanbanBoardProps) {
   const [newCardColumn, setNewCardColumn] = useState<string | null>(null);
   const [isEditRequestModalOpen, setIsEditRequestModalOpen] = useState(false);
   const [taskForEditRequest, setTaskForEditRequest] = useState<(Task & { columnId: string }) | null>(null);
+  const [currentUser, setCurrentUser] = useState<{ full_name: string, role: string } | null>(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase.from('profiles').select('full_name, role').eq('id', user.id).single();
+        setCurrentUser(profile);
+      }
+    };
+    fetchUser();
+  }, []);
 
   const { data, isLoading } = useQuery({
     queryKey: ["kanbanData", groupId],
     queryFn: () => fetchKanbanData(groupId),
   });
+
+  const { data: workspaceData } = useQuery({
+    queryKey: ['workspaceFromGroup', groupId],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('groups').select('workspaces(name)').eq('id', groupId).single();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!groupId
+  });
+  const workspaceName = workspaceData?.workspaces?.name || 'Workspace Desconhecido';
+
+  const triggerNotification = (message: string) => {
+    if (currentUser?.role === 'user') {
+      supabase.functions.invoke('send-telegram-notification', { body: { message } })
+        .catch(err => console.error("Erro ao enviar notificação:", err));
+    }
+  };
 
   const columns = data?.columns || [];
   const tasks = data?.tasks || [];
@@ -81,8 +111,8 @@ export function KanbanBoard({ groupId }: KanbanBoardProps) {
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        delay: 150, // User must press and hold for 150ms to start a drag
-        tolerance: 5, // User can move 5px before the drag is cancelled
+        delay: 150,
+        tolerance: 5,
       },
     })
   );
@@ -129,23 +159,35 @@ export function KanbanBoard({ groupId }: KanbanBoardProps) {
         const { error } = await supabase.from("tasks").insert({ ...dataToSave, position });
         if (error) throw error;
       }
+      return task;
     },
-    onSuccess: () => { invalidateKanbanData(); showSuccess("Tarefa salva!"); },
+    onSuccess: (savedTask) => {
+      invalidateKanbanData();
+      showSuccess("Tarefa salva!");
+      if (!savedTask.id) {
+        triggerNotification(`*${currentUser?.full_name}* criou a nova tarefa: "${savedTask.title}" no workspace *${workspaceName}*.`);
+      }
+    },
     onError: (e: Error) => showError(e.message),
   });
 
   const requestEditMutation = useMutation({
     mutationFn: async ({ taskId, comment, targetColumnId }: { taskId: string, comment: string, targetColumnId: string }) => {
-      const { data: currentTask, error: fetchError } = await supabase.from("tasks").select("comments").eq("id", taskId).single();
+      const { data: currentTask, error: fetchError } = await supabase.from("tasks").select("comments, title").eq("id", taskId).single();
       if (fetchError) throw fetchError;
 
-      const newComment = { id: Date.now().toString(), text: comment, author: "Usuário", createdAt: new Date().toISOString() };
+      const newComment = { id: Date.now().toString(), text: comment, author: currentUser?.full_name || "Usuário", createdAt: new Date().toISOString() };
       const updatedComments = [...(currentTask.comments || []), newComment];
 
       const { error } = await supabase.from("tasks").update({ comments: updatedComments, column_id: targetColumnId }).eq("id", taskId);
       if (error) throw error;
+      return { taskTitle: currentTask.title, comment };
     },
-    onSuccess: () => { invalidateKanbanData(); showSuccess("Solicitação de edição enviada!"); },
+    onSuccess: ({ taskTitle, comment }) => {
+      invalidateKanbanData();
+      showSuccess("Solicitação de edição enviada!");
+      triggerNotification(`*${currentUser?.full_name}* solicitou edição para a tarefa "${taskTitle}" no workspace *${workspaceName}*.\nComentário: _${comment}_`);
+    },
     onError: (e: Error) => showError(e.message),
   });
 
@@ -166,8 +208,10 @@ export function KanbanBoard({ groupId }: KanbanBoardProps) {
 
   const handleApproveTask = (taskId: string) => {
     const approvedColumn = columns.find(c => c.title === "Aprovado");
-    if (approvedColumn) {
+    const task = tasks.find(t => t.id === taskId);
+    if (approvedColumn && task) {
       saveTaskMutation.mutate({ id: taskId, columnId: approvedColumn.id });
+      triggerNotification(`*${currentUser?.full_name}* aprovou a tarefa "${task.title}" no workspace *${workspaceName}*.`);
     } else {
       showError("A coluna 'Aprovado' não foi encontrada.");
     }
@@ -210,14 +254,16 @@ export function KanbanBoard({ groupId }: KanbanBoardProps) {
     const { active, over } = event;
     if (!over || active.id === over.id || active.data.current?.type !== "Task") return;
     
-    const isActiveATask = active.data.current?.type === "Task";
-    const isOverAColumn = over.data.current?.type === "Column";
-
-    if (isActiveATask && isOverAColumn) {
-      const activeTask = tasks.find(t => t.id === active.id);
-      if (activeTask && activeTask.columnId !== over.id) {
-        const updatedTasks = tasks.map(t => t.id === active.id ? { ...t, columnId: over.id as string } : t);
-        updateTaskPositionMutation.mutate(updatedTasks.map((t, i) => ({ ...t, position: i })));
+    const activeTask = tasks.find(t => t.id === active.id);
+    const overColumnId = over.data.current?.type === "Column" ? over.id : over.data.current?.task.columnId;
+    
+    if (activeTask && overColumnId && activeTask.columnId !== overColumnId) {
+      const updatedTasks = tasks.map(t => t.id === active.id ? { ...t, columnId: overColumnId as string } : t);
+      updateTaskPositionMutation.mutate(updatedTasks.map((t, i) => ({ ...t, position: i })));
+      
+      const destColumn = columns.find(c => c.id === overColumnId);
+      if (destColumn) {
+        triggerNotification(`*${currentUser?.full_name}* moveu a tarefa "${activeTask.title}" para a coluna *${destColumn.title}* no workspace *${workspaceName}*.`);
       }
     }
   };
