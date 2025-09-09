@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Dashboard from "./pages/Dashboard";
 import Workspace from "./pages/Workspace";
 import PlaybookPage from "./pages/Playbook";
+import AdminPage from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -41,6 +42,14 @@ const App = () => (
             element={
               <ProtectedRoute>
                 <PlaybookPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute>
+                <AdminPage />
               </ProtectedRoute>
             }
           />

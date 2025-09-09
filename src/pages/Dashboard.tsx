@@ -14,7 +14,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { PlusCircle, Settings, LogOut } from "lucide-react";
+import { PlusCircle, Settings, LogOut, UserCog } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { WorkspaceSettingsModal } from "@/components/WorkspaceSettingsModal";
 
@@ -49,7 +49,7 @@ const Dashboard = () => {
     onSuccess: (newWorkspace) => {
       queryClient.invalidateQueries({ queryKey: ["workspaces"] });
       setSelectedWorkspace(newWorkspace);
-      setIsSettingsModalOpen(true); // Open settings to add logo right away
+      setIsSettingsModalOpen(true);
       showSuccess("Workspace criado! Adicione uma logo.");
     },
     onError: (e: Error) => showError(e.message),
@@ -68,10 +68,18 @@ const Dashboard = () => {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <header className="p-4 bg-white dark:bg-gray-800 shadow-sm flex justify-between items-center">
         <h1 className="text-2xl font-bold">Dashboard de Clientes</h1>
-        <Button onClick={handleLogout} variant="outline">
-          <LogOut className="h-4 w-4 mr-2" />
-          Sair
-        </Button>
+        <div className="flex items-center gap-2">
+            <Button asChild variant="outline">
+                <Link to="/admin">
+                    <UserCog className="h-4 w-4 mr-2" />
+                    Admin
+                </Link>
+            </Button>
+            <Button onClick={handleLogout} variant="outline">
+                <LogOut className="h-4 w-4 mr-2" />
+                Sair
+            </Button>
+        </div>
       </header>
       <main className="p-4 md:p-8">
         <div className="mb-6 flex justify-end">
