@@ -15,6 +15,7 @@ import { SortableContext, arrayMove } from "@dnd-kit/sortable";
 import { KanbanColumn, Column } from "./KanbanColumn";
 import { KanbanCard, Task } from "./KanbanCard";
 import { createPortal } from "react-dom";
+import { TaskModal } from "./TaskModal";
 
 const initialColumns: Column[] = [
   { id: "todo", title: "A Fazer" },
@@ -36,6 +37,10 @@ export function KanbanBoard() {
 
   const [activeTask, setActiveTask] = useState<Task | null>(null);
 
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [newCardColumn, setNewCardColumn] = useState<string | null>(null);
+
   const columnsId = useMemo(() => columns.map((col) => col.id), [columns]);
 
   const sensors = useSensors(
@@ -45,6 +50,38 @@ export function KanbanBoard() {
       },
     })
   );
+
+  const handleOpenModalForEdit = (task: Task) => {
+    setSelectedTask(task);
+    setNewCardColumn(null);
+    setIsModalOpen(true);
+  };
+
+  const handleOpenModalForCreate = (columnId: string) => {
+    setSelectedTask(null);
+    setNewCardColumn(columnId);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedTask(null);
+    setNewCardColumn(null);
+  };
+
+  const handleSaveTask = (savedTask: Task) => {
+    if (selectedTask) {
+      // Edit
+      setTasks(tasks.map((t) => (t.id === savedTask.id ? savedTask : t)));
+    } else {
+      // Create
+      setTasks([...tasks, savedTask]);
+    }
+  };
+
+  const handleDeleteTask = (taskId: string) => {
+    setTasks(tasks.filter((t) => t.id !== taskId));
+  };
 
   function onDragStart(event: DragStartEvent) {
     if (event.active.data.current?.type === "Task") {
@@ -131,6 +168,8 @@ export function KanbanBoard() {
                 key={col.id}
                 column={col}
                 tasks={tasks.filter((task) => task.columnId === col.id)}
+                onCardClick={handleOpenModalForEdit}
+                onAddTask={handleOpenModalForCreate}
               />
             ))}
           </SortableContext>
@@ -138,11 +177,20 @@ export function KanbanBoard() {
 
         {createPortal(
           <DragOverlay>
-            {activeTask && <KanbanCard task={activeTask} />}
+            {activeTask && <KanbanCard task={activeTask} onClick={() => {}} />}
           </DragOverlay>,
           document.body
         )}
       </DndContext>
+
+      <TaskModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        onSave={handleSaveTask}
+        onDelete={handleDeleteTask}
+        task={selectedTask}
+        columnId={newCardColumn || undefined}
+      />
     </div>
   );
 }
