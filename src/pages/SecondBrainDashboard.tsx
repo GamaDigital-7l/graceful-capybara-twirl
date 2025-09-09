@@ -66,8 +66,12 @@ const SecondBrainDashboard = () => {
 
   const saveClientMutation = useMutation({
     mutationFn: async ({ client, file }: { client: Partial<SecondBrainClient>, file: File | null }) => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Usuário não autenticado.");
+      // Refresh session to ensure a valid JWT is used for storage operations
+      const { data: { session }, error: sessionRefreshError } = await supabase.auth.refreshSession();
+      if (sessionRefreshError || !session || !session.user || !session.user.id || session.user.id === "") {
+        throw new Error("Sessão de usuário inválida ou ID de usuário ausente após refresh. Por favor, faça login novamente.");
+      }
+      const userId = session.user.id; // Use the ID from the refreshed session
 
       let currentClientId = client.id;
       let finalPhotoUrl = client.photo_url;
@@ -76,7 +80,7 @@ const SecondBrainDashboard = () => {
       if (!currentClientId) {
         const { data: newClient, error: insertError } = await supabase
           .from("second_brain_clients")
-          .insert({ name: client.name, created_by: user.id })
+          .insert({ name: client.name, created_by: userId }) // Use userId from refreshed session
           .select("id")
           .single();
         if (insertError) throw insertError;
