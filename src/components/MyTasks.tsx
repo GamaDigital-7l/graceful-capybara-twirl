@@ -79,7 +79,7 @@ export function MyTasks() {
         <div className="lg:col-span-2">
           <h2 className="text-2xl font-bold mb-4">Caixa de Entrada de Tarefas</h2>
           {pendingTasks.length > 0 ? (
-            <Accordion type="single" collapsible defaultValue={Object.keys(groupedTasks)[0]}>
+            <Accordion type="multiple" defaultValue={Object.keys(groupedTasks)}>
               {Object.entries(groupedTasks).map(([workspaceId, { name, tasks }]) => (
                 <AccordionItem value={workspaceId} key={workspaceId}>
                   <AccordionTrigger className="text-lg font-semibold">
