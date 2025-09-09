@@ -138,7 +138,7 @@ export function KanbanCard({
             <Button
               onClick={(e) => handleActionClick(e, onApprove)}
               size="sm"
-              className="w-full"
+              className="w-full dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200"
               variant="secondary"
             >
               Aprovar

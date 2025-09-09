@@ -12,6 +12,8 @@ import {
   useSensor,
   useSensors,
   DragEndEvent,
+  MouseSensor,
+  TouchSensor,
 } from "@dnd-kit/core";
 import {
   SortableContext,
@@ -137,7 +139,17 @@ export function GroupTabs({
   const [newGroupName, setNewGroupName] = useState("");
 
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
+    useSensor(MouseSensor, {
+      activationConstraint: {
+        distance: 10,
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 250,
+        tolerance: 5,
+      },
+    })
   );
 
   const handleCreate = () => {

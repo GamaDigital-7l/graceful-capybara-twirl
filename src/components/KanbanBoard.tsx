@@ -9,6 +9,8 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
+  MouseSensor,
+  TouchSensor,
 } from "@dnd-kit/core";
 import { SortableContext, arrayMove } from "@dnd-kit/sortable";
 import { KanbanColumn, Column } from "./KanbanColumn";
@@ -108,9 +110,14 @@ export function KanbanBoard({ groupId }: KanbanBoardProps) {
   const tasks = data?.tasks || [];
   const columnsId = useMemo(() => columns.map((col) => col.id), [columns]);
   const sensors = useSensors(
-    useSensor(PointerSensor, {
+    useSensor(MouseSensor, {
       activationConstraint: {
-        delay: 150,
+        distance: 10,
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 250,
         tolerance: 5,
       },
     })
