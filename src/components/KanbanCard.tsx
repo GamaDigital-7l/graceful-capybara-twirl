@@ -41,7 +41,6 @@ interface KanbanCardProps {
   onClick: () => void;
   onApprove?: (taskId: string) => void;
   onEditRequest?: (taskId: string) => void;
-  onImageClick: (imageUrl: string) => void;
 }
 
 export function KanbanCard({
@@ -49,7 +48,6 @@ export function KanbanCard({
   onClick,
   onApprove,
   onEditRequest,
-  onImageClick,
 }: KanbanCardProps) {
   const {
     setNodeRef,
@@ -103,12 +101,7 @@ export function KanbanCard({
       className="cursor-pointer hover:ring-2 hover:ring-primary transition-shadow"
     >
       {coverImage && (
-        <div
-          onClick={(e) => {
-            e.stopPropagation();
-            onImageClick(coverImage);
-          }}
-        >
+        <div>
           <AspectRatio ratio={16 / 9} className="rounded-t-lg overflow-hidden">
             <img
               src={coverImage}

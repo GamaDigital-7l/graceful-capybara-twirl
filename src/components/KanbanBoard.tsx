@@ -21,7 +21,6 @@ import { Plus } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { showError, showSuccess } from "@/utils/toast";
-import { ImagePreviewModal } from "./ImagePreviewModal";
 
 interface KanbanBoardProps {
   groupId: string;
@@ -70,8 +69,6 @@ export function KanbanBoard({ groupId }: KanbanBoardProps) {
   const [isEditRequestModalOpen, setIsEditRequestModalOpen] = useState(false);
   const [taskForEditRequest, setTaskForEditRequest] = useState<(Task & { columnId: string }) | null>(null);
   const [currentUser, setCurrentUser] = useState<{ full_name: string, role: string } | null>(null);
-  const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
-  const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -230,11 +227,6 @@ export function KanbanBoard({ groupId }: KanbanBoardProps) {
     }
   };
 
-  const handleImageClick = (imageUrl: string) => {
-    setPreviewImageUrl(imageUrl);
-    setIsPreviewModalOpen(true);
-  };
-
   const onDragStart = (event: DragStartEvent) => {
     const { active } = event;
     if (active.data.current?.type === "Column") {
@@ -337,7 +329,7 @@ export function KanbanBoard({ groupId }: KanbanBoardProps) {
                   onUpdateColumn={(id, title) => updateColumnMutation.mutate({ id, title })}
                   onApproveTask={handleApproveTask}
                   onEditRequestTask={handleEditRequestTask}
-                  onImageClick={handleImageClick}
+                  onImageClick={() => {}}
                 />
               ))}
             </SortableContext>
@@ -347,20 +339,15 @@ export function KanbanBoard({ groupId }: KanbanBoardProps) {
           </div>
         </div>
         {createPortal(<DragOverlay>{
-          activeEl?.type === "Task" && <KanbanCard task={activeEl.data as Task} onClick={() => {}} onImageClick={() => {}} />
+          activeEl?.type === "Task" && <KanbanCard task={activeEl.data as Task} onClick={() => {}} />
         }
         {
           activeEl?.type === "Column" && <KanbanColumn column={activeEl.data as Column} tasks={[]} onCardClick={() => {}} onAddTask={() => {}} onDeleteColumn={() => {}} onUpdateColumn={() => {}} onApproveTask={() => {}} onEditRequestTask={() => {}} onImageClick={() => {}} />
         }
         </DragOverlay>, document.body)}
       </DndContext>
-      <TaskModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSave={(task) => saveTaskMutation.mutate(task)} onDelete={(id) => deleteTaskMutation.mutate(id)} task={selectedTask} columnId={newCardColumn || undefined} />
+      <TaskModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSave={(task) => saveTaskMutation.mutate(task)} onDelete={(id) => deleteTaskMutation.mutate(id)} task={selectedTask} columnId={newCardColumn || undefined} currentUser={currentUser} />
       <EditRequestModal isOpen={isEditRequestModalOpen} onClose={() => setIsEditRequestModalOpen(false)} onConfirm={(taskId, comment, targetColumnId) => requestEditMutation.mutate({ taskId, comment, targetColumnId })} task={taskForEditRequest} />
-      <ImagePreviewModal 
-        isOpen={isPreviewModalOpen} 
-        onClose={() => setIsPreviewModalOpen(false)} 
-        imageUrl={previewImageUrl} 
-      />
     </div>
   );
 }
