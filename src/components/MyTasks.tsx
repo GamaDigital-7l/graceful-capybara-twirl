@@ -10,6 +10,7 @@ import { ClientProgress } from "./ClientProgress";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "./ui/badge";
 import { Briefcase } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 
 const fetchUserTasks = async () => {
   const { data, error } = await supabase.rpc("get_user_tasks");
@@ -38,11 +39,11 @@ export function MyTasks() {
     if (!pendingTasks) return {};
     return pendingTasks.reduce((acc, task) => {
       if (!acc[task.workspace_id]) {
-        acc[task.workspace_id] = { name: task.workspace_name, tasks: [] };
+        acc[task.workspace_id] = { name: task.workspace_name, logo_url: task.workspace_logo_url, tasks: [] };
       }
       acc[task.workspace_id].tasks.push(task);
       return acc;
-    }, {} as Record<string, { name: string; tasks: typeof pendingTasks }>);
+    }, {} as Record<string, { name: string; logo_url: string | null; tasks: typeof pendingTasks }>);
   }, [pendingTasks]);
 
   if (isLoading) {
@@ -75,11 +76,18 @@ export function MyTasks() {
           <h2 className="text-2xl font-bold mb-4">Caixa de Entrada de Tarefas</h2>
           {pendingTasks.length > 0 ? (
             <div className="space-y-6">
-              {Object.entries(groupedTasks).map(([workspaceId, { name, tasks }]) => (
+              {Object.entries(groupedTasks).map(([workspaceId, { name, logo_url, tasks }]) => (
                 <Card key={workspaceId}>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-3">
-                      <Briefcase className="h-5 w-5 text-primary" />
+                      {logo_url ? (
+                        <Avatar className="h-6 w-6">
+                          <AvatarImage src={logo_url} alt={name} />
+                          <AvatarFallback>{name.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                      ) : (
+                        <Briefcase className="h-5 w-5 text-primary" />
+                      )}
                       {name}
                       <Badge variant="secondary">{tasks.length}</Badge>
                     </CardTitle>

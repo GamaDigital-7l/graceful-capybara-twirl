@@ -69,27 +69,32 @@ const FinancialDashboard = () => {
     onError: (e: Error) => showError(e.message),
   });
 
-  const resetMonthMutation = useMutation({
+  const startNewMonthMutation = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.rpc('reset_financial_month');
+      const { error } = await supabase.rpc('start_new_financial_month');
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["financialData"] });
-      showSuccess("Mês zerado! Apenas clientes fixos foram mantidos.");
+      showSuccess("Novo mês iniciado com sucesso! Clientes fixos foram transferidos.");
     },
     onError: (e: Error) => showError(e.message),
   });
 
-  const { totalRevenue, activeClients, averageTicket } = useMemo(() => {
-    if (!financialData) return { totalRevenue: 0, activeClients: 0, averageTicket: 0 };
-    const activeData = financialData.filter(d => d.status === 'Ativo');
+  const { totalRevenue, activeClients, averageTicket, currentPeriodData } = useMemo(() => {
+    if (!financialData || financialData.length === 0) return { totalRevenue: 0, activeClients: 0, averageTicket: 0, currentPeriodData: [] };
+    
+    const latestPeriod = financialData.reduce((max, item) => item.period > max ? item.period : max, financialData[0].period);
+    const periodData = financialData.filter(d => d.period === latestPeriod);
+
+    const activeData = periodData.filter(d => d.status === 'Ativo');
     const total = activeData.reduce((sum, item) => sum + Number(item.amount), 0);
     const count = activeData.length;
     return {
       totalRevenue: total,
       activeClients: count,
       averageTicket: count > 0 ? total / count : 0,
+      currentPeriodData: periodData,
     };
   }, [financialData]);
 
@@ -114,20 +119,20 @@ const FinancialDashboard = () => {
             <AlertDialogTrigger asChild>
               <Button variant="outline">
                 <RefreshCw className="h-4 w-4 mr-2" />
-                Zerar Mês
+                Iniciar Novo Mês
               </Button>
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
                 <AlertDialogTitle>Confirmar Ação</AlertDialogTitle>
                 <AlertDialogDescription>
-                  Isso removerá todos os clientes do tipo "Freela" e contratos do tipo "Pacote". Apenas clientes "Fixos" com contrato "Mensal" permanecerão. Esta ação não pode ser desfeita.
+                  Isso irá criar um novo período financeiro, copiando apenas os clientes do tipo "Fixo" do mês atual. O histórico será preservado. Deseja continuar?
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                <AlertDialogAction onClick={() => resetMonthMutation.mutate()} className="bg-destructive hover:bg-destructive/90">
-                  Sim, zerar mês
+                <AlertDialogAction onClick={() => startNewMonthMutation.mutate()}>
+                  Sim, iniciar novo mês
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
@@ -142,7 +147,7 @@ const FinancialDashboard = () => {
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Faturamento Mensal (Ativos)</CardTitle>
+              <CardTitle className="text-sm font-medium">Faturamento do Mês (Ativos)</CardTitle>
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -151,7 +156,7 @@ const FinancialDashboard = () => {
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Clientes Ativos</CardTitle>
+              <CardTitle className="text-sm font-medium">Clientes Ativos no Mês</CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -160,7 +165,7 @@ const FinancialDashboard = () => {
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Ticket Médio</CardTitle>
+              <CardTitle className="text-sm font-medium">Ticket Médio do Mês</CardTitle>
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -171,7 +176,7 @@ const FinancialDashboard = () => {
 
         <Card>
           <CardHeader>
-            <CardTitle>Controle de Clientes</CardTitle>
+            <CardTitle>Controle de Clientes do Mês</CardTitle>
           </CardHeader>
           <CardContent>
             <Table>
@@ -194,7 +199,7 @@ const FinancialDashboard = () => {
                     </TableRow>
                   ))
                 ) : (
-                  financialData?.map(item => (
+                  currentPeriodData?.map(item => (
                     <TableRow key={item.id}>
                       <TableCell className="font-medium flex items-center gap-2">
                         {item.workspace ? item.workspace.name : item.client_name}
