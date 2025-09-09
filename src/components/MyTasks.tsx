@@ -7,6 +7,13 @@ import { TaskSummaryCard } from "./TaskSummaryCard";
 import { TaskStats } from "./TaskStats";
 import { useMemo } from "react";
 import { ClientProgress } from "./ClientProgress";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { Badge } from "./ui/badge";
 
 const fetchUserTasks = async () => {
   const { data, error } = await supabase.rpc("get_user_tasks");
@@ -30,6 +37,17 @@ export function MyTasks() {
     );
     return { pendingTasks: pending, completedTasks: completed };
   }, [tasks]);
+
+  const groupedTasks = useMemo(() => {
+    if (!pendingTasks) return {};
+    return pendingTasks.reduce((acc, task) => {
+      if (!acc[task.workspace_id]) {
+        acc[task.workspace_id] = { name: task.workspace_name, tasks: [] };
+      }
+      acc[task.workspace_id].tasks.push(task);
+      return acc;
+    }, {} as Record<string, { name: string; tasks: typeof pendingTasks }>);
+  }, [pendingTasks]);
 
   if (isLoading) {
     return (
@@ -60,15 +78,29 @@ export function MyTasks() {
       <div className="flex flex-col-reverse lg:grid lg:grid-cols-3 gap-8 items-start">
         <div className="lg:col-span-2">
           <h2 className="text-2xl font-bold mb-4">Caixa de Entrada de Tarefas</h2>
-          <div className="space-y-4">
-            {pendingTasks.length > 0 ? (
-              pendingTasks.map((task) => <TaskSummaryCard key={task.id} task={task} />)
-            ) : (
-              <p className="text-muted-foreground">Nenhuma tarefa pendente. Bom trabalho!</p>
-            )}
-          </div>
+          {pendingTasks.length > 0 ? (
+            <Accordion type="single" collapsible defaultValue={Object.keys(groupedTasks)[0]}>
+              {Object.entries(groupedTasks).map(([workspaceId, { name, tasks }]) => (
+                <AccordionItem value={workspaceId} key={workspaceId}>
+                  <AccordionTrigger className="text-lg font-semibold">
+                    <div className="flex items-center gap-3">
+                      {name}
+                      <Badge>{tasks.length}</Badge>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="space-y-3 pt-2">
+                    {tasks.map((task) => (
+                      <TaskSummaryCard key={task.id} task={task} />
+                    ))}
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          ) : (
+            <p className="text-muted-foreground mt-4">Nenhuma tarefa pendente. Bom trabalho!</p>
+          )}
         </div>
-        <div className="lg:col-span-1">
+        <div className="lg:col-span-1 w-full">
             <ClientProgress tasks={tasks || []} />
         </div>
       </div>
