@@ -28,12 +28,21 @@ const initialColumns: Column[] = [
 ];
 
 const initialTasks: Task[] = [
-  { id: "1", columnId: "todo", title: "Desenvolver a interface do usuário" },
+  {
+    id: "1",
+    columnId: "todo",
+    title: "Desenvolver a interface do usuário",
+    dueDate: new Date(new Date().setDate(new Date().getDate() + 3)).toISOString(),
+    comments: [
+      { id: 'c1', author: 'Gerente', text: 'Lembrar de alinhar com o time de design.', createdAt: new Date().toISOString() }
+    ]
+  },
   {
     id: "3",
     columnId: "in-progress",
     title: "Criar a lógica de autenticação",
     actionType: "review",
+    dueDate: new Date(new Date().setDate(new Date().getDate() + 7)).toISOString(),
   },
   {
     id: "4",

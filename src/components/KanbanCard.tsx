@@ -5,11 +5,20 @@ import { CSS } from "@dnd-kit/utilities";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { CalendarDays, MessageSquare } from "lucide-react";
+import { format } from "date-fns";
 
 export interface Attachment {
   id: string;
   url: string;
   isCover: boolean;
+}
+
+export interface Comment {
+  id: string;
+  text: string;
+  author: string;
+  createdAt: string;
 }
 
 export type TaskActionType = "review" | "none";
@@ -22,6 +31,7 @@ export interface Task {
   dueDate?: string;
   attachments?: Attachment[];
   actionType?: TaskActionType;
+  comments?: Comment[];
 }
 
 interface KanbanCardProps {
@@ -95,9 +105,27 @@ export function KanbanCard({
           className="w-full h-32 object-cover rounded-t-lg"
         />
       )}
-      <CardContent className={cn("p-4", coverImage && "pt-2")}>
+      <CardContent className={cn("p-4 pb-2", coverImage && "pt-2")}>
         <p>{task.title}</p>
       </CardContent>
+
+      {(task.dueDate || (task.comments && task.comments.length > 0)) && (
+        <div className="px-4 pb-2 flex justify-between items-center text-sm text-muted-foreground">
+          {task.dueDate ? (
+            <div className="flex items-center gap-1">
+              <CalendarDays className="h-4 w-4" />
+              <span>{format(new Date(task.dueDate), "dd MMM")}</span>
+            </div>
+          ) : <div />}
+          {task.comments && task.comments.length > 0 && (
+            <div className="flex items-center gap-1">
+              <MessageSquare className="h-4 w-4" />
+              <span>{task.comments.length}</span>
+            </div>
+          )}
+        </div>
+      )}
+
       {task.actionType === "review" && (
         <CardFooter className="p-2 pt-0 flex gap-2">
           {onApprove && (
