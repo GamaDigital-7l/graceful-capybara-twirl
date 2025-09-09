@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -36,6 +36,24 @@ const Dashboard = () => {
   const queryClient = useQueryClient();
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [selectedWorkspace, setSelectedWorkspace] = useState<Workspace | null>(null);
+  const [userRole, setUserRole] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchUserRole = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .single();
+        if (profile) {
+          setUserRole(profile.role);
+        }
+      }
+    };
+    fetchUserRole();
+  }, []);
 
   const { data: workspaces, isLoading } = useQuery<Workspace[]>({
     queryKey: ["workspaces"],
@@ -71,12 +89,14 @@ const Dashboard = () => {
       <header className="p-4 bg-white dark:bg-gray-800 shadow-sm flex justify-between items-center">
         <h1 className="text-2xl font-bold">Dashboard</h1>
         <div className="flex items-center gap-2">
-            <Button asChild variant="outline">
-                <Link to="/admin">
-                    <UserCog className="h-4 w-4 mr-2" />
-                    Admin
-                </Link>
-            </Button>
+            {userRole === 'admin' && (
+              <Button asChild variant="outline">
+                  <Link to="/admin">
+                      <UserCog className="h-4 w-4 mr-2" />
+                      Admin
+                  </Link>
+              </Button>
+            )}
             <Button onClick={handleLogout} variant="outline">
                 <LogOut className="h-4 w-4 mr-2" />
                 Sair
@@ -90,10 +110,12 @@ const Dashboard = () => {
               <TabsTrigger value="tasks">Minhas Tarefas</TabsTrigger>
               <TabsTrigger value="clients">Clientes</TabsTrigger>
             </TabsList>
-            <Button onClick={() => createWorkspaceMutation.mutate("Novo Workspace")}>
-              <PlusCircle className="h-4 w-4 mr-2" />
-              Novo Cliente (Workspace)
-            </Button>
+            {userRole === 'admin' && (
+              <Button onClick={() => createWorkspaceMutation.mutate("Novo Workspace")}>
+                <PlusCircle className="h-4 w-4 mr-2" />
+                Novo Cliente (Workspace)
+              </Button>
+            )}
           </div>
           <TabsContent value="tasks">
             <MyTasks />
