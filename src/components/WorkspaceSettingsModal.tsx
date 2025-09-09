@@ -39,9 +39,9 @@ export function WorkspaceSettingsModal({ isOpen, onClose, workspace }: Workspace
     queryKey: ["workspaceMembers", workspace?.id],
     queryFn: async () => {
       if (!workspace) return [];
-      const { data, error } = await supabase.from("workspace_members").select("user_id").eq("workspace_id", workspace.id);
+      const { data, error } = await supabase.from("workspace_members").select("user_id, role").eq("workspace_id", workspace.id);
       if (error) throw error;
-      return data.map(m => m.user_id);
+      return data;
     },
     enabled: !!workspace,
   });
@@ -85,7 +85,7 @@ export function WorkspaceSettingsModal({ isOpen, onClose, workspace }: Workspace
   const addMemberMutation = useMutation({
     mutationFn: async (userId: string) => {
       if (!workspace) throw new Error("Workspace não selecionado.");
-      const { error } = await supabase.from("workspace_members").insert({ workspace_id: workspace.id, user_id: userId, role: 'member' });
+      const { error } = await supabase.from("workspace_members").insert({ workspace_id: workspace.id, user_id: userId, role: 'editor' });
       if (error) throw error;
     },
     onSuccess: () => {
@@ -94,6 +94,19 @@ export function WorkspaceSettingsModal({ isOpen, onClose, workspace }: Workspace
       setSelectedUserId(null);
     },
     onError: (e: Error) => showError(`Erro ao adicionar membro: ${e.message}`),
+  });
+
+  const updateMemberRoleMutation = useMutation({
+    mutationFn: async ({ userId, role }: { userId: string, role: string }) => {
+      if (!workspace) throw new Error("Workspace não selecionado.");
+      const { error } = await supabase.from("workspace_members").update({ role }).eq("workspace_id", workspace.id).eq("user_id", userId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      showSuccess("Permissão do membro atualizada!");
+      refetchMembers();
+    },
+    onError: (e: Error) => showError(e.message),
   });
 
   const handleSave = async () => {
@@ -115,7 +128,8 @@ export function WorkspaceSettingsModal({ isOpen, onClose, workspace }: Workspace
     updateWorkspaceMutation.mutate({ name, logo_url: logoUrl });
   };
 
-  const availableUsers = allUsers?.filter((user: any) => !members?.includes(user.id)) || [];
+  const memberIds = members?.map(m => m.user_id) || [];
+  const availableUsers = allUsers?.filter((user: any) => !memberIds.includes(user.id)) || [];
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -175,15 +189,35 @@ export function WorkspaceSettingsModal({ isOpen, onClose, workspace }: Workspace
             </div>
             <Label>Membros Atuais</Label>
             <div className="space-y-2 max-h-48 overflow-y-auto">
-              {allUsers?.filter((user: any) => members?.includes(user.id)).map((member: any) => (
-                <div key={member.id} className="flex items-center gap-2 text-sm p-2 border rounded">
-                  <Avatar className="h-6 w-6">
-                    <AvatarImage src={member.avatar_url} />
-                    <AvatarFallback>{member.full_name?.charAt(0) || 'U'}</AvatarFallback>
-                  </Avatar>
-                  <span>{member.full_name || member.email}</span>
-                </div>
-              ))}
+              {members?.map((member) => {
+                const user = allUsers?.find((u: any) => u.id === member.user_id);
+                if (!user) return null;
+                return (
+                  <div key={member.user_id} className="flex items-center justify-between text-sm p-2 border rounded">
+                    <div className="flex items-center gap-2">
+                      <Avatar className="h-6 w-6">
+                        <AvatarImage src={user.avatar_url} />
+                        <AvatarFallback>{user.full_name?.charAt(0) || 'U'}</AvatarFallback>
+                      </Avatar>
+                      <span>{user.full_name || user.email}</span>
+                    </div>
+                    <Select
+                      value={member.role}
+                      onValueChange={(role) => updateMemberRoleMutation.mutate({ userId: member.user_id, role })}
+                      disabled={member.role === 'owner'}
+                    >
+                      <SelectTrigger className="w-[120px]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="owner" disabled>Dono</SelectItem>
+                        <SelectItem value="editor">Editor</SelectItem>
+                        <SelectItem value="viewer">Visualizador</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                );
+              })}
             </div>
           </TabsContent>
           <TabsContent value="danger" className="py-4 space-y-4">

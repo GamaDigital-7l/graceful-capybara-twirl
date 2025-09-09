@@ -12,18 +12,15 @@ serve(async (req) => {
   }
 
   try {
-    const { full_name, password } = await req.json();
-    if (!full_name || !password) {
-      throw new Error("Full name and password are required.");
+    const { email, full_name, password } = await req.json();
+    if (!email || !full_name || !password) {
+      throw new Error("Email, full name, and password are required.");
     }
 
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
-
-    // Use a unique email based on timestamp to avoid conflicts
-    const email = `user_${Date.now()}@app.local`;
 
     const { data: { user }, error } = await supabaseAdmin.auth.admin.createUser({
       email: email,

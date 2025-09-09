@@ -14,6 +14,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Link } from "react-router-dom";
 import { ArrowLeft, PlusCircle, Trash2 } from "lucide-react";
+import { PasswordInput } from "@/components/PasswordInput";
 
 const fetchUsers = async () => {
   const { data, error } = await supabase.functions.invoke("list-users");
@@ -24,6 +25,7 @@ const fetchUsers = async () => {
 const AdminPage = () => {
   const queryClient = useQueryClient();
   const [isCreateModalOpen, setCreateModalOpen] = useState(false);
+  const [email, setEmail] = useState("");
   const [fullName, setFullName] = useState("");
   const [password, setPassword] = useState("");
 
@@ -35,13 +37,14 @@ const AdminPage = () => {
   const createUserMutation = useMutation({
     mutationFn: async () => {
       const { error } = await supabase.functions.invoke("create-user", {
-        body: { full_name: fullName, password },
+        body: { email, full_name: fullName, password },
       });
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
       showSuccess("Usuário criado com sucesso!");
+      setEmail("");
       setFullName("");
       setPassword("");
       setCreateModalOpen(false);
@@ -89,8 +92,12 @@ const AdminPage = () => {
                 <Input id="fullName" value={fullName} onChange={(e) => setFullName(e.target.value)} />
               </div>
               <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+              </div>
+              <div className="space-y-2">
                 <Label htmlFor="password">Senha</Label>
-                <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+                <PasswordInput id="password" value={password} onChange={(e) => setPassword(e.target.value)} />
               </div>
             </div>
             <DialogFooter>
