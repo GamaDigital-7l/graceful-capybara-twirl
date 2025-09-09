@@ -18,88 +18,145 @@ import { createPortal } from "react-dom";
 import { TaskModal } from "./TaskModal";
 import { Button } from "./ui/button";
 import { Plus } from "lucide-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { showError, showSuccess } from "@/utils/toast";
 
-const initialColumns: Column[] = [
-  { id: "todo", title: "A Fazer" },
-  { id: "in-progress", title: "Em Progresso" },
-  { id: "approved", title: "Aprovados" },
-  { id: "edit-request", title: "Para Editar" },
-  { id: "done", title: "Feito" },
-];
+interface KanbanBoardProps {
+  workspaceId: string;
+}
 
-const initialTasks: Task[] = [
-  {
-    id: "1",
-    columnId: "todo",
-    title: "Desenvolver a interface do usuário",
-    dueDate: new Date(new Date().setDate(new Date().getDate() + 3)).toISOString(),
-    comments: [
-      { id: 'c1', author: 'Gerente', text: 'Lembrar de alinhar com o time de design.', createdAt: new Date().toISOString() }
-    ]
-  },
-  {
-    id: "3",
-    columnId: "in-progress",
-    title: "Criar a lógica de autenticação",
-    actionType: "review",
-    dueDate: new Date(new Date().setDate(new Date().getDate() + 7)).toISOString(),
-  },
-  {
-    id: "4",
-    columnId: "in-progress",
-    title: "Revisar o código do backend",
-    actionType: "review",
-  },
-  { id: "5", columnId: "done", title: "Deploy da versão alpha" },
-];
+// API Functions
+const fetchKanbanData = async (workspaceId: string) => {
+  const { data: columns, error: columnsError } = await supabase
+    .from("columns")
+    .select("*, tasks(*)")
+    .eq("workspace_id", workspaceId)
+    .order("position");
 
-export function KanbanBoard() {
-  const [columns, setColumns] = useState<Column[]>(initialColumns);
-  const [tasks, setTasks] = useState<Task[]>(initialTasks);
+  if (columnsError) throw new Error(columnsError.message);
+
+  const tasks = columns.flatMap((col) => col.tasks || []);
+  return { columns, tasks };
+};
+
+export function KanbanBoard({ workspaceId }: KanbanBoardProps) {
+  const queryClient = useQueryClient();
   const [activeTask, setActiveTask] = useState<Task | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [newCardColumn, setNewCardColumn] = useState<string | null>(null);
 
+  const { data, isLoading } = useQuery({
+    queryKey: ["kanbanData", workspaceId],
+    queryFn: () => fetchKanbanData(workspaceId),
+  });
+
+  const columns = data?.columns || [];
+  const tasks = data?.tasks || [];
+
   const columnsId = useMemo(() => columns.map((col) => col.id), [columns]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 10,
-      },
+      activationConstraint: { distance: 10 },
     })
   );
 
-  // Column CRUD
-  const addColumn = () => {
-    const newColumn: Column = {
-      id: `col-${new Date().getTime()}`,
-      title: `Nova Coluna`,
-    };
-    setColumns([...columns, newColumn]);
+  // Mutations
+  const invalidateKanbanData = () => {
+    queryClient.invalidateQueries({ queryKey: ["kanbanData", workspaceId] });
   };
 
-  const deleteColumn = (columnId: string) => {
-    setColumns(columns.filter((col) => col.id !== columnId));
-    // Move tasks from deleted column to the first column
-    setTasks(
-      tasks.map((task) =>
-        task.columnId === columnId ? { ...task, columnId: columns[0].id } : task
-      )
-    );
-  };
+  const createColumnMutation = useMutation({
+    mutationFn: async () => {
+      const { data, error } = await supabase.from("columns").insert({
+        workspace_id: workspaceId,
+        title: "Nova Coluna",
+        position: columns.length,
+      });
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      invalidateKanbanData();
+      showSuccess("Coluna criada!");
+    },
+    onError: (e: Error) => showError(e.message),
+  });
 
-  const updateColumn = (columnId: string, title: string) => {
-    setColumns(
-      columns.map((col) => (col.id === columnId ? { ...col, title } : col))
-    );
-  };
+  const updateColumnMutation = useMutation({
+    mutationFn: async ({ id, title }: { id: string; title: string }) => {
+      const { error } = await supabase.from("columns").update({ title }).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: invalidateKanbanData,
+    onError: (e: Error) => showError(e.message),
+  });
 
-  // Task Modal Handlers
+  const deleteColumnMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("columns").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      invalidateKanbanData();
+      showSuccess("Coluna deletada!");
+    },
+    onError: (e: Error) => showError(e.message),
+  });
+
+  const saveTaskMutation = useMutation({
+    mutationFn: async (task: Task) => {
+      const { id, ...taskData } = task;
+      const taskExists = tasks.some((t) => t.id === id);
+      const dataToSave = {
+        ...taskData,
+        column_id: task.columnId,
+        due_date: task.dueDate,
+        action_type: task.actionType,
+      };
+
+      if (taskExists) {
+        const { error } = await supabase.from("tasks").update(dataToSave).eq("id", id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from("tasks").insert({ ...dataToSave, position: 0 });
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      invalidateKanbanData();
+      showSuccess("Tarefa salva!");
+    },
+    onError: (e: Error) => showError(e.message),
+  });
+  
+  const updateTaskPositionMutation = useMutation({
+    mutationFn: async (updatedTasks: Task[]) => {
+      const updates = updatedTasks.map(task => supabase.from('tasks').update({ column_id: task.columnId, position: task.position }).eq('id', task.id));
+      const results = await Promise.all(updates);
+      results.forEach(({ error }) => { if (error) throw error; });
+    },
+    onSuccess: invalidateKanbanData,
+    onError: (e: Error) => showError(e.message),
+  });
+
+  const deleteTaskMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("tasks").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      invalidateKanbanData();
+      showSuccess("Tarefa deletada!");
+    },
+    onError: (e: Error) => showError(e.message),
+  });
+
+  // Handlers
   const handleOpenModalForEdit = (task: Task) => {
     setSelectedTask(task);
-    setNewCardColumn(null);
     setIsModalOpen(true);
   };
 
@@ -109,44 +166,9 @@ export function KanbanBoard() {
     setIsModalOpen(true);
   };
 
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setSelectedTask(null);
-    setNewCardColumn(null);
-  };
+  const handleCloseModal = () => setIsModalOpen(false);
 
-  // Task CRUD
-  const handleSaveTask = (savedTask: Task) => {
-    const taskExists = tasks.some((t) => t.id === savedTask.id);
-    if (taskExists) {
-      setTasks(tasks.map((t) => (t.id === savedTask.id ? savedTask : t)));
-    } else {
-      setTasks([...tasks, savedTask]);
-    }
-  };
-
-  const handleDeleteTask = (taskId: string) => {
-    setTasks(tasks.filter((t) => t.id !== taskId));
-  };
-
-  // Task Actions
-  const handleApproveTask = (taskId: string) => {
-    setTasks(
-      tasks.map((task) =>
-        task.id === taskId ? { ...task, columnId: "approved" } : task
-      )
-    );
-  };
-
-  const handleEditRequestTask = (taskId: string) => {
-    setTasks(
-      tasks.map((task) =>
-        task.id === taskId ? { ...task, columnId: "edit-request" } : task
-      )
-    );
-  };
-
-  // Drag and Drop Handlers
+  // Drag and Drop
   function onDragStart(event: DragStartEvent) {
     if (event.active.data.current?.type === "Task") {
       setActiveTask(event.active.data.current.task);
@@ -158,14 +180,15 @@ export function KanbanBoard() {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
 
-    const isActiveATask = active.data.current?.type === "Task";
-    if (!isActiveATask) return;
+    const activeTask = tasks.find(t => t.id === active.id);
+    const overTask = tasks.find(t => t.id === over.id);
 
-    setTasks((tasks) => {
-      const activeIndex = tasks.findIndex((t) => t.id === active.id);
-      const overIndex = tasks.findIndex((t) => t.id === over.id);
-      return arrayMove(tasks, activeIndex, overIndex);
-    });
+    if (activeTask && overTask) {
+        const activeIndex = tasks.indexOf(activeTask);
+        const overIndex = tasks.indexOf(overTask);
+        const newTasks = arrayMove(tasks, activeIndex, overIndex);
+        updateTaskPositionMutation.mutate(newTasks.map((t, i) => ({...t, position: i})));
+    }
   }
 
   function onDragOver(event: DragOverEvent) {
@@ -177,25 +200,18 @@ export function KanbanBoard() {
 
     const isOverAColumn = over.data.current?.type === "Column";
     if (isOverAColumn) {
-      setTasks((tasks) => {
-        const activeIndex = tasks.findIndex((t) => t.id === active.id);
-        if (tasks[activeIndex].columnId !== over.id) {
-          tasks[activeIndex].columnId = over.id as string;
-          return arrayMove(tasks, activeIndex, activeIndex);
+        const activeTask = tasks.find(t => t.id === active.id);
+        if (activeTask && activeTask.columnId !== over.id) {
+            updateTaskPositionMutation.mutate([{...activeTask, columnId: over.id as string, position: 0}]);
         }
-        return tasks;
-      });
     }
   }
 
+  if (isLoading) return <div className="p-8 text-center">Carregando quadro...</div>;
+
   return (
     <div className="p-4 md:p-8">
-      <DndContext
-        sensors={sensors}
-        onDragStart={onDragStart}
-        onDragEnd={onDragEnd}
-        onDragOver={onDragOver}
-      >
+      <DndContext sensors={sensors} onDragStart={onDragStart} onDragEnd={onDragEnd} onDragOver={onDragOver}>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
           <SortableContext items={columnsId}>
             {columns.map((col) => (
@@ -205,37 +221,28 @@ export function KanbanBoard() {
                 tasks={tasks.filter((task) => task.columnId === col.id)}
                 onCardClick={handleOpenModalForEdit}
                 onAddTask={handleOpenModalForCreate}
-                onDeleteColumn={deleteColumn}
-                onUpdateColumn={updateColumn}
-                onApproveTask={handleApproveTask}
-                onEditRequestTask={handleEditRequestTask}
+                onDeleteColumn={(id) => deleteColumnMutation.mutate(id)}
+                onUpdateColumn={(id, title) => updateColumnMutation.mutate({ id, title })}
+                onApproveTask={(id) => saveTaskMutation.mutate({ ...tasks.find(t=>t.id===id)!, columnId: 'approved' })}
+                onEditRequestTask={(id) => saveTaskMutation.mutate({ ...tasks.find(t=>t.id===id)!, columnId: 'edit-request' })}
               />
             ))}
           </SortableContext>
-          <Button onClick={addColumn} variant="outline" className="h-full min-h-[100px]">
+          <Button onClick={() => createColumnMutation.mutate()} variant="outline" className="h-full min-h-[100px]">
             <Plus className="h-4 w-4 mr-2" />
             Adicionar Coluna
           </Button>
         </div>
-
         {createPortal(
-          <DragOverlay>
-            {activeTask && (
-              <KanbanCard
-                task={activeTask}
-                onClick={() => {}}
-              />
-            )}
-          </DragOverlay>,
+          <DragOverlay>{activeTask && <KanbanCard task={activeTask} onClick={() => {}} />}</DragOverlay>,
           document.body
         )}
       </DndContext>
-
       <TaskModal
         isOpen={isModalOpen}
         onClose={handleCloseModal}
-        onSave={handleSaveTask}
-        onDelete={handleDeleteTask}
+        onSave={(task) => saveTaskMutation.mutate(task)}
+        onDelete={(id) => deleteTaskMutation.mutate(id)}
         task={selectedTask}
         columnId={newCardColumn || undefined}
       />
