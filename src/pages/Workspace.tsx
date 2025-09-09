@@ -123,17 +123,15 @@ const Workspace = () => {
 
   const endMonthMutation = useMutation({
     mutationFn: async (groupId: string) => {
-      // A função RPC agora apenas move tarefas, não retorna um novo ID de grupo.
       const { data, error } = await supabase.rpc('end_kanban_month_for_group', { p_group_id: groupId });
       if (error) throw error;
-      return data; // Isso será o groupId original
+      return data;
     },
     onSuccess: (processedGroupId) => {
       queryClient.invalidateQueries({ queryKey: ["groups", workspaceId] });
       queryClient.invalidateQueries({ queryKey: ["kanbanData", processedGroupId] }); // Invalida os dados do kanban específico
+      queryClient.invalidateQueries({ queryKey: ["tasksByGroup", processedGroupId] }); // Invalida os dados do ClientProgress
       showSuccess("Mês finalizado! Todas as tarefas foram movidas para 'Aprovado'.");
-      // Não é necessário mudar activeGroupId, pois nenhum novo grupo é criado.
-      // A visualização atual simplesmente mostrará o estado atualizado do grupo.
     },
     onError: (e: Error) => showError(`Erro ao finalizar o mês: ${e.message}`),
   });
@@ -264,13 +262,13 @@ const Workspace = () => {
               <Skeleton className="h-10 w-1/2 mx-auto" />
             </div>
           ) : (
-            <div className="flex flex-col lg:flex-row gap-4 p-4 md:p-8"> {/* Added flex container */}
-              <div className="lg:w-1/4"> {/* Sidebar for ClientProgress */}
+            <div className="flex flex-col lg:flex-row gap-4 p-4 md:p-8">
+              <div className="lg:w-1/4">
                 {activeGroupId && workspaceId && (
                   <ClientProgress groupId={activeGroupId} workspaceId={workspaceId} />
                 )}
               </div>
-              <div className="lg:w-3/4"> {/* Main content for GroupTabs */}
+              <div className="lg:w-3/4">
                 <GroupTabs
                   groups={groups || []}
                   activeGroupId={activeGroupId}
