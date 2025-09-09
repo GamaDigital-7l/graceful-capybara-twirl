@@ -21,7 +21,9 @@ import {
 } from "@/components/ui/select";
 import { Task, TaskActionType } from "./KanbanCard";
 import { useState, useEffect } from "react";
-import { Trash2 } from "lucide-react";
+import { Trash2, Upload } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { showError, showSuccess } from "@/utils/toast";
 
 interface TaskModalProps {
   isOpen: boolean;
@@ -44,6 +46,8 @@ export function TaskModal({
   const [description, setDescription] = useState("");
   const [attachmentUrl, setAttachmentUrl] = useState("");
   const [actionType, setActionType] = useState<TaskActionType>("none");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   useEffect(() => {
     if (task) {
@@ -57,17 +61,49 @@ export function TaskModal({
       setAttachmentUrl("");
       setActionType("none");
     }
+    setSelectedFile(null);
   }, [task, isOpen]);
 
-  const handleSave = () => {
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files && event.target.files[0]) {
+      setSelectedFile(event.target.files[0]);
+    }
+  };
+
+  const handleSave = async () => {
+    let finalAttachmentUrl = attachmentUrl;
+
+    if (selectedFile) {
+      setIsUploading(true);
+      const fileName = `${Date.now()}_${selectedFile.name}`;
+      const { data, error } = await supabase.storage
+        .from("attachments")
+        .upload(fileName, selectedFile);
+
+      if (error) {
+        showError("Erro ao enviar a imagem. Tente novamente.");
+        console.error("Upload error:", error.message);
+        setIsUploading(false);
+        return;
+      }
+
+      const { data: publicUrlData } = supabase.storage
+        .from("attachments")
+        .getPublicUrl(data.path);
+      
+      finalAttachmentUrl = publicUrlData.publicUrl;
+      showSuccess("Imagem enviada com sucesso!");
+      setIsUploading(false);
+    }
+
     const savedTask: Task = {
       id: task?.id || new Date().getTime().toString(),
       columnId: task?.columnId || columnId || "todo",
       title: title || "Nova Tarefa",
       description: description,
       actionType: actionType,
-      attachments: attachmentUrl
-        ? [{ id: "1", url: attachmentUrl, isCover: true }]
+      attachments: finalAttachmentUrl
+        ? [{ id: "1", url: finalAttachmentUrl, isCover: true }]
         : [],
     };
     onSave(savedTask);
@@ -107,13 +143,23 @@ export function TaskModal({
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="attachment">URL da Imagem de Capa</Label>
-            <Input
-              id="attachment"
-              value={attachmentUrl}
-              onChange={(e) => setAttachmentUrl(e.target.value)}
-              placeholder="https://exemplo.com/imagem.png"
-            />
+            <Label htmlFor="attachment">Imagem de Capa</Label>
+            <div className="flex items-center gap-2">
+              <Input
+                id="attachment-url"
+                value={attachmentUrl}
+                onChange={(e) => setAttachmentUrl(e.target.value)}
+                placeholder="Ou cole uma URL de imagem aqui"
+                className="flex-grow"
+              />
+              <Button asChild variant="outline" size="icon">
+                <Label htmlFor="file-upload" className="cursor-pointer">
+                  <Upload className="h-4 w-4" />
+                  <Input id="file-upload" type="file" className="sr-only" onChange={handleFileChange} accept="image/*" />
+                </Label>
+              </Button>
+            </div>
+            {selectedFile && <p className="text-sm text-muted-foreground">Arquivo selecionado: {selectedFile.name}</p>}
           </div>
           <div className="space-y-2">
             <Label htmlFor="actionType">Ação do Card</Label>
@@ -145,8 +191,8 @@ export function TaskModal({
                 Cancelar
               </Button>
             </DialogClose>
-            <Button type="button" onClick={handleSave}>
-              Salvar
+            <Button type="button" onClick={handleSave} disabled={isUploading}>
+              {isUploading ? "Enviando..." : "Salvar"}
             </Button>
           </div>
         </DialogFooter>
