@@ -139,6 +139,7 @@ export function KanbanCard({
               onClick={(e) => handleActionClick(e, onApprove)}
               size="sm"
               className="w-full"
+              variant="secondary"
             >
               Aprovar
             </Button>
@@ -146,7 +147,7 @@ export function KanbanCard({
           {onEditRequest && (
             <Button
               onClick={(e) => handleActionClick(e, onEditRequest)}
-              variant="secondary"
+              variant="outline"
               size="sm"
               className="w-full"
             >
