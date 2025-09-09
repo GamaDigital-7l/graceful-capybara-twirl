@@ -150,7 +150,7 @@ const AdminPage = () => {
                 [...Array(3)].map((_, i) => <Skeleton key={i} className="h-16 w-full" />)
               ) : (
                 users?.map((user: any) => (
-                  <div key={user.id} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div key={user.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 border rounded-lg gap-4 sm:gap-2">
                     <div className="flex items-center gap-4">
                       <Avatar>
                         <AvatarImage src={user.avatar_url} />
@@ -161,12 +161,12 @@ const AdminPage = () => {
                         <p className="text-sm text-muted-foreground">{user.email}</p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 w-full sm:w-auto">
                       <Select
                         value={user.role || 'user'}
                         onValueChange={(role) => updateUserRoleMutation.mutate({ userId: user.id, role })}
                       >
-                        <SelectTrigger className="w-[180px]">
+                        <SelectTrigger className="w-full sm:w-[180px]">
                           <SelectValue placeholder="Definir papel" />
                         </SelectTrigger>
                         <SelectContent>

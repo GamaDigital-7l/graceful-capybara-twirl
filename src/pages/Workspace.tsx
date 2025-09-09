@@ -7,8 +7,10 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { showError, showSuccess } from "@/utils/toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, LogOut, BookOpen } from "lucide-react";
+import { ArrowLeft, LogOut, BookOpen, MoreVertical } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 const fetchGroups = async (workspaceId: string) => {
   if (!workspaceId) return [];
@@ -25,6 +27,7 @@ const Workspace = () => {
   const { workspaceId } = useParams<{ workspaceId: string }>();
   const [activeGroupId, setActiveGroupId] = useState<string | null>(null);
   const queryClient = useQueryClient();
+  const isMobile = useIsMobile();
 
   const { data: groups, isLoading: isLoadingGroups } = useQuery<Group[]>({
     queryKey: ["groups", workspaceId],
@@ -101,6 +104,52 @@ const Workspace = () => {
     await supabase.auth.signOut();
   };
 
+  const renderHeaderActions = () => {
+    if (isMobile) {
+      return (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon">
+              <MoreVertical className="h-5 w-5" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem asChild>
+              <Link to={`/workspace/${workspaceId}/playbook`} className="flex items-center">
+                <BookOpen className="h-4 w-4 mr-2" />
+                Ver Playbook
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem>
+              <ThemeToggle />
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={handleLogout} className="text-destructive flex items-center">
+              <LogOut className="h-4 w-4 mr-2" />
+              Sair
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      );
+    }
+
+    return (
+      <div className="flex items-center gap-2">
+        <Button asChild variant="outline">
+          <Link to={`/workspace/${workspaceId}/playbook`}>
+            <BookOpen className="h-4 w-4 mr-2" />
+            Ver Playbook
+          </Link>
+        </Button>
+        <ThemeToggle />
+        <Button onClick={handleLogout} variant="outline">
+          <LogOut className="h-4 w-4 mr-2" />
+          Sair
+        </Button>
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
       <header className="p-4 bg-white dark:bg-gray-800 shadow-md flex justify-between items-center">
@@ -111,20 +160,8 @@ const Workspace = () => {
               Voltar ao Dashboard
             </Link>
           </Button>
-          <Button asChild variant="outline">
-            <Link to={`/workspace/${workspaceId}/playbook`}>
-              <BookOpen className="h-4 w-4 mr-2" />
-              Ver Playbook
-            </Link>
-          </Button>
         </div>
-        <div className="flex items-center gap-2">
-          <ThemeToggle />
-          <Button onClick={handleLogout} variant="outline">
-            <LogOut className="h-4 w-4 mr-2" />
-            Sair
-          </Button>
-        </div>
+        {renderHeaderActions()}
       </header>
       <main>
         {workspaceId ? (

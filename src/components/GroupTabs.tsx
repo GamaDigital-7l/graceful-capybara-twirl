@@ -163,7 +163,7 @@ export function GroupTabs({
       onValueChange={onGroupChange}
       className="p-4 md:p-8"
     >
-      <div className="flex items-center gap-4 mb-4">
+      <div className="flex items-center gap-4 mb-4 overflow-x-auto pb-2">
         <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
           <SortableContext
             items={groups.map((g) => g.id)}
@@ -181,7 +181,7 @@ export function GroupTabs({
           </SortableContext>
         </DndContext>
         {isCreating ? (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-shrink-0">
             <Input
               value={newGroupName}
               onChange={(e) => setNewGroupName(e.target.value)}
@@ -195,7 +195,7 @@ export function GroupTabs({
             </Button>
           </div>
         ) : (
-          <Button variant="outline" onClick={() => setIsCreating(true)}>
+          <Button variant="outline" onClick={() => setIsCreating(true)} className="flex-shrink-0">
             <Plus className="h-4 w-4 mr-2" />
             Novo Grupo
           </Button>

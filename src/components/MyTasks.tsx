@@ -57,7 +57,7 @@ export function MyTasks() {
   return (
     <div>
       <TaskStats pendingCount={pendingTasks.length} completedCount={completedTasks.length} />
-      <div className="grid lg:grid-cols-3 gap-8 items-start">
+      <div className="flex flex-col-reverse lg:grid lg:grid-cols-3 gap-8 items-start">
         <div className="lg:col-span-2">
           <h2 className="text-2xl font-bold mb-4">Caixa de Entrada de Tarefas</h2>
           <div className="space-y-4">

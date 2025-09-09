@@ -9,7 +9,7 @@ import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { PlusCircle, Settings, LogOut, UserCog, BookOpen, Palette } from "lucide-react";
+import { PlusCircle, Settings, LogOut, UserCog, BookOpen, Palette, MoreVertical } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { WorkspaceSettingsModal } from "@/components/WorkspaceSettingsModal";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -17,6 +17,8 @@ import { MyTasks } from "@/components/MyTasks";
 import ClientDashboard from "./ClientDashboard";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import AgencyPlaybookPage from "./AgencyPlaybookPage";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 export interface Workspace {
   id: string;
@@ -37,6 +39,7 @@ const Dashboard = () => {
   const [selectedWorkspace, setSelectedWorkspace] = useState<Workspace | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
   const [isProfileLoading, setProfileLoading] = useState(true);
+  const isMobile = useIsMobile();
 
   const { data: workspaces, isLoading: isLoadingWorkspaces } = useQuery<Workspace[]>({
     queryKey: ["workspaces"],
@@ -92,6 +95,62 @@ const Dashboard = () => {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
+  };
+
+  const renderHeaderActions = () => {
+    if (isMobile) {
+      return (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon">
+              <MoreVertical className="h-5 w-5" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            {userRole === 'admin' && (
+              <>
+                <DropdownMenuItem asChild><Link to="/settings" className="flex items-center"><Palette className="h-4 w-4 mr-2" />Configurações</Link></DropdownMenuItem>
+                <DropdownMenuItem asChild><Link to="/admin" className="flex items-center"><UserCog className="h-4 w-4 mr-2" />Admin</Link></DropdownMenuItem>
+                <DropdownMenuSeparator />
+              </>
+            )}
+            <DropdownMenuItem>
+              <ThemeToggle />
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={handleLogout} className="text-destructive flex items-center">
+              <LogOut className="h-4 w-4 mr-2" />Sair
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      );
+    }
+
+    return (
+      <div className="flex items-center gap-2">
+        {userRole === 'admin' && (
+          <>
+            <Button asChild variant="outline">
+              <Link to="/settings">
+                <Palette className="h-4 w-4 mr-2" />
+                Configurações
+              </Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link to="/admin">
+                <UserCog className="h-4 w-4 mr-2" />
+                Admin
+              </Link>
+            </Button>
+          </>
+        )}
+        <ThemeToggle />
+        <Button onClick={handleLogout} variant="outline">
+          <LogOut className="h-4 w-4 mr-2" />
+          Sair
+        </Button>
+      </div>
+    );
   };
 
   const renderAdminDashboard = () => (
@@ -158,7 +217,6 @@ const Dashboard = () => {
     if (userRole === 'user' && workspaces && workspaces.length > 1) {
       return <ClientDashboard workspaces={workspaces} />;
     }
-    // Para clientes com 0 workspaces ou 1 (antes do redirect), mostra um loader ou mensagem
     return <div className="text-center p-8">Carregando seus projetos...</div>;
   };
 
@@ -166,29 +224,7 @@ const Dashboard = () => {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <header className="p-4 bg-white dark:bg-gray-800 shadow-sm flex justify-between items-center">
         <h1 className="text-2xl font-bold">Dashboard</h1>
-        <div className="flex items-center gap-2">
-          {userRole === 'admin' && (
-            <>
-              <Button asChild variant="outline">
-                <Link to="/settings">
-                  <Palette className="h-4 w-4 mr-2" />
-                  Configurações
-                </Link>
-              </Button>
-              <Button asChild variant="outline">
-                <Link to="/admin">
-                  <UserCog className="h-4 w-4 mr-2" />
-                  Admin
-                </Link>
-              </Button>
-            </>
-          )}
-          <ThemeToggle />
-          <Button onClick={handleLogout} variant="outline">
-            <LogOut className="h-4 w-4 mr-2" />
-            Sair
-          </Button>
-        </div>
+        {renderHeaderActions()}
       </header>
       <main className="p-4 md:p-8">
         {renderContent()}
