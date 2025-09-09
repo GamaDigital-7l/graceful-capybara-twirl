@@ -9,6 +9,7 @@ import { useMemo } from "react";
 import { ClientProgress } from "./ClientProgress";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "./ui/badge";
+import { Briefcase } from "lucide-react";
 
 const fetchUserTasks = async () => {
   const { data, error } = await supabase.rpc("get_user_tasks");
@@ -78,8 +79,9 @@ export function MyTasks() {
                 <Card key={workspaceId}>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-3">
+                      <Briefcase className="h-5 w-5 text-primary" />
                       {name}
-                      <Badge>{tasks.length}</Badge>
+                      <Badge variant="secondary">{tasks.length}</Badge>
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3">

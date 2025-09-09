@@ -187,20 +187,30 @@ const Dashboard = () => {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {workspaces?.map((ws) => (
-              <Card key={ws.id} className="hover:shadow-lg transition-shadow">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <Card key={ws.id} className="hover:shadow-lg transition-shadow flex flex-col">
+                <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
                   <CardTitle className="text-lg font-medium flex-grow truncate pr-2">{ws.name}</CardTitle>
-                  <Button variant="ghost" size="icon" onClick={() => handleOpenSettings(ws)}>
-                    <Settings className="h-4 w-4" />
-                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 -mt-2 -mr-2 flex-shrink-0">
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => handleOpenSettings(ws)}>
+                        <Settings className="h-4 w-4 mr-2" />
+                        Configurações
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </CardHeader>
-                <Link to={`/workspace/${ws.id}`}>
-                  <CardContent className="flex flex-col items-center justify-center pt-4">
+                <Link to={`/workspace/${ws.id}`} className="flex flex-col flex-grow">
+                  <CardContent className="flex flex-col items-center justify-center pt-4 flex-grow">
                     <Avatar className="h-24 w-24 mb-4">
                       <AvatarImage src={ws.logo_url || undefined} alt={ws.name} />
                       <AvatarFallback>{ws.name.charAt(0).toUpperCase()}</AvatarFallback>
                     </Avatar>
-                    <Button variant="outline" className="w-full">Ver Quadro</Button>
+                    <Button variant="outline" className="w-full mt-auto">Ver Quadro</Button>
                   </CardContent>
                 </Link>
               </Card>

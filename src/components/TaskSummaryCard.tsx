@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { AlertCircle } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface TaskSummaryCardProps {
   task: {
@@ -20,7 +21,10 @@ export function TaskSummaryCard({ task }: TaskSummaryCardProps) {
 
   return (
     <Link to={`/workspace/${task.workspace_id}`}>
-      <Card className="hover:shadow-md transition-shadow hover:border-primary">
+      <Card className={cn(
+        "hover:shadow-md transition-shadow hover:border-primary",
+        needsEdit && "border-yellow-500/50"
+      )}>
         <CardContent className="p-4 flex justify-between items-center">
           <div>
             <p className="font-medium">{task.title}</p>
