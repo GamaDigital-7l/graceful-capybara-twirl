@@ -7,14 +7,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { showError, showSuccess } from "@/utils/toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"; // Removido AvatarImage
 import { Skeleton } from "@/components/ui/skeleton";
 import { PlusCircle, ArrowLeft, Edit, Trash2, MoreVertical } from "lucide-react";
 import { SecondBrainClientModal, SecondBrainClient } from "@/components/SecondBrainClientModal";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
-// Atualizada a interface para remover photo_url
+// A interface SecondBrainClient já não inclui photo_url
 export interface SecondBrainClient {
   id: string;
   name: string;
@@ -78,7 +77,6 @@ const SecondBrainDashboard = () => {
 
       let currentClientId = client.id;
 
-      // Passo 1: Criar o registro do cliente se for novo
       if (!currentClientId) {
         const { data: newClient, error: insertError } = await supabase
           .from("second_brain_clients")
@@ -89,10 +87,9 @@ const SecondBrainDashboard = () => {
         currentClientId = newClient.id;
       }
 
-      // Passo 2: Atualizar o registro do cliente com o nome
       const { error: updateError } = await supabase
         .from("second_brain_clients")
-        .update({ name: client.name })
+        .update({ name: client.name }) // Removido photo_url do update
         .eq("id", currentClientId);
       if (updateError) throw updateError;
     },
@@ -205,12 +202,9 @@ const SecondBrainDashboard = () => {
                       </DropdownMenu>
                     </CardHeader>
                     <Link to={`/second-brain/${client.id}`} className="flex flex-col flex-grow">
-                      <CardContent className="flex flex-col items-center justify-center pt-4 flex-grow">
-                        <Avatar className="h-24 w-24 mb-4">
-                          {/* Removido AvatarImage, agora sempre usará AvatarFallback */}
-                          <AvatarFallback className="text-4xl">{client.name.charAt(0).toUpperCase()}</AvatarFallback>
-                        </Avatar>
-                        <Button variant="outline" className="w-full mt-auto">Ver Prompts</Button>
+                      <CardContent className="flex-grow flex items-end justify-center p-4">
+                        {/* Removido o Avatar e AvatarFallback */}
+                        <Button variant="outline" className="w-full">Ver Prompts</Button>
                       </CardContent>
                     </Link>
                   </Card>
