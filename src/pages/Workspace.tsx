@@ -122,14 +122,17 @@ const Workspace = () => {
 
   const endMonthMutation = useMutation({
     mutationFn: async (groupId: string) => {
-      const { data: newGroupId, error } = await supabase.rpc('end_kanban_month_for_group', { p_group_id: groupId });
+      // A função RPC agora apenas move tarefas, não retorna um novo ID de grupo.
+      const { data, error } = await supabase.rpc('end_kanban_month_for_group', { p_group_id: groupId });
       if (error) throw error;
-      return newGroupId;
+      return data; // Isso será o groupId original
     },
-    onSuccess: (newGroupId) => {
+    onSuccess: (processedGroupId) => {
       queryClient.invalidateQueries({ queryKey: ["groups", workspaceId] });
-      setActiveGroupId(newGroupId);
-      showSuccess("Mês finalizado! Novo grupo criado com tarefas copiadas.");
+      queryClient.invalidateQueries({ queryKey: ["kanbanData", processedGroupId] }); // Invalida os dados do kanban específico
+      showSuccess("Mês finalizado! Todas as tarefas foram movidas para 'Aprovado'.");
+      // Não é necessário mudar activeGroupId, pois nenhum novo grupo é criado.
+      // A visualização atual simplesmente mostrará o estado atualizado do grupo.
     },
     onError: (e: Error) => showError(`Erro ao finalizar o mês: ${e.message}`),
   });
@@ -174,7 +177,7 @@ const Workspace = () => {
                   <AlertDialogHeader>
                     <AlertDialogTitle>Finalizar Mês do Grupo?</AlertDialogTitle>
                     <AlertDialogDescription>
-                      Esta ação moverá todas as tarefas do grupo atual para 'Aprovado' e criará um novo grupo para o próximo mês com as tarefas recorrentes copiadas. Deseja continuar?
+                      Esta ação moverá todas as tarefas do grupo atual para a coluna 'Aprovado'. Esta ação não pode ser desfeita. Deseja continuar?
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
@@ -219,7 +222,7 @@ const Workspace = () => {
               <AlertDialogHeader>
                 <AlertDialogTitle>Finalizar Mês do Grupo?</AlertDialogTitle>
                 <AlertDialogDescription>
-                  Esta ação moverá todas as tarefas do grupo atual para 'Aprovado' e criará um novo grupo para o próximo mês com as tarefas recorrentes copiadas. Deseja continuar?
+                  Esta ação moverá todas as tarefas do grupo atual para a coluna 'Aprovado'. Esta ação não pode ser desfeita. Deseja continuar?
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>

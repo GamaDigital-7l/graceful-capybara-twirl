@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { PlusCircle, ArrowLeft, Edit, Trash2, Brain } from "lucide-react";
+import { PlusCircle, ArrowLeft, Edit, Trash2, MoreVertical } from "lucide-react";
 import { SecondBrainClientModal, SecondBrainClient } from "@/components/SecondBrainClientModal";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -25,7 +25,7 @@ const SecondBrainDashboard = () => {
   const navigate = useNavigate();
   const [isClientModalOpen, setIsClientModalOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState<SecondBrainClient | null>(null);
-  const [userRole, setUserRole] = useState<string | undefined>(undefined); // Changed initial state to undefined
+  const [userRole, setUserRole] = useState<string | undefined>(undefined);
   const [isProfileLoading, setProfileLoading] = useState(true);
 
   const { data: clients, isLoading: isLoadingClients } = useQuery<SecondBrainClient[]>({
@@ -45,12 +45,12 @@ const SecondBrainDashboard = () => {
           if (profileError) throw profileError;
           setUserRole(profile?.role || null);
         } else {
-          setUserRole(null); // User is not logged in
+          setUserRole(null);
         }
       } catch (error: any) {
         console.error("Error fetching user role:", error.message);
         showError(`Erro ao carregar perfil: ${error.message}`);
-        setUserRole(null); // Ensure role is null on error
+        setUserRole(null);
       } finally {
         setProfileLoading(false);
       }
@@ -60,25 +60,50 @@ const SecondBrainDashboard = () => {
 
   useEffect(() => {
     if (!isProfileLoading && userRole !== 'admin') {
-      // Only redirect if userRole is definitively not admin (could be 'user' or null)
       navigate("/");
     }
   }, [isProfileLoading, userRole, navigate]);
 
-  // This mutation will now only handle updates, as creation is handled within the modal if a file is present.
-  // If no file is present, the modal will call this for creation too.
   const saveClientMutation = useMutation({
-    mutationFn: async (client: Partial<SecondBrainClient>) => {
-      if (client.id) {
-        const { error } = await supabase.from("second_brain_clients").update(client).eq("id", client.id);
-        if (error) throw error;
-      } else {
-        // This path should ideally only be hit if no photo was uploaded for a new client
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) throw new Error("Usuário não autenticado.");
-        const { error } = await supabase.from("second_brain_clients").insert({ ...client, created_by: user.id });
-        if (error) throw error;
+    mutationFn: async ({ client, file }: { client: Partial<SecondBrainClient>, file: File | null }) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Usuário não autenticado.");
+
+      let currentClientId = client.id;
+      let finalPhotoUrl = client.photo_url;
+
+      // Passo 1: Criar o registro do cliente se for novo (sem photo_url inicialmente)
+      if (!currentClientId) {
+        const { data: newClient, error: insertError } = await supabase
+          .from("second_brain_clients")
+          .insert({ name: client.name, created_by: user.id })
+          .select("id")
+          .single();
+        if (insertError) throw insertError;
+        currentClientId = newClient.id;
       }
+
+      // Passo 2: Fazer upload do arquivo se fornecido
+      if (file && currentClientId) {
+        const filePath = `second-brain-client-photos/${currentClientId}/${Date.now()}_${file.name}`;
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from("second-brain-assets")
+          .upload(filePath, file, { upsert: true });
+
+        if (uploadError) throw uploadError;
+
+        const { data: publicUrlData } = supabase.storage
+          .from("second-brain-assets")
+          .getPublicUrl(uploadData.path);
+        finalPhotoUrl = publicUrlData.publicUrl;
+      }
+
+      // Passo 3: Atualizar o registro do cliente com o photo_url (se alterado) e o nome
+      const { error: updateError } = await supabase
+        .from("second_brain_clients")
+        .update({ name: client.name, photo_url: finalPhotoUrl })
+        .eq("id", currentClientId);
+      if (updateError) throw updateError;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["secondBrainClients"] });
@@ -99,16 +124,15 @@ const SecondBrainDashboard = () => {
     onError: (e: Error) => showError(e.message),
   });
 
-  const handleSaveClient = async (client: Partial<SecondBrainClient>) => {
-    await saveClientMutation.mutateAsync(client);
+  const handleSaveClient = async (client: Partial<SecondBrainClient>, file: File | null) => {
+    await saveClientMutation.mutateAsync({ client, file });
   };
 
-  if (isProfileLoading || userRole === undefined) { // Check for undefined
+  if (isProfileLoading || userRole === undefined) {
     return <div className="flex justify-center items-center min-h-screen">Carregando...</div>;
   }
 
   if (userRole !== 'admin') {
-    // If not admin, show access denied message before redirecting
     return (
       <div className="flex justify-center items-center min-h-screen">
         <Card className="w-full max-w-md text-center">

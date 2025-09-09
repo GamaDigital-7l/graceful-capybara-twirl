@@ -13,8 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Upload } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { showError, showSuccess } from "@/utils/toast";
+import { showError } from "@/utils/toast";
 
 export interface SecondBrainClient {
   id?: string;
@@ -26,7 +25,8 @@ export interface SecondBrainClient {
 interface SecondBrainClientModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (client: Partial<SecondBrainClient>) => Promise<void>; // onSave now returns a Promise
+  // onSave agora recebe o cliente e o arquivo de foto
+  onSave: (client: Partial<SecondBrainClient>, file: File | null) => Promise<void>;
   existingClient: SecondBrainClient | null;
 }
 
@@ -39,7 +39,6 @@ export function SecondBrainClientModal({
   const [name, setName] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [photoPreviewUrl, setPhotoPreviewUrl] = useState<string | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
@@ -67,68 +66,27 @@ export function SecondBrainClientModal({
     }
 
     setIsSaving(true);
-    let finalPhotoUrl = existingClient?.photo_url || null;
-    let clientIdToUse = existingClient?.id;
-    let createdByToUse = existingClient?.created_by;
-
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        showError("Você precisa estar logado para realizar esta ação.");
-        setIsSaving(false);
-        return;
-      }
-      createdByToUse = user.id; // Ensure created_by is always the current user for new clients or updates
-
-      // If it's a new client and has a file, we need to create the client first to get an ID
-      if (!existingClient && selectedFile) {
-        const { data: newClientData, error: createError } = await supabase
-          .from("second_brain_clients")
-          .insert({ name: name.trim(), created_by: user.id })
-          .select("id")
-          .single();
-
-        if (createError) throw createError;
-        clientIdToUse = newClientData.id;
-        showSuccess("Cliente criado com sucesso!");
-      }
-
-      if (selectedFile && clientIdToUse) {
-        setIsUploading(true);
-        const filePath = `second-brain-client-photos/${clientIdToUse}/${Date.now()}_${selectedFile.name}`;
-        const { data, error: uploadError } = await supabase.storage
-          .from("second-brain-assets")
-          .upload(filePath, selectedFile, { upsert: true });
-
-        if (uploadError) throw uploadError;
-
-        const { data: publicUrlData } = supabase.storage
-          .from("second-brain-assets")
-          .getPublicUrl(data.path);
-
-        finalPhotoUrl = publicUrlData.publicUrl;
-        setIsUploading(false);
-      }
-
-      // Now call onSave with the complete data
-      await onSave({
-        id: clientIdToUse, // Use the new ID if created, otherwise existing
-        name: name.trim(),
-        photo_url: finalPhotoUrl,
-        created_by: createdByToUse,
-      });
-
-      onClose(); // Close only after all operations are successful
+      // Passa o cliente e o arquivo para a função onSave do componente pai
+      await onSave(
+        {
+          id: existingClient?.id,
+          name: name.trim(),
+          photo_url: existingClient?.photo_url, // Mantém o URL existente, a mutação no pai irá sobrescrever se houver novo arquivo
+          created_by: existingClient?.created_by, // Mantém o criador existente, a mutação no pai irá definir para novos
+        },
+        selectedFile
+      );
+      onClose();
     } catch (error: any) {
       console.error("Erro ao salvar cliente:", error);
       showError(`Erro ao salvar cliente: ${error.message}`);
     } finally {
       setIsSaving(false);
-      setIsUploading(false);
     }
   };
 
-  const isDisabled = isUploading || isSaving;
+  const isDisabled = isSaving;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -182,7 +140,7 @@ export function SecondBrainClientModal({
             </Button>
           </DialogClose>
           <Button type="button" onClick={handleSave} disabled={isDisabled}>
-            {isSaving ? "Salvando..." : (isUploading ? "Enviando..." : "Salvar")}
+            {isSaving ? "Salvando..." : "Salvar"}
           </Button>
         </DialogFooter>
       </DialogContent>
