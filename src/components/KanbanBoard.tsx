@@ -32,7 +32,8 @@ const fetchKanbanData = async (groupId: string) => {
     .from("columns")
     .select("*, tasks(*)")
     .eq("group_id", groupId)
-    .order("position");
+    .order("position")
+    .order("position", { foreignTable: "tasks" });
 
   if (columnsError) throw new Error(columnsError.message);
 
@@ -129,7 +130,7 @@ export function KanbanBoard({ groupId }: KanbanBoardProps) {
         if (error) throw error;
       } else {
         const tasksInColumn = tasks.filter(t => t.columnId === columnId).length;
-        const { error } = await supabase.from("tasks").insert({ ...dataToSave, position: tasksInColumn });
+        const { error } = await supabase.from("tasks").insert({ ...dataToSave, position: tasksInColumn }).select();
         if (error) throw error;
       }
     },
