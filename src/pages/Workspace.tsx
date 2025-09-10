@@ -139,6 +139,15 @@ const Workspace = () => {
 
   const generateApprovalLinkMutation = useMutation({
     mutationFn: async (groupId: string) => {
+      // --- INÍCIO DO LOG DE DIAGNÓSTICO ---
+      const { data: { user } } = await supabase.auth.getUser();
+      console.log("--- RLS DEBUG CHECK ---");
+      console.log("Workspace ID:", workspaceId);
+      console.log("Group ID:", groupId);
+      console.log("User ID:", user?.id);
+      console.log("-----------------------");
+      // --- FIM DO LOG DE DIAGNÓSTICO ---
+
       const { data: settings, error: settingsError } = await supabase.from("app_settings").select("site_url").eq("id", 1).single();
       if (settingsError || !settings?.site_url) throw new Error("URL do site não configurada. Por favor, adicione em Configurações.");
 
