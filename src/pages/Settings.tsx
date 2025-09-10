@@ -78,9 +78,12 @@ const SettingsPage = () => {
       faviconUrl = supabase.storage.from("logos").getPublicUrl(data.path).data.publicUrl;
     }
 
+    // Remove a barra final da URL do site antes de salvar
+    const cleanedSiteUrl = siteUrl.endsWith('/') ? siteUrl.slice(0, -1) : siteUrl;
+
     updateSettingsMutation.mutate({
       app_name: appName,
-      site_url: siteUrl,
+      site_url: cleanedSiteUrl,
       primary_color: primaryColor,
       background_color: backgroundColor,
       logo_url: logoUrl,
