@@ -336,7 +336,6 @@ export function KanbanBoard({ groupId }: KanbanBoardProps) {
                   onUpdateColumn={(id, title) => updateColumnMutation.mutate({ id, title })}
                   onApproveTask={handleApproveTask}
                   onEditRequestTask={handleEditRequestTask}
-                  onImageClick={() => {}}
                 />
               ))}
             </SortableContext>
@@ -349,7 +348,7 @@ export function KanbanBoard({ groupId }: KanbanBoardProps) {
           activeEl?.type === "Task" && <KanbanCard task={activeEl.data as Task} onClick={() => {}} />
         }
         {
-          activeEl?.type === "Column" && <KanbanColumn column={activeEl.data as Column} tasks={[]} onCardClick={() => {}} onAddTask={() => {}} onDeleteColumn={() => {}} onUpdateColumn={() => {}} onApproveTask={() => {}} onEditRequestTask={() => {}} onImageClick={() => {}} />
+          activeEl?.type === "Column" && <KanbanColumn column={activeEl.data as Column} tasks={[]} onCardClick={() => {}} onAddTask={() => {}} onDeleteColumn={() => {}} onUpdateColumn={() => {}} onApproveTask={() => {}} onEditRequestTask={() => {}} />
         }
         </DragOverlay>, document.body)}
       </DndContext>
