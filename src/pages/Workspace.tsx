@@ -145,14 +145,20 @@ const Workspace = () => {
 
       setWhatsappTemplate(settings.whatsapp_message_template || 'Olá! Seus posts estão prontos para aprovação. Por favor, acesse o link a seguir para revisar e aprovar:');
 
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Usuário não autenticado.");
-
       // --- RLS DEBUG INFO ---
-      console.log("User object from client:", user); // Log the full user object
-      console.log("User ID from client:", user.id);
+      console.log("--- RLS DEBUG INFO START ---");
+      const { data: { user }, error: getUserError } = await supabase.auth.getUser();
+      console.log("Result of supabase.auth.getUser():", { user, getUserError });
+
+      if (!user) {
+        console.log("User is NOT authenticated. Throwing error.");
+        throw new Error("Usuário não autenticado.");
+      }
+
+      console.log("User IS authenticated. User ID:", user.id);
       console.log("Workspace ID:", workspaceId);
       console.log("Group ID:", groupId);
+      console.log("--- RLS DEBUG INFO END ---");
       // --- END RLS DEBUG INFO ---
 
       const { data: tokenData, error: tokenError } = await supabase.from("public_approval_tokens").insert({ group_id: groupId, workspace_id: workspaceId, user_id: user.id }).select("token").single();
