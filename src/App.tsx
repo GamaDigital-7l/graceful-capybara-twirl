@@ -11,8 +11,9 @@ import PlaybookPage from "./pages/Playbook";
 import AdminPage from "./pages/Admin";
 import SettingsPage from "./pages/Settings";
 import FinancialDashboard from "./pages/FinancialDashboard";
-import SecondBrainDashboard from "./pages/SecondBrainDashboard"; // Import new dashboard
-import ClientPromptsPage from "./pages/ClientPromptsPage"; // Import new page
+import SecondBrainDashboard from "./pages/SecondBrainDashboard";
+import ClientPromptsPage from "./pages/ClientPromptsPage";
+import PublicApprovalPage from "./pages/PublicApprovalPage"; // Import new page
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -28,6 +29,7 @@ const App = () => (
           <Sonner />
           <Routes>
             <Route path="/login" element={<Login />} />
+            <Route path="/approve/:token" element={<PublicApprovalPage />} />
             <Route
               path="/"
               element={

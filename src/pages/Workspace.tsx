@@ -4,15 +4,14 @@ import { Footer } from "@/components/Footer";
 import { GroupTabs, Group } from "@/components/GroupTabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { showError, showSuccess } from "@/utils/toast";
+import { showError, showSuccess, showLoading, dismissToast } from "@/utils/toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, LogOut, BookOpen, MoreVertical, CalendarCheck } from "lucide-react";
+import { ArrowLeft, LogOut, BookOpen, MoreVertical, CalendarCheck, Send } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-// import { ClientProgress } from "@/components/ClientProgress"; // Removido
 
 const fetchGroups = async (workspaceId: string) => {
   if (!workspaceId) return [];
@@ -129,11 +128,28 @@ const Workspace = () => {
     },
     onSuccess: (processedGroupId) => {
       queryClient.invalidateQueries({ queryKey: ["groups", workspaceId] });
-      queryClient.invalidateQueries({ queryKey: ["kanbanData", processedGroupId] }); // Invalida os dados do kanban específico
-      // queryClient.invalidateQueries({ queryKey: ["tasksByGroup", processedGroupId] }); // Removido
+      queryClient.invalidateQueries({ queryKey: ["kanbanData", processedGroupId] });
       showSuccess("Mês finalizado! Todas as tarefas foram movidas para 'Aprovado'.");
     },
     onError: (e: Error) => showError(`Erro ao finalizar o mês: ${e.message}`),
+  });
+
+  const sendApprovalMutation = useMutation({
+    mutationFn: async (groupId: string) => {
+      const { error } = await supabase.functions.invoke("send-whatsapp-approval", {
+        body: { groupId, workspaceId },
+      });
+      if (error) throw new Error(error.message);
+    },
+    onMutate: () => showLoading("Enviando para o cliente..."),
+    onSuccess: (data, variables, context) => {
+      dismissToast(context as string);
+      showSuccess("Link de aprovação enviado com sucesso!");
+    },
+    onError: (e: Error, variables, context) => {
+      dismissToast(context as string);
+      showError(`Erro ao enviar: ${e.message}`);
+    },
   });
 
   useEffect(() => {
@@ -149,53 +165,42 @@ const Workspace = () => {
   };
 
   const renderHeaderActions = () => {
+    const sendApprovalButton = userRole === 'admin' && activeGroupId && (
+      <Button
+        variant="default"
+        onClick={() => sendApprovalMutation.mutate(activeGroupId)}
+        disabled={sendApprovalMutation.isPending}
+      >
+        <Send className="h-4 w-4 mr-2" />
+        Enviar para Aprovação
+      </Button>
+    );
+
     if (isMobile) {
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon">
-              <MoreVertical className="h-5 w-5" />
-            </Button>
+            <Button variant="ghost" size="icon"><MoreVertical className="h-5 w-5" /></Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem asChild>
-              <Link to={`/workspace/${workspaceId}/playbook`} className="flex items-center">
-                <BookOpen className="h-4 w-4 mr-2" />
-                Ver Playbook
-              </Link>
-            </DropdownMenuItem>
+            {userRole === 'admin' && activeGroupId && (
+              <DropdownMenuItem onClick={() => sendApprovalMutation.mutate(activeGroupId)} disabled={sendApprovalMutation.isPending}>
+                <Send className="h-4 w-4 mr-2" /> Enviar p/ Aprovação
+              </DropdownMenuItem>
+            )}
+            <DropdownMenuItem asChild><Link to={`/workspace/${workspaceId}/playbook`} className="flex items-center"><BookOpen className="h-4 w-4 mr-2" /> Ver Playbook</Link></DropdownMenuItem>
             {userRole === 'admin' && activeGroupId && (
               <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <DropdownMenuItem className="flex items-center text-primary">
-                    <CalendarCheck className="h-4 w-4 mr-2" />
-                    Finalizar Mês
-                  </DropdownMenuItem>
-                </AlertDialogTrigger>
+                <AlertDialogTrigger asChild><DropdownMenuItem className="flex items-center text-primary"><CalendarCheck className="h-4 w-4 mr-2" /> Finalizar Mês</DropdownMenuItem></AlertDialogTrigger>
                 <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Finalizar Mês do Grupo?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Esta ação moverá todas as tarefas do grupo atual para a coluna 'Aprovado'. Esta ação não pode ser desfeita. Deseja continuar?
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                    <AlertDialogAction onClick={() => endMonthMutation.mutate(activeGroupId)}>
-                      Sim, Finalizar Mês
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
+                  <AlertDialogHeader><AlertDialogTitle>Finalizar Mês do Grupo?</AlertDialogTitle><AlertDialogDescription>Esta ação moverá todas as tarefas do grupo atual para a coluna 'Aprovado'. Esta ação não pode ser desfeita.</AlertDialogDescription></AlertDialogHeader>
+                  <AlertDialogFooter><AlertDialogCancel>Cancelar</AlertDialogCancel><AlertDialogAction onClick={() => endMonthMutation.mutate(activeGroupId)}>Sim, Finalizar Mês</AlertDialogAction></AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
             )}
-            <DropdownMenuItem>
-              <ThemeToggle />
-            </DropdownMenuItem>
+            <DropdownMenuItem><ThemeToggle /></DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleLogout} className="text-destructive flex items-center">
-              <LogOut className="h-4 w-4 mr-2" />
-              Sair
-            </DropdownMenuItem>
+            <DropdownMenuItem onClick={handleLogout} className="text-destructive flex items-center"><LogOut className="h-4 w-4 mr-2" /> Sair</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       );
@@ -203,41 +208,19 @@ const Workspace = () => {
 
     return (
       <div className="flex items-center gap-2">
-        <Button asChild variant="outline">
-          <Link to={`/workspace/${workspaceId}/playbook`}>
-            <BookOpen className="h-4 w-4 mr-2" />
-            Ver Playbook
-          </Link>
-        </Button>
+        {sendApprovalButton}
+        <Button asChild variant="outline"><Link to={`/workspace/${workspaceId}/playbook`}><BookOpen className="h-4 w-4 mr-2" /> Ver Playbook</Link></Button>
         {userRole === 'admin' && activeGroupId && (
           <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button variant="outline" className="text-primary border-primary hover:bg-primary/10">
-                <CalendarCheck className="h-4 w-4 mr-2" />
-                Finalizar Mês
-              </Button>
-            </AlertDialogTrigger>
+            <AlertDialogTrigger asChild><Button variant="outline" className="text-primary border-primary hover:bg-primary/10"><CalendarCheck className="h-4 w-4 mr-2" /> Finalizar Mês</Button></AlertDialogTrigger>
             <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Finalizar Mês do Grupo?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Esta ação moverá todas as tarefas do grupo atual para a coluna 'Aprovado'. Esta ação não pode ser desfeita. Deseja continuar?
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                <AlertDialogAction onClick={() => endMonthMutation.mutate(activeGroupId)}>
-                  Sim, Finalizar Mês
-                </AlertDialogAction>
-              </AlertDialogFooter>
+              <AlertDialogHeader><AlertDialogTitle>Finalizar Mês do Grupo?</AlertDialogTitle><AlertDialogDescription>Esta ação moverá todas as tarefas do grupo atual para a coluna 'Aprovado'. Esta ação não pode ser desfeita.</AlertDialogDescription></AlertDialogHeader>
+              <AlertDialogFooter><AlertDialogCancel>Cancelar</AlertDialogCancel><AlertDialogAction onClick={() => endMonthMutation.mutate(activeGroupId)}>Sim, Finalizar Mês</AlertDialogAction></AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
         )}
         <ThemeToggle />
-        <Button onClick={handleLogout} variant="outline">
-          <LogOut className="h-4 w-4 mr-2" />
-          Sair
-        </Button>
+        <Button onClick={handleLogout} variant="outline"><LogOut className="h-4 w-4 mr-2" /> Sair</Button>
       </div>
     );
   };
@@ -246,21 +229,14 @@ const Workspace = () => {
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
       <header className="p-4 bg-white dark:bg-gray-800 shadow-md flex justify-between items-center">
         <div className="flex items-center gap-4">
-          <Button asChild variant="outline">
-            <Link to="/">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Voltar ao Dashboard
-            </Link>
-          </Button>
+          <Button asChild variant="outline"><Link to="/"><ArrowLeft className="h-4 w-4 mr-2" /> Voltar ao Dashboard</Link></Button>
         </div>
         {renderHeaderActions()}
       </header>
       <main>
         {workspaceId ? (
           isLoadingGroups || isProfileLoading ? (
-            <div className="p-8 text-center">
-              <Skeleton className="h-10 w-1/2 mx-auto" />
-            </div>
+            <div className="p-8 text-center"><Skeleton className="h-10 w-1/2 mx-auto" /></div>
           ) : (
             <GroupTabs
               groups={groups || []}
@@ -272,9 +248,7 @@ const Workspace = () => {
             />
           )
         ) : (
-          <div className="p-8 text-center">
-            Workspace não encontrado.
-          </div>
+          <div className="p-8 text-center">Workspace não encontrado.</div>
         )}
       </main>
       <Footer />
