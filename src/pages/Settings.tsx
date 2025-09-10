@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Link } from "react-router-dom";
 import { ArrowLeft, Upload } from "lucide-react";
 import { PasswordInput } from "@/components/PasswordInput";
+import { Textarea } from "@/components/ui/textarea";
 
 const fetchSettings = async () => {
   const { data, error } = await supabase.from("app_settings").select("*").eq("id", 1).single();
@@ -28,6 +29,7 @@ const SettingsPage = () => {
   const [faviconFile, setFaviconFile] = useState<File | null>(null);
   const [telegramBotToken, setTelegramBotToken] = useState("");
   const [telegramChatId, setTelegramChatId] = useState("");
+  const [whatsappMessageTemplate, setWhatsappMessageTemplate] = useState("");
   const [isUploading, setIsUploading] = useState(false);
 
   const { data: settings } = useQuery({
@@ -43,6 +45,7 @@ const SettingsPage = () => {
       setBackgroundColor(settings.background_color || "");
       setTelegramBotToken(settings.telegram_bot_token || "");
       setTelegramChatId(settings.telegram_chat_id || "");
+      setWhatsappMessageTemplate(settings.whatsapp_message_template || "");
     }
   }, [settings]);
 
@@ -84,6 +87,7 @@ const SettingsPage = () => {
       favicon_url: faviconUrl,
       telegram_bot_token: telegramBotToken,
       telegram_chat_id: telegramChatId,
+      whatsapp_message_template: whatsappMessageTemplate,
     });
     setIsUploading(false);
   };
@@ -111,8 +115,8 @@ const SettingsPage = () => {
             </div>
              <div className="space-y-2">
               <Label htmlFor="siteUrl">URL do Site</Label>
-              <Input id="siteUrl" value={siteUrl} onChange={(e) => setSiteUrl(e.target.value)} placeholder="https://seuapp.com" />
-              <p className="text-xs text-muted-foreground">Essencial para gerar os links de aprovação corretos.</p>
+              <Input id="siteUrl" value={siteUrl} onChange={(e) => setSiteUrl(e.target.value)} placeholder="http://localhost:8080" />
+              <p className="text-xs text-muted-foreground">Essencial para gerar os links de aprovação corretos. Use http://localhost:8080 para testes.</p>
             </div>
             <div className="space-y-2">
               <Label>Logo (para tela de login)</Label>
@@ -146,6 +150,11 @@ const SettingsPage = () => {
             <CardTitle>Configurações de Notificação</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="whatsapp-template">Template de Mensagem (WhatsApp)</Label>
+              <Textarea id="whatsapp-template" value={whatsappMessageTemplate} onChange={(e) => setWhatsappMessageTemplate(e.target.value)} rows={3} />
+              <p className="text-xs text-muted-foreground">Esta mensagem será usada ao gerar links de aprovação.</p>
+            </div>
             <div className="border-t pt-6 space-y-4">
                 <h3 className="text-lg font-medium">Notificações do Telegram</h3>
                 <div className="space-y-2">

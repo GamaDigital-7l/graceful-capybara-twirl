@@ -34,6 +34,7 @@ const Workspace = () => {
   const [isProfileLoading, setProfileLoading] = useState(true);
   const [isApprovalModalOpen, setIsApprovalModalOpen] = useState(false);
   const [generatedLink, setGeneratedLink] = useState("");
+  const [whatsappTemplate, setWhatsappTemplate] = useState("");
 
   const { data: groups, isLoading: isLoadingGroups } = useQuery<Group[]>({
     queryKey: ["groups", workspaceId],
@@ -139,17 +140,10 @@ const Workspace = () => {
 
   const generateApprovalLinkMutation = useMutation({
     mutationFn: async (groupId: string) => {
-      // --- INÍCIO DO LOG DE DIAGNÓSTICO ---
-      const { data: { user } } = await supabase.auth.getUser();
-      console.log("--- RLS DEBUG CHECK ---");
-      console.log("Workspace ID:", workspaceId);
-      console.log("Group ID:", groupId);
-      console.log("User ID:", user?.id);
-      console.log("-----------------------");
-      // --- FIM DO LOG DE DIAGNÓSTICO ---
-
-      const { data: settings, error: settingsError } = await supabase.from("app_settings").select("site_url").eq("id", 1).single();
+      const { data: settings, error: settingsError } = await supabase.from("app_settings").select("site_url, whatsapp_message_template").eq("id", 1).single();
       if (settingsError || !settings?.site_url) throw new Error("URL do site não configurada. Por favor, adicione em Configurações.");
+
+      setWhatsappTemplate(settings.whatsapp_message_template || 'Olá! Seus posts estão prontos para aprovação. Por favor, acesse o link a seguir para revisar e aprovar:');
 
       const { data: tokenData, error: tokenError } = await supabase.from("public_approval_tokens").insert({ group_id: groupId, workspace_id: workspaceId }).select("token").single();
       if (tokenError) {
@@ -285,6 +279,7 @@ const Workspace = () => {
         onClose={() => setIsApprovalModalOpen(false)}
         link={generatedLink}
         isGenerating={generateApprovalLinkMutation.isPending}
+        whatsappMessageTemplate={whatsappTemplate}
       />
     </div>
   );
