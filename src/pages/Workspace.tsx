@@ -12,7 +12,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { ApprovalLinkModal } from "@/components/ApprovalLinkModal";
+import { SendApprovalModal } from "@/components/SendApprovalModal";
 
 const fetchGroups = async (workspaceId: string) => {
   if (!workspaceId) return [];
@@ -32,8 +32,8 @@ const Workspace = () => {
   const isMobile = useIsMobile();
   const [userRole, setUserRole] = useState<string | null>(null);
   const [isProfileLoading, setProfileLoading] = useState(true);
-  const [isApprovalModalOpen, setIsApprovalModalOpen] = useState(false);
-  const [approvalMessage, setApprovalMessage] = useState("");
+  const [isSendModalOpen, setIsSendModalOpen] = useState(false);
+  const [generatedMessage, setGeneratedMessage] = useState("");
 
   const { data: groups, isLoading: isLoadingGroups } = useQuery<Group[]>({
     queryKey: ["groups", workspaceId],
@@ -140,10 +140,13 @@ const Workspace = () => {
   const generateApprovalLinkMutation = useMutation({
     mutationFn: async (groupId: string) => {
       const { data: settings, error: settingsError } = await supabase.from("app_settings").select("site_url").eq("id", 1).single();
-      if (settingsError || !settings?.site_url) throw new Error("URL do site não configurada.");
+      if (settingsError || !settings?.site_url) throw new Error("URL do site não configurada. Por favor, adicione em Configurações.");
 
       const { data: tokenData, error: tokenError } = await supabase.from("public_approval_tokens").insert({ group_id: groupId, workspace_id: workspaceId }).select("token").single();
-      if (tokenError) throw new Error("Falha ao criar o link.");
+      if (tokenError) {
+        console.error("Supabase insert error:", tokenError);
+        throw new Error(`Falha ao criar o link: ${tokenError.message}`);
+      }
 
       const { data: workspace, error: wsError } = await supabase.from("workspaces").select("name").eq("id", workspaceId).single();
       if (wsError) throw new Error("Workspace não encontrado.");
@@ -153,14 +156,16 @@ const Workspace = () => {
     },
     onSuccess: (message) => {
       dismissToast();
-      setApprovalMessage(message);
-      setIsApprovalModalOpen(true);
+      setGeneratedMessage(message);
     },
     onError: (e: Error) => {
       dismissToast();
-      showError(`Erro ao gerar link: ${e.message}`);
+      showError(e.message);
+      setIsSendModalOpen(false);
     },
-    onMutate: () => showLoading("Gerando link..."),
+    onMutate: () => {
+      showLoading("Gerando link...");
+    },
   });
 
   useEffect(() => {
@@ -175,11 +180,17 @@ const Workspace = () => {
     await supabase.auth.signOut();
   };
 
+  const handleOpenSendModal = (groupId: string) => {
+    setGeneratedMessage("");
+    setIsSendModalOpen(true);
+    generateApprovalLinkMutation.mutate(groupId);
+  };
+
   const renderHeaderActions = () => {
     const sendApprovalButton = userRole === 'admin' && activeGroupId && (
       <Button
         variant="default"
-        onClick={() => generateApprovalLinkMutation.mutate(activeGroupId)}
+        onClick={() => handleOpenSendModal(activeGroupId)}
         disabled={generateApprovalLinkMutation.isPending}
       >
         <Send className="h-4 w-4 mr-2" />
@@ -195,7 +206,7 @@ const Workspace = () => {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             {userRole === 'admin' && activeGroupId && (
-              <DropdownMenuItem onClick={() => generateApprovalLinkMutation.mutate(activeGroupId)} disabled={generateApprovalLinkMutation.isPending}>
+              <DropdownMenuItem onClick={() => handleOpenSendModal(activeGroupId)} disabled={generateApprovalLinkMutation.isPending}>
                 <Send className="h-4 w-4 mr-2" /> Enviar p/ Aprovação
               </DropdownMenuItem>
             )}
@@ -263,10 +274,11 @@ const Workspace = () => {
         )}
       </main>
       <Footer />
-      <ApprovalLinkModal 
-        isOpen={isApprovalModalOpen}
-        onClose={() => setIsApprovalModalOpen(false)}
-        message={approvalMessage}
+      <SendApprovalModal
+        isOpen={isSendModalOpen}
+        onClose={() => setIsSendModalOpen(false)}
+        message={generatedMessage}
+        isGenerating={generateApprovalLinkMutation.isPending}
       />
     </div>
   );
