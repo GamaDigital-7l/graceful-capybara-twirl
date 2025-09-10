@@ -148,6 +148,14 @@ const Workspace = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Usuário não autenticado.");
 
+      // --- DEBUG LOG ---
+      console.log("--- RLS DEBUG INFO ---");
+      console.log("User ID from client:", user.id);
+      console.log("Workspace ID:", workspaceId);
+      console.log("Group ID:", groupId);
+      console.log("--- END RLS DEBUG INFO ---");
+      // --- END DEBUG LOG ---
+
       const { data: tokenData, error: tokenError } = await supabase.from("public_approval_tokens").insert({ group_id: groupId, workspace_id: workspaceId, user_id: user.id }).select("token").single();
       if (tokenError) {
         console.error("Supabase insert error:", tokenError);
