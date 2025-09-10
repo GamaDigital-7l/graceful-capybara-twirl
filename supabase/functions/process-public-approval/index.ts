@@ -82,7 +82,7 @@ serve(async (req) => {
     if (colError || !targetColumn) throw new Error(`Coluna '${targetColumnTitle}' não encontrada.`);
 
     // 4. Executar a ação
-    let updateData = { column_id: targetColumn.id };
+    let updateData: { column_id: string; comments?: any[] } = { column_id: targetColumn.id };
     let notificationMessage = "";
 
     if (action === "edit") {

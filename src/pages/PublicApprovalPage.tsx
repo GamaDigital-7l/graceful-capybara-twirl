@@ -44,7 +44,7 @@ const PublicApprovalPage = () => {
       });
       if (error) throw error;
     },
-    onSuccess: (data, variables) => {
+    onSuccess: (_data, variables) => {
       showSuccess(`Tarefa ${variables.action === 'approve' ? 'aprovada' : 'enviada para edição'}!`);
       setProcessedTasks(prev => new Set(prev).add(variables.taskId));
       if (variables.action === 'edit') {
