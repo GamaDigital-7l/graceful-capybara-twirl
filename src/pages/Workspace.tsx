@@ -12,6 +12,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { ApprovalLinkModal } from "@/components/ApprovalLinkModal";
 
 const fetchGroups = async (workspaceId: string) => {
   if (!workspaceId) return [];
@@ -31,6 +32,8 @@ const Workspace = () => {
   const isMobile = useIsMobile();
   const [userRole, setUserRole] = useState<string | null>(null);
   const [isProfileLoading, setProfileLoading] = useState(true);
+  const [isApprovalModalOpen, setIsApprovalModalOpen] = useState(false);
+  const [approvalMessage, setApprovalMessage] = useState("");
 
   const { data: groups, isLoading: isLoadingGroups } = useQuery<Group[]>({
     queryKey: ["groups", workspaceId],
@@ -134,60 +137,30 @@ const Workspace = () => {
     onError: (e: Error) => showError(`Erro ao finalizar o mês: ${e.message}`),
   });
 
-  const sendApprovalMutation = useMutation({
+  const generateApprovalLinkMutation = useMutation({
     mutationFn: async (groupId: string) => {
-      // 1. Get site_url from settings
-      const { data: settings, error: settingsError } = await supabase
-        .from("app_settings")
-        .select("site_url")
-        .eq("id", 1)
-        .single();
-      if (settingsError || !settings?.site_url) {
-        throw new Error("URL do site não configurada nas Configurações.");
-      }
+      const { data: settings, error: settingsError } = await supabase.from("app_settings").select("site_url").eq("id", 1).single();
+      if (settingsError || !settings?.site_url) throw new Error("URL do site não configurada.");
 
-      // 2. Create a new public approval token
-      const { data: tokenData, error: tokenError } = await supabase
-        .from("public_approval_tokens")
-        .insert({ group_id: groupId, workspace_id: workspaceId })
-        .select("token")
-        .single();
-      if (tokenError) {
-        throw new Error("Falha ao criar o link de aprovação.");
-      }
-      const token = tokenData.token;
+      const { data: tokenData, error: tokenError } = await supabase.from("public_approval_tokens").insert({ group_id: groupId, workspace_id: workspaceId }).select("token").single();
+      if (tokenError) throw new Error("Falha ao criar o link.");
 
-      // 3. Get workspace name
-      const { data: workspace, error: workspaceError } = await supabase
-        .from("workspaces")
-        .select("name")
-        .eq("id", workspaceId)
-        .single();
-      if (workspaceError) {
-        throw new Error("Não foi possível encontrar o nome do workspace.");
-      }
-      const workspaceName = workspace.name;
+      const { data: workspace, error: wsError } = await supabase.from("workspaces").select("name").eq("id", workspaceId).single();
+      if (wsError) throw new Error("Workspace não encontrado.");
 
-      // 4. Format the message and call the generic notification function
-      const approvalUrl = `${settings.site_url}/approve/${token}`;
-      const message = `Link de aprovação para o cliente *${workspaceName}*:\n\n${approvalUrl}`;
-      
-      const { error: notificationError } = await supabase.functions.invoke("send-telegram-notification", {
-        body: { message },
-      });
-      if (notificationError) {
-        throw new Error(notificationError.message);
-      }
+      const approvalUrl = `${settings.site_url}/approve/${tokenData.token}`;
+      return `Olá! Os posts para o cliente ${workspace.name} estão prontos para aprovação.\n\nPor favor, acesse o link a seguir para revisar:\n${approvalUrl}`;
     },
-    onMutate: () => showLoading("Gerando link e enviando para seu Telegram..."),
-    onSuccess: () => {
+    onSuccess: (message) => {
       dismissToast();
-      showSuccess("Link enviado para seu Telegram!");
+      setApprovalMessage(message);
+      setIsApprovalModalOpen(true);
     },
     onError: (e: Error) => {
       dismissToast();
-      showError(`Erro ao enviar: ${e.message}`);
+      showError(`Erro ao gerar link: ${e.message}`);
     },
+    onMutate: () => showLoading("Gerando link..."),
   });
 
   useEffect(() => {
@@ -206,8 +179,8 @@ const Workspace = () => {
     const sendApprovalButton = userRole === 'admin' && activeGroupId && (
       <Button
         variant="default"
-        onClick={() => sendApprovalMutation.mutate(activeGroupId)}
-        disabled={sendApprovalMutation.isPending}
+        onClick={() => generateApprovalLinkMutation.mutate(activeGroupId)}
+        disabled={generateApprovalLinkMutation.isPending}
       >
         <Send className="h-4 w-4 mr-2" />
         Enviar para Aprovação
@@ -222,7 +195,7 @@ const Workspace = () => {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             {userRole === 'admin' && activeGroupId && (
-              <DropdownMenuItem onClick={() => sendApprovalMutation.mutate(activeGroupId)} disabled={sendApprovalMutation.isPending}>
+              <DropdownMenuItem onClick={() => generateApprovalLinkMutation.mutate(activeGroupId)} disabled={generateApprovalLinkMutation.isPending}>
                 <Send className="h-4 w-4 mr-2" /> Enviar p/ Aprovação
               </DropdownMenuItem>
             )}
@@ -290,6 +263,11 @@ const Workspace = () => {
         )}
       </main>
       <Footer />
+      <ApprovalLinkModal 
+        isOpen={isApprovalModalOpen}
+        onClose={() => setIsApprovalModalOpen(false)}
+        message={approvalMessage}
+      />
     </div>
   );
 };
