@@ -136,18 +136,56 @@ const Workspace = () => {
 
   const sendApprovalMutation = useMutation({
     mutationFn: async (groupId: string) => {
-      const { error } = await supabase.functions.invoke("send-telegram-approval", {
-        body: { groupId, workspaceId },
+      // 1. Get site_url from settings
+      const { data: settings, error: settingsError } = await supabase
+        .from("app_settings")
+        .select("site_url")
+        .eq("id", 1)
+        .single();
+      if (settingsError || !settings?.site_url) {
+        throw new Error("URL do site não configurada nas Configurações.");
+      }
+
+      // 2. Create a new public approval token
+      const { data: tokenData, error: tokenError } = await supabase
+        .from("public_approval_tokens")
+        .insert({ group_id: groupId, workspace_id: workspaceId })
+        .select("token")
+        .single();
+      if (tokenError) {
+        throw new Error("Falha ao criar o link de aprovação.");
+      }
+      const token = tokenData.token;
+
+      // 3. Get workspace name
+      const { data: workspace, error: workspaceError } = await supabase
+        .from("workspaces")
+        .select("name")
+        .eq("id", workspaceId)
+        .single();
+      if (workspaceError) {
+        throw new Error("Não foi possível encontrar o nome do workspace.");
+      }
+      const workspaceName = workspace.name;
+
+      // 4. Format the message and call the generic notification function
+      const approvalUrl = `${settings.site_url}/approve/${token}`;
+      const message = `Link de aprovação para o cliente *${workspaceName}*:\n\n${approvalUrl}`;
+      
+      const { error: notificationError } = await supabase.functions.invoke("send-telegram-notification", {
+        body: { message },
       });
-      if (error) throw new Error(error.message);
+      if (notificationError) {
+        throw new Error(notificationError.message);
+      }
     },
-    onMutate: () => showLoading("Enviando link de aprovação..."),
-    onSuccess: (data, variables, context) => {
-      dismissToast(context as string);
-      showSuccess("Link de aprovação enviado com sucesso!");
+    onMutate: () => showLoading("Gerando link e enviando para seu Telegram..."),
+    onSuccess: () => {
+      dismissToast();
+      showSuccess("Link enviado para seu Telegram!");
     },
-    onError: (e: Error, variables, context) => {
-      dismissToast(context as string);
+    onError: (e: Error) => {
+      dismissToast();
       showError(`Erro ao enviar: ${e.message}`);
     },
   });
