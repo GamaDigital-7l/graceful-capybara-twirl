@@ -30,7 +30,7 @@ const SettingsPage = () => {
   const [telegramChatId, setTelegramChatId] = useState("");
   const [whatsappApiToken, setWhatsappApiToken] = useState("");
   const [whatsappPhoneNumberId, setWhatsappPhoneNumberId] = useState("");
-  const [whatsappMessageTemplate, setWhatsappMessageTemplate] = useState("");
+  const [whatsappTemplateName, setWhatsappTemplateName] = useState("");
   const [isUploading, setIsUploading] = useState(false);
 
   const { data: settings } = useQuery({
@@ -47,7 +47,7 @@ const SettingsPage = () => {
       setTelegramChatId(settings.telegram_chat_id || "");
       setWhatsappApiToken(settings.whatsapp_api_token || "");
       setWhatsappPhoneNumberId(settings.whatsapp_phone_number_id || "");
-      setWhatsappMessageTemplate(settings.whatsapp_message_template || "");
+      setWhatsappTemplateName(settings.whatsapp_message_template || "");
     }
   }, [settings]);
 
@@ -90,7 +90,7 @@ const SettingsPage = () => {
       telegram_chat_id: telegramChatId,
       whatsapp_api_token: whatsappApiToken,
       whatsapp_phone_number_id: whatsappPhoneNumberId,
-      whatsapp_message_template: whatsappMessageTemplate,
+      whatsapp_message_template: whatsappTemplateName,
     });
     setIsUploading(false);
   };
@@ -173,9 +173,16 @@ const SettingsPage = () => {
                     <Input id="whatsapp-phone-id" value={whatsappPhoneNumberId} onChange={(e) => setWhatsappPhoneNumberId(e.target.value)} />
                 </div>
                 <div className="space-y-2">
-                    <Label htmlFor="whatsapp-message">Mensagem Padrão de Aprovação</Label>
-                    <Textarea id="whatsapp-message" value={whatsappMessageTemplate} onChange={(e) => setWhatsappMessageTemplate(e.target.value)} />
-                    <p className="text-xs text-muted-foreground">O link de aprovação será adicionado automaticamente ao final desta mensagem.</p>
+                    <Label htmlFor="whatsapp-template-name">Nome do Template de Mensagem</Label>
+                    <Input 
+                        id="whatsapp-template-name" 
+                        value={whatsappTemplateName} 
+                        onChange={(e) => setWhatsappTemplateName(e.target.value)} 
+                        placeholder="Ex: posts_para_aprovacao" 
+                    />
+                    <p className="text-xs text-muted-foreground">
+                        Insira o nome exato do seu template de mensagem aprovado na Meta. O template deve ter um parâmetro no corpo (ex: `...aprovar: {{1}}`) que será substituído pelo link de aprovação.
+                    </p>
                 </div>
             </div>
           </CardContent>
