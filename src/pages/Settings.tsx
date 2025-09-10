@@ -11,7 +11,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Link } from "react-router-dom";
 import { ArrowLeft, Upload } from "lucide-react";
 import { PasswordInput } from "@/components/PasswordInput";
-import { Textarea } from "@/components/ui/textarea";
 
 const fetchSettings = async () => {
   const { data, error } = await supabase.from("app_settings").select("*").eq("id", 1).single();
@@ -22,15 +21,13 @@ const fetchSettings = async () => {
 const SettingsPage = () => {
   const queryClient = useQueryClient();
   const [appName, setAppName] = useState("");
+  const [siteUrl, setSiteUrl] = useState("");
   const [primaryColor, setPrimaryColor] = useState("");
   const [backgroundColor, setBackgroundColor] = useState("");
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [faviconFile, setFaviconFile] = useState<File | null>(null);
   const [telegramBotToken, setTelegramBotToken] = useState("");
   const [telegramChatId, setTelegramChatId] = useState("");
-  const [whatsappApiToken, setWhatsappApiToken] = useState("");
-  const [whatsappPhoneNumberId, setWhatsappPhoneNumberId] = useState("");
-  const [whatsappTemplateName, setWhatsappTemplateName] = useState("");
   const [isUploading, setIsUploading] = useState(false);
 
   const { data: settings } = useQuery({
@@ -41,13 +38,11 @@ const SettingsPage = () => {
   useEffect(() => {
     if (settings) {
       setAppName(settings.app_name || "");
+      setSiteUrl(settings.site_url || "");
       setPrimaryColor(settings.primary_color || "");
       setBackgroundColor(settings.background_color || "");
       setTelegramBotToken(settings.telegram_bot_token || "");
       setTelegramChatId(settings.telegram_chat_id || "");
-      setWhatsappApiToken(settings.whatsapp_api_token || "");
-      setWhatsappPhoneNumberId(settings.whatsapp_phone_number_id || "");
-      setWhatsappTemplateName(settings.whatsapp_message_template || "");
     }
   }, [settings]);
 
@@ -82,15 +77,13 @@ const SettingsPage = () => {
 
     updateSettingsMutation.mutate({
       app_name: appName,
+      site_url: siteUrl,
       primary_color: primaryColor,
       background_color: backgroundColor,
       logo_url: logoUrl,
       favicon_url: faviconUrl,
       telegram_bot_token: telegramBotToken,
       telegram_chat_id: telegramChatId,
-      whatsapp_api_token: whatsappApiToken,
-      whatsapp_phone_number_id: whatsappPhoneNumberId,
-      whatsapp_message_template: whatsappTemplateName,
     });
     setIsUploading(false);
   };
@@ -115,6 +108,11 @@ const SettingsPage = () => {
             <div className="space-y-2">
               <Label htmlFor="appName">Nome do Aplicativo</Label>
               <Input id="appName" value={appName} onChange={(e) => setAppName(e.target.value)} />
+            </div>
+             <div className="space-y-2">
+              <Label htmlFor="siteUrl">URL do Site</Label>
+              <Input id="siteUrl" value={siteUrl} onChange={(e) => setSiteUrl(e.target.value)} placeholder="https://seuapp.com" />
+              <p className="text-xs text-muted-foreground">Essencial para gerar os links de aprovação corretos.</p>
             </div>
             <div className="space-y-2">
               <Label>Logo (para tela de login)</Label>
@@ -157,32 +155,6 @@ const SettingsPage = () => {
                 <div className="space-y-2">
                     <Label htmlFor="telegram-chat-id">Chat ID do Telegram</Label>
                     <Input id="telegram-chat-id" value={telegramChatId} onChange={(e) => setTelegramChatId(e.target.value)} />
-                </div>
-            </div>
-            <div className="border-t pt-6 space-y-4">
-                <h3 className="text-lg font-medium">Aprovação via WhatsApp</h3>
-                <p className="text-sm text-muted-foreground">
-                  Obtenha suas credenciais no <a href="https://developers.facebook.com/apps/" target="_blank" rel="noopener noreferrer" className="underline">portal Meta for Developers</a>.
-                </p>
-                <div className="space-y-2">
-                    <Label htmlFor="whatsapp-token">Token de Acesso da API do WhatsApp</Label>
-                    <PasswordInput id="whatsapp-token" value={whatsappApiToken} onChange={(e) => setWhatsappApiToken(e.target.value)} />
-                </div>
-                <div className="space-y-2">
-                    <Label htmlFor="whatsapp-phone-id">ID do Número de Telefone</Label>
-                    <Input id="whatsapp-phone-id" value={whatsappPhoneNumberId} onChange={(e) => setWhatsappPhoneNumberId(e.target.value)} />
-                </div>
-                <div className="space-y-2">
-                    <Label htmlFor="whatsapp-template-name">Nome do Template de Mensagem</Label>
-                    <Input 
-                        id="whatsapp-template-name" 
-                        value={whatsappTemplateName} 
-                        onChange={(e) => setWhatsappTemplateName(e.target.value)} 
-                        placeholder="Ex: posts_para_aprovacao" 
-                    />
-                    <p className="text-xs text-muted-foreground">
-                        Insira o nome exato do seu template de mensagem aprovado na Meta. O template deve ter um parâmetro no corpo (ex: `...aprovar: {{1}}`) que será substituído pelo link de aprovação.
-                    </p>
                 </div>
             </div>
           </CardContent>

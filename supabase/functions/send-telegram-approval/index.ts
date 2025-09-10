@@ -26,12 +26,15 @@ serve(async (req) => {
     // 1. Buscar configurações e nome do workspace
     const { data: settings, error: settingsError } = await supabaseAdmin
       .from("app_settings")
-      .select("telegram_bot_token, telegram_chat_id")
+      .select("telegram_bot_token, telegram_chat_id, site_url")
       .eq("id", 1)
       .single();
     if (settingsError) throw new Error("Erro ao buscar configurações da aplicação.");
     if (!settings.telegram_bot_token || !settings.telegram_chat_id) {
       throw new Error("Credenciais do Telegram não configuradas.");
+    }
+    if (!settings.site_url) {
+      throw new Error("A 'URL do Site' não está configurada na página de Configurações.");
     }
 
     const { data: workspace, error: workspaceError } = await supabaseAdmin
@@ -49,7 +52,7 @@ serve(async (req) => {
     if (tokenError) throw new Error("Erro ao criar token de aprovação.");
 
     // 3. Montar a mensagem e enviar
-    const approvalUrl = `${Deno.env.get("SUPABASE_URL")?.replace('.co', '.app')}/approve/${token}`;
+    const approvalUrl = `${settings.site_url}/approve/${token}`;
     const message = `Olá! Os posts para o cliente *${workspace.name}* estão prontos para aprovação.\n\nPor favor, acesse o link a seguir para revisar:\n${approvalUrl}`;
 
     const telegramUrl = `https://api.telegram.org/bot${settings.telegram_bot_token}/sendMessage`;

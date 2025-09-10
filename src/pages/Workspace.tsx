@@ -7,7 +7,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { showError, showSuccess, showLoading, dismissToast } from "@/utils/toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, LogOut, BookOpen, MoreVertical, CalendarCheck, Send, MessageSquare } from "lucide-react";
+import { ArrowLeft, LogOut, BookOpen, MoreVertical, CalendarCheck, Send } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -134,14 +134,14 @@ const Workspace = () => {
     onError: (e: Error) => showError(`Erro ao finalizar o mês: ${e.message}`),
   });
 
-  const sendTelegramApprovalMutation = useMutation({
+  const sendApprovalMutation = useMutation({
     mutationFn: async (groupId: string) => {
       const { error } = await supabase.functions.invoke("send-telegram-approval", {
         body: { groupId, workspaceId },
       });
       if (error) throw new Error(error.message);
     },
-    onMutate: () => showLoading("Enviando via Telegram..."),
+    onMutate: () => showLoading("Enviando link de aprovação..."),
     onSuccess: (data, variables, context) => {
       dismissToast(context as string);
       showSuccess("Link de aprovação enviado com sucesso!");
@@ -165,14 +165,14 @@ const Workspace = () => {
   };
 
   const renderHeaderActions = () => {
-    const sendTelegramButton = userRole === 'admin' && activeGroupId && (
+    const sendApprovalButton = userRole === 'admin' && activeGroupId && (
       <Button
         variant="default"
-        onClick={() => sendTelegramApprovalMutation.mutate(activeGroupId)}
-        disabled={sendTelegramApprovalMutation.isPending}
+        onClick={() => sendApprovalMutation.mutate(activeGroupId)}
+        disabled={sendApprovalMutation.isPending}
       >
-        <MessageSquare className="h-4 w-4 mr-2" />
-        Enviar via Telegram
+        <Send className="h-4 w-4 mr-2" />
+        Enviar para Aprovação
       </Button>
     );
 
@@ -184,8 +184,8 @@ const Workspace = () => {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             {userRole === 'admin' && activeGroupId && (
-              <DropdownMenuItem onClick={() => sendTelegramApprovalMutation.mutate(activeGroupId)} disabled={sendTelegramApprovalMutation.isPending}>
-                <MessageSquare className="h-4 w-4 mr-2" /> Enviar p/ Aprovação
+              <DropdownMenuItem onClick={() => sendApprovalMutation.mutate(activeGroupId)} disabled={sendApprovalMutation.isPending}>
+                <Send className="h-4 w-4 mr-2" /> Enviar p/ Aprovação
               </DropdownMenuItem>
             )}
             <DropdownMenuItem asChild><Link to={`/workspace/${workspaceId}/playbook`} className="flex items-center"><BookOpen className="h-4 w-4 mr-2" /> Ver Playbook</Link></DropdownMenuItem>
@@ -208,7 +208,7 @@ const Workspace = () => {
 
     return (
       <div className="flex items-center gap-2">
-        {sendTelegramButton}
+        {sendApprovalButton}
         <Button asChild variant="outline"><Link to={`/workspace/${workspaceId}/playbook`}><BookOpen className="h-4 w-4 mr-2" /> Ver Playbook</Link></Button>
         {userRole === 'admin' && activeGroupId && (
           <AlertDialog>
