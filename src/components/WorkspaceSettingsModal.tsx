@@ -30,7 +30,6 @@ const fetchUsers = async () => {
 export function WorkspaceSettingsModal({ isOpen, onClose, workspace }: WorkspaceSettingsModalProps) {
   const queryClient = useQueryClient();
   const [name, setName] = useState("");
-  const [whatsappNumber, setWhatsappNumber] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
@@ -50,7 +49,6 @@ export function WorkspaceSettingsModal({ isOpen, onClose, workspace }: Workspace
   useEffect(() => {
     if (workspace) {
       setName(workspace.name);
-      setWhatsappNumber(workspace.client_whatsapp_number || "");
       refetchMembers();
     }
     setSelectedFile(null);
@@ -127,7 +125,7 @@ export function WorkspaceSettingsModal({ isOpen, onClose, workspace }: Workspace
       logoUrl = publicUrlData.publicUrl;
       setIsUploading(false);
     }
-    updateWorkspaceMutation.mutate({ name, logo_url: logoUrl, client_whatsapp_number: whatsappNumber });
+    updateWorkspaceMutation.mutate({ name, logo_url: logoUrl });
   };
 
   const memberIds = members?.map(m => m.user_id) || [];
@@ -149,11 +147,6 @@ export function WorkspaceSettingsModal({ isOpen, onClose, workspace }: Workspace
             <div className="space-y-2">
               <Label htmlFor="workspace-name">Nome do Cliente</Label>
               <Input id="workspace-name" value={name} onChange={(e) => setName(e.target.value)} />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="whatsapp-number">Nº de WhatsApp do Cliente</Label>
-              <Input id="whatsapp-number" value={whatsappNumber} onChange={(e) => setWhatsappNumber(e.target.value)} placeholder="Ex: 5511999998888" />
-              <p className="text-xs text-muted-foreground">Inclua o código do país (55 para Brasil) e o DDD.</p>
             </div>
             <div className="space-y-2">
               <Label htmlFor="logo-upload">Logo do Cliente</Label>
