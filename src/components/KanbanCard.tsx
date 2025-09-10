@@ -86,13 +86,7 @@ export function KanbanCard({
 
   const coverImage = task.attachments?.find((att) => att.isCover)?.url;
 
-  const handleImageClick = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Previne que o clique na imagem ative o onClick do card
-    if (coverImage) {
-      setPreviewImageUrl(coverImage);
-      setIsPreviewModalOpen(true);
-    }
-  };
+  // A função handleImageClick foi removida, o clique será tratado diretamente no elemento do overlay.
 
   if (isDragging) {
     return (
@@ -111,11 +105,11 @@ export function KanbanCard({
         style={style}
         {...attributes}
         {...listeners}
-        onClick={onClick}
+        onClick={onClick} // Este onClick abre o TaskModal quando clicado em outras partes do card
         className="cursor-pointer hover:ring-2 hover:ring-primary transition-shadow"
       >
         {coverImage && (
-          <div onClick={handleImageClick} className="cursor-pointer">
+          <div> 
             <AspectRatio ratio={16 / 9} className="rounded-t-lg overflow-hidden group relative">
               <img
                 src={coverImage}
@@ -123,7 +117,15 @@ export function KanbanCard({
                 className="w-full h-full object-cover"
               />
               <div 
-                className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                onClick={(e) => { // Este onClick é para o modal de pré-visualização da imagem
+                  e.stopPropagation(); // Impede que o clique no overlay da imagem ative o onClick do card pai
+                  console.log("Image overlay clicked!"); // Log para depuração
+                  if (coverImage) {
+                    setPreviewImageUrl(coverImage);
+                    setIsPreviewModalOpen(true);
+                  }
+                }}
               >
                 <Eye className="h-8 w-8 text-white" />
               </div>
