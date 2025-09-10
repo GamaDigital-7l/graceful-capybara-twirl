@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Link } from "react-router-dom";
 import { ArrowLeft, Upload } from "lucide-react";
 import { PasswordInput } from "@/components/PasswordInput";
+import { Textarea } from "@/components/ui/textarea";
 
 const fetchSettings = async () => {
   const { data, error } = await supabase.from("app_settings").select("*").eq("id", 1).single();
@@ -27,6 +28,9 @@ const SettingsPage = () => {
   const [faviconFile, setFaviconFile] = useState<File | null>(null);
   const [telegramBotToken, setTelegramBotToken] = useState("");
   const [telegramChatId, setTelegramChatId] = useState("");
+  const [whatsappApiToken, setWhatsappApiToken] = useState("");
+  const [whatsappPhoneNumberId, setWhatsappPhoneNumberId] = useState("");
+  const [whatsappMessageTemplate, setWhatsappMessageTemplate] = useState("");
   const [isUploading, setIsUploading] = useState(false);
 
   const { data: settings } = useQuery({
@@ -41,6 +45,9 @@ const SettingsPage = () => {
       setBackgroundColor(settings.background_color || "");
       setTelegramBotToken(settings.telegram_bot_token || "");
       setTelegramChatId(settings.telegram_chat_id || "");
+      setWhatsappApiToken(settings.whatsapp_api_token || "");
+      setWhatsappPhoneNumberId(settings.whatsapp_phone_number_id || "");
+      setWhatsappMessageTemplate(settings.whatsapp_message_template || "");
     }
   }, [settings]);
 
@@ -81,6 +88,9 @@ const SettingsPage = () => {
       favicon_url: faviconUrl,
       telegram_bot_token: telegramBotToken,
       telegram_chat_id: telegramChatId,
+      whatsapp_api_token: whatsappApiToken,
+      whatsapp_phone_number_id: whatsappPhoneNumberId,
+      whatsapp_message_template: whatsappMessageTemplate,
     });
     setIsUploading(false);
   };
@@ -95,7 +105,7 @@ const SettingsPage = () => {
           </Link>
         </Button>
       </header>
-      <main className="max-w-2xl mx-auto">
+      <main className="max-w-2xl mx-auto space-y-8">
         <Card>
           <CardHeader>
             <CardTitle>Configurações da Aplicação</CardTitle>
@@ -130,6 +140,14 @@ const SettingsPage = () => {
               <Input id="backgroundColor" value={backgroundColor} onChange={(e) => setBackgroundColor(e.target.value)} />
               <p className="text-xs text-muted-foreground">Formato HSL sem 'hsl()'. Ex: 0 0% 100%</p>
             </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Configurações de Notificação</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
             <div className="border-t pt-6 space-y-4">
                 <h3 className="text-lg font-medium">Notificações do Telegram</h3>
                 <div className="space-y-2">
@@ -141,11 +159,31 @@ const SettingsPage = () => {
                     <Input id="telegram-chat-id" value={telegramChatId} onChange={(e) => setTelegramChatId(e.target.value)} />
                 </div>
             </div>
-            <Button onClick={handleSave} disabled={isUploading || updateSettingsMutation.isPending}>
-              {isUploading ? "Enviando..." : "Salvar Alterações"}
-            </Button>
+            <div className="border-t pt-6 space-y-4">
+                <h3 className="text-lg font-medium">Aprovação via WhatsApp</h3>
+                <p className="text-sm text-muted-foreground">
+                  Obtenha suas credenciais no <a href="https://developers.facebook.com/apps/" target="_blank" rel="noopener noreferrer" className="underline">portal Meta for Developers</a>.
+                </p>
+                <div className="space-y-2">
+                    <Label htmlFor="whatsapp-token">Token de Acesso da API do WhatsApp</Label>
+                    <PasswordInput id="whatsapp-token" value={whatsappApiToken} onChange={(e) => setWhatsappApiToken(e.target.value)} />
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="whatsapp-phone-id">ID do Número de Telefone</Label>
+                    <Input id="whatsapp-phone-id" value={whatsappPhoneNumberId} onChange={(e) => setWhatsappPhoneNumberId(e.target.value)} />
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="whatsapp-message">Mensagem Padrão de Aprovação</Label>
+                    <Textarea id="whatsapp-message" value={whatsappMessageTemplate} onChange={(e) => setWhatsappMessageTemplate(e.target.value)} />
+                    <p className="text-xs text-muted-foreground">O link de aprovação será adicionado automaticamente ao final desta mensagem.</p>
+                </div>
+            </div>
           </CardContent>
         </Card>
+        
+        <Button onClick={handleSave} disabled={isUploading || updateSettingsMutation.isPending} className="w-full">
+          {isUploading ? "Enviando..." : "Salvar Todas as Alterações"}
+        </Button>
       </main>
     </div>
   );
