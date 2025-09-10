@@ -145,7 +145,10 @@ const Workspace = () => {
 
       setWhatsappTemplate(settings.whatsapp_message_template || 'Olá! Seus posts estão prontos para aprovação. Por favor, acesse o link a seguir para revisar e aprovar:');
 
-      const { data: tokenData, error: tokenError } = await supabase.from("public_approval_tokens").insert({ group_id: groupId, workspace_id: workspaceId }).select("token").single();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Usuário não autenticado.");
+
+      const { data: tokenData, error: tokenError } = await supabase.from("public_approval_tokens").insert({ group_id: groupId, workspace_id: workspaceId, user_id: user.id }).select("token").single();
       if (tokenError) {
         console.error("Supabase insert error:", tokenError);
         throw new Error(`Falha ao criar o link: ${tokenError.message}`);
