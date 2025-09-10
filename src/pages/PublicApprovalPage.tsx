@@ -13,7 +13,8 @@ import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { CheckCircle, Edit, Send } from "lucide-react";
+import { CheckCircle, Edit, Send, Eye } from "lucide-react";
+import { ImagePreviewModal } from "@/components/ImagePreviewModal"; // Importar o modal de pré-visualização
 
 const fetchApprovalData = async (token: string) => {
   const { data, error } = await supabase.functions.invoke("get-tasks-for-approval", {
@@ -29,6 +30,8 @@ const PublicApprovalPage = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<any>(null);
   const [editComment, setEditComment] = useState("");
+  const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false); // Novo estado para o modal de pré-visualização
+  const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null); // Novo estado para a URL da imagem
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["approvalData", token],
@@ -66,6 +69,11 @@ const PublicApprovalPage = () => {
     } else {
       showError("Por favor, adicione um comentário de edição.");
     }
+  };
+
+  const handleImageClick = (imageUrl: string) => {
+    setPreviewImageUrl(imageUrl);
+    setIsPreviewModalOpen(true);
   };
 
   if (isLoading) {
@@ -108,8 +116,14 @@ const PublicApprovalPage = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               {task.attachments?.[0]?.url && (
-                <AspectRatio ratio={1 / 1} className="bg-muted rounded-md">
+                <AspectRatio ratio={1 / 1} className="bg-muted rounded-md group relative">
                   <img src={task.attachments[0].url} alt={task.title} className="rounded-md object-cover w-full h-full" />
+                  <div 
+                    className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                    onClick={() => handleImageClick(task.attachments[0].url)}
+                  >
+                    <Eye className="h-8 w-8 text-white" />
+                  </div>
                 </AspectRatio>
               )}
               {task.description && <p className="text-sm text-muted-foreground whitespace-pre-wrap">{task.description}</p>}
@@ -148,6 +162,11 @@ const PublicApprovalPage = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <ImagePreviewModal 
+        isOpen={isPreviewModalOpen} 
+        onClose={() => setIsPreviewModalOpen(false)} 
+        imageUrl={previewImageUrl} 
+      />
     </div>
   );
 };
