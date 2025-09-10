@@ -115,14 +115,14 @@ const SettingsPage = () => {
             </div>
              <div className="space-y-2">
               <Label htmlFor="siteUrl">URL do Site</Label>
-              <Input id="siteUrl" value={siteUrl} onChange={(e) => setSiteUrl(e.target.value)} placeholder="http://localhost:8080" />
-              <p className="text-xs text-muted-foreground">Essencial para gerar os links de aprovação corretos. Use http://localhost:8080 para testes.</p>
+              <Input id="siteUrl" value={siteUrl} onChange={(e) => setSiteUrl(e.target.value)} placeholder="http://localhost:32100" />
+              <p className="text-xs text-muted-foreground">Essencial para gerar os links de aprovação corretos. Use http://localhost:32100 para testes.</p>
             </div>
             <div className="space-y-2">
               <Label>Logo (para tela de login)</Label>
               <div className="flex items-center gap-2">
                 <Input id="logo-display" placeholder={logoFile ? logoFile.name : "Nenhum arquivo selecionado"} readOnly className="flex-grow" />
-                <Button asChild variant="outline"><Label htmlFor="logo-upload" className="cursor-pointer"><Upload className="h-4 w-4" /> <Input id="logo-upload" type="file" className="sr-only" onChange={(e) => setLogoFile(e.target.files?.[0] || null)} accept="image/*" /></Label></Button>
+                <Button asChild variant="outline"><Label htmlFor="logo-upload" className="cursor-pointer"><Upload className="h-4 w-4 mr-2" /> <Input id="logo-upload" type="file" className="sr-only" onChange={(e) => setLogoFile(e.target.files?.[0] || null)} accept="image/*" /></Label></Button>
               </div>
             </div>
             <div className="space-y-2">
@@ -171,7 +171,7 @@ const SettingsPage = () => {
         
         <Button onClick={handleSave} disabled={isUploading || updateSettingsMutation.isPending} className="w-full">
           {isUploading ? "Enviando..." : "Salvar Todas as Alterações"}
-        </Button>
+          </Button>
       </main>
     </div>
   );
