@@ -163,6 +163,7 @@ const Workspace = () => {
 
       const { data: tokenData, error: tokenError } = await supabase.from("public_approval_tokens").insert({ group_id: groupId, workspace_id: workspaceId, user_id: user.id }).select("token").single();
       if (tokenError) {
+        // Log the full error object for better debugging
         console.error("Supabase insert error:", tokenError);
         throw new Error(`Falha ao criar o link: ${tokenError.message}`);
       }
@@ -176,7 +177,8 @@ const Workspace = () => {
     },
     onError: (e: Error) => {
       dismissToast();
-      showError(e.message);
+      // Display the actual error message from the Supabase error object
+      showError(`Erro ao gerar link: ${e.message}`);
       setIsApprovalModalOpen(false);
     },
     onMutate: () => {
