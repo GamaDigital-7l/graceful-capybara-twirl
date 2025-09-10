@@ -29,9 +29,9 @@ serve(async (req) => {
       .select("whatsapp_api_token, whatsapp_phone_number_id, whatsapp_message_template")
       .eq("id", 1)
       .single();
-    if (settingsError) throw new Error("Erro ao buscar configurações.");
+    if (settingsError) throw new Error("Erro ao buscar configurações da aplicação.");
     if (!settings.whatsapp_api_token || !settings.whatsapp_phone_number_id) {
-      throw new Error("Credenciais da API do WhatsApp não configuradas.");
+      throw new Error("Credenciais da API do WhatsApp não configuradas nas Configurações.");
     }
 
     const { data: workspace, error: workspaceError } = await supabaseAdmin
@@ -39,7 +39,7 @@ serve(async (req) => {
       .select("client_whatsapp_number")
       .eq("id", workspaceId)
       .single();
-    if (workspaceError) throw new Error("Erro ao buscar workspace.");
+    if (workspaceError) throw new Error("Erro ao buscar dados do workspace.");
     if (!workspace.client_whatsapp_number) {
       throw new Error("O número de WhatsApp do cliente não está configurado neste workspace.");
     }
@@ -49,14 +49,15 @@ serve(async (req) => {
     const { error: tokenError } = await supabaseAdmin
       .from("public_approval_tokens")
       .insert({ token, group_id: groupId, workspace_id: workspaceId });
-    if (tokenError) throw new Error("Erro ao criar token de aprovação.");
+    if (tokenError) throw new Error("Erro ao criar token de aprovação no banco de dados.");
 
     // 3. Montar a mensagem e enviar via WhatsApp
     const approvalUrl = `${Deno.env.get("SUPABASE_URL")?.replace('.co', '.app')}/approve/${token}`;
     const messageBody = `${settings.whatsapp_message_template}\n\n${approvalUrl}`;
+    const clientPhoneNumber = workspace.client_whatsapp_number.replace(/\D/g, ''); // Limpa o número
 
     const response = await fetch(
-      `https://graph.facebook.com/v18.0/${settings.whatsapp_phone_number_id}/messages`,
+      `https://graph.facebook.com/v20.0/${settings.whatsapp_phone_number_id}/messages`, // API Version Updated
       {
         method: "POST",
         headers: {
@@ -65,7 +66,7 @@ serve(async (req) => {
         },
         body: JSON.stringify({
           messaging_product: "whatsapp",
-          to: workspace.client_whatsapp_number,
+          to: clientPhoneNumber,
           type: "text",
           text: { body: messageBody },
         }),
@@ -75,7 +76,7 @@ serve(async (req) => {
     if (!response.ok) {
       const errorData = await response.json();
       console.error("WhatsApp API Error:", errorData);
-      throw new Error(`Erro ao enviar mensagem: ${errorData.error?.message || 'Verifique as credenciais e o número do cliente.'}`);
+      throw new Error(`Erro da API do WhatsApp: ${errorData.error?.message || 'Verifique as credenciais e o número do cliente.'}`);
     }
 
     return new Response(JSON.stringify({ message: "Mensagem de aprovação enviada com sucesso!" }), {
@@ -83,6 +84,7 @@ serve(async (req) => {
       status: 200,
     });
   } catch (error) {
+    console.error("Detailed error in send-whatsapp-approval:", error);
     return new Response(JSON.stringify({ error: error.message }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 400,
