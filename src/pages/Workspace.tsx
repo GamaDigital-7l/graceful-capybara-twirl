@@ -12,7 +12,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { SendApprovalModal } from "@/components/SendApprovalModal";
+import { ApprovalLinkModal } from "@/components/ApprovalLinkModal";
 
 const fetchGroups = async (workspaceId: string) => {
   if (!workspaceId) return [];
@@ -32,8 +32,8 @@ const Workspace = () => {
   const isMobile = useIsMobile();
   const [userRole, setUserRole] = useState<string | null>(null);
   const [isProfileLoading, setProfileLoading] = useState(true);
-  const [isSendModalOpen, setIsSendModalOpen] = useState(false);
-  const [generatedMessage, setGeneratedMessage] = useState("");
+  const [isApprovalModalOpen, setIsApprovalModalOpen] = useState(false);
+  const [generatedLink, setGeneratedLink] = useState("");
 
   const { data: groups, isLoading: isLoadingGroups } = useQuery<Group[]>({
     queryKey: ["groups", workspaceId],
@@ -147,21 +147,18 @@ const Workspace = () => {
         console.error("Supabase insert error:", tokenError);
         throw new Error(`Falha ao criar o link: ${tokenError.message}`);
       }
-
-      const { data: workspace, error: wsError } = await supabase.from("workspaces").select("name").eq("id", workspaceId).single();
-      if (wsError) throw new Error("Workspace não encontrado.");
-
+      
       const approvalUrl = `${settings.site_url}/approve/${tokenData.token}`;
-      return `Olá! Os posts para o cliente ${workspace.name} estão prontos para aprovação.\n\nPor favor, acesse o link a seguir para revisar:\n${approvalUrl}`;
+      return approvalUrl;
     },
-    onSuccess: (message) => {
+    onSuccess: (link) => {
       dismissToast();
-      setGeneratedMessage(message);
+      setGeneratedLink(link);
     },
     onError: (e: Error) => {
       dismissToast();
       showError(e.message);
-      setIsSendModalOpen(false);
+      setIsApprovalModalOpen(false);
     },
     onMutate: () => {
       showLoading("Gerando link...");
@@ -180,9 +177,9 @@ const Workspace = () => {
     await supabase.auth.signOut();
   };
 
-  const handleOpenSendModal = (groupId: string) => {
-    setGeneratedMessage("");
-    setIsSendModalOpen(true);
+  const handleOpenApprovalModal = (groupId: string) => {
+    setGeneratedLink("");
+    setIsApprovalModalOpen(true);
     generateApprovalLinkMutation.mutate(groupId);
   };
 
@@ -190,7 +187,7 @@ const Workspace = () => {
     const sendApprovalButton = userRole === 'admin' && activeGroupId && (
       <Button
         variant="default"
-        onClick={() => handleOpenSendModal(activeGroupId)}
+        onClick={() => handleOpenApprovalModal(activeGroupId)}
         disabled={generateApprovalLinkMutation.isPending}
       >
         <Send className="h-4 w-4 mr-2" />
@@ -206,7 +203,7 @@ const Workspace = () => {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             {userRole === 'admin' && activeGroupId && (
-              <DropdownMenuItem onClick={() => handleOpenSendModal(activeGroupId)} disabled={generateApprovalLinkMutation.isPending}>
+              <DropdownMenuItem onClick={() => handleOpenApprovalModal(activeGroupId)} disabled={generateApprovalLinkMutation.isPending}>
                 <Send className="h-4 w-4 mr-2" /> Enviar p/ Aprovação
               </DropdownMenuItem>
             )}
@@ -274,10 +271,10 @@ const Workspace = () => {
         )}
       </main>
       <Footer />
-      <SendApprovalModal
-        isOpen={isSendModalOpen}
-        onClose={() => setIsSendModalOpen(false)}
-        message={generatedMessage}
+      <ApprovalLinkModal
+        isOpen={isApprovalModalOpen}
+        onClose={() => setIsApprovalModalOpen(false)}
+        link={generatedLink}
         isGenerating={generateApprovalLinkMutation.isPending}
       />
     </div>
