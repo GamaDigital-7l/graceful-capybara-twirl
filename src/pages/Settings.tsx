@@ -25,7 +25,7 @@ const SettingsPage = () => {
   const [siteUrl, setSiteUrl] = useState("");
   const [primaryColor, setPrimaryColor] = useState("");
   const [backgroundColor, setBackgroundColor] = useState("");
-  const [logoFile, setLogoFile] = useState<File | null>(null);
+  // const [logoFile, setLogoFile] = useState<File | null>(null); // Removido
   // const [faviconFile, setFaviconFile] = useState<File | null>(null); // Removido
   const [telegramBotToken, setTelegramBotToken] = useState("");
   const [telegramChatId, setTelegramChatId] = useState("");
@@ -63,14 +63,14 @@ const SettingsPage = () => {
 
   const handleSave = async () => {
     setIsUploading(true);
-    let logoUrl = settings.logo_url;
+    // let logoUrl = settings.logo_url; // Removido
     // let faviconUrl = settings.favicon_url; // Removido
 
-    if (logoFile) {
-      const { data, error } = await supabase.storage.from("logos").upload(`public/logo`, logoFile, { upsert: true });
-      if (error) { showError("Erro ao enviar logo."); setIsUploading(false); return; }
-      logoUrl = supabase.storage.from("logos").getPublicUrl(data.path).data.publicUrl;
-    }
+    // if (logoFile) {
+    //   const { data, error } = await supabase.storage.from("logos").upload(`public/logo`, logoFile, { upsert: true });
+    //   if (error) { showError("Erro ao enviar logo."); setIsUploading(false); return; }
+    //   logoUrl = supabase.storage.from("logos").getPublicUrl(data.path).data.publicUrl;
+    // }
 
     // Favicon agora é gerenciado diretamente no index.html, não precisa de upload aqui
     // if (faviconFile) {
@@ -87,7 +87,7 @@ const SettingsPage = () => {
       site_url: cleanedSiteUrl,
       primary_color: primaryColor,
       background_color: backgroundColor,
-      logo_url: logoUrl,
+      // logo_url: logoUrl, // Removido
       // favicon_url: faviconUrl, // Removido
       telegram_bot_token: telegramBotToken,
       telegram_chat_id: telegramChatId,
@@ -122,13 +122,14 @@ const SettingsPage = () => {
               <Input id="siteUrl" value={siteUrl} onChange={(e) => setSiteUrl(e.target.value)} placeholder="http://localhost:32100" />
               <p className="text-xs text-muted-foreground">Essencial para gerar os links de aprovação corretos. Use http://localhost:32100 para testes.</p>
             </div>
-            <div className="space-y-2">
+            {/* Logo upload removido */}
+            {/* <div className="space-y-2">
               <Label>Logo (para tela de login)</Label>
               <div className="flex items-center gap-2">
                 <Input id="logo-display" placeholder={logoFile ? logoFile.name : "Nenhum arquivo selecionado"} readOnly className="flex-grow" />
                 <Button asChild variant="outline"><Label htmlFor="logo-upload" className="cursor-pointer"><Upload className="h-4 w-4 mr-2" /> <Input id="logo-upload" type="file" className="sr-only" onChange={(e) => setLogoFile(e.target.files?.[0] || null)} accept="image/*" /></Label></Button>
               </div>
-            </div>
+            </div> */}
             {/* Favicon upload removido */}
             {/* <div className="space-y-2">
               <Label>Favicon (ícone da aba do navegador)</Label>

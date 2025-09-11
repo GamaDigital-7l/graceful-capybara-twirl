@@ -103,11 +103,9 @@ const PublicApprovalPage = () => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 sm:p-8">
       <header className="text-center mb-8">
-        {settings?.logo_url && (
-          <div className="mb-4">
-            <img src={settings.logo_url} alt={settings.app_name || "Logo da Agência"} className="h-12 w-auto mx-auto" />
-          </div>
-        )}
+        <div className="mb-4">
+          <img src="/logo-gama.png" alt="Gama Creative Logo" className="h-12 w-auto mx-auto dark:invert" />
+        </div>
         <div className="flex justify-center items-center gap-4 mb-2">
           {data.workspace.logo_url && <Avatar><AvatarImage src={data.workspace.logo_url} /><AvatarFallback>{data.workspace.name.charAt(0)}</AvatarFallback></Avatar>}
           <h1 className="text-3xl font-bold">{data.workspace.name}</h1>

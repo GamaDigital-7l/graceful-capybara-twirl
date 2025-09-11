@@ -42,11 +42,7 @@ const Login = () => {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            {settings?.logo_url ? (
-              <img src={settings.logo_url} alt="Logo" className="h-16 w-auto" />
-            ) : (
-              <h1 className="text-2xl font-bold">Bem-vindo</h1>
-            )}
+            <img src="/logo-gama.png" alt="Gama Creative Logo" className="h-16 w-auto dark:invert" />
           </div>
           <CardTitle>Acesse sua Conta</CardTitle>
           <CardDescription>Entre com seu e-mail e senha para continuar.</CardDescription>

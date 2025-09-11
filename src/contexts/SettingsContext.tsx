@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 interface AppSettings {
   app_name?: string;
   // favicon_url?: string; // Removido, pois será fixo no index.html
-  logo_url?: string;
+  // logo_url?: string; // Removido, pois será fixo no index.html
   primary_color?: string;
   background_color?: string;
   site_url?: string;
