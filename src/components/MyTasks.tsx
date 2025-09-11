@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "./ui/badge";
 import { Briefcase } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-// ClientProgress e useIsMobile removidos daqui, pois ClientProgress será movido para Dashboard.tsx
+import { ClientProgress } from "./ClientProgress"; // Importar ClientProgress
 
 const fetchUserTasks = async () => {
   const { data, error } = await supabase.rpc("get_user_tasks");
@@ -65,7 +65,10 @@ export function MyTasks() {
 
   return (
     <div>
-      <TaskStats pendingCount={pendingTasks.length} completedCount={completedTasks.length} />
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8"> {/* Ajustado para 4 colunas */}
+        <TaskStats pendingCount={pendingTasks.length} completedCount={completedTasks.length} />
+        <ClientProgress /> {/* Movido para cá */}
+      </div>
       <div className="w-full">
         <h2 className="text-2xl font-bold mb-4">Caixa de Entrada de Tarefas</h2>
         {pendingTasks.length > 0 ? (

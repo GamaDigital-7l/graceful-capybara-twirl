@@ -21,7 +21,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import WorkspacePage from "./Workspace"; // Importar o componente WorkspacePage
 import { EmployeeDashboardPage } from "./EmployeeDashboardPage"; // Importar a nova página de funcionários
-import { ClientProgress } from "@/components/ClientProgress"; // Importar ClientProgress
+// import { ClientProgress } from "@/components/ClientProgress"; // Removido, pois agora está dentro de MyTasks
 
 export interface Workspace {
   id: string;
@@ -258,10 +258,7 @@ const Dashboard = () => {
           )}
         </div>
         <TabsContent value="tasks">
-          <MyTasks />
-          <div className="mt-8"> {/* Adicionado ClientProgress aqui */}
-            <ClientProgress />
-          </div>
+          <MyTasks /> {/* MyTasks agora inclui TaskStats e ClientProgress */}
         </TabsContent>
         <TabsContent value="clients">
           {isLoadingWorkspaces ? (
