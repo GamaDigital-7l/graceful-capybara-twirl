@@ -14,7 +14,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogC
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { CheckCircle, Edit, Send, Eye } from "lucide-react";
-import { ImagePreviewModal } from "@/components/ImagePreviewModal"; // Importar o modal de pré-visualização
+import { ImagePreviewModal } from "@/components/ImagePreviewModal";
+import { useSettings } from "@/contexts/SettingsContext"; // Importar useSettings
 
 const fetchApprovalData = async (token: string) => {
   const { data, error } = await supabase.functions.invoke("get-tasks-for-approval", {
@@ -30,8 +31,10 @@ const PublicApprovalPage = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<any>(null);
   const [editComment, setEditComment] = useState("");
-  const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false); // Novo estado para o modal de pré-visualização
-  const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null); // Novo estado para a URL da imagem
+  const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
+  const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
+
+  const settings = useSettings(); // Usar o hook useSettings para obter as configurações da agência
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["approvalData", token],
@@ -48,7 +51,11 @@ const PublicApprovalPage = () => {
       if (error) throw error;
     },
     onSuccess: (_data, variables) => {
-      showSuccess(`Tarefa ${variables.action === 'approve' ? 'aprovada' : 'enviada para edição'}!`);
+      if (variables.action === 'approve') {
+        showSuccess(`Tarefa aprovada!`);
+      } else {
+        showSuccess("Sua solicitação de edição foi enviada com sucesso! Nossa equipe fará as alterações necessárias e entraremos em contato em breve com a versão atualizada. Agradecemos a sua paciência!");
+      }
       setProcessedTasks(prev => new Set(prev).add(variables.taskId));
       if (variables.action === 'edit') {
         setIsEditModalOpen(false);
@@ -96,6 +103,11 @@ const PublicApprovalPage = () => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 sm:p-8">
       <header className="text-center mb-8">
+        {settings?.logo_url && (
+          <div className="mb-4">
+            <img src={settings.logo_url} alt={settings.app_name || "Logo da Agência"} className="h-12 w-auto mx-auto" />
+          </div>
+        )}
         <div className="flex justify-center items-center gap-4 mb-2">
           {data.workspace.logo_url && <Avatar><AvatarImage src={data.workspace.logo_url} /><AvatarFallback>{data.workspace.name.charAt(0)}</AvatarFallback></Avatar>}
           <h1 className="text-3xl font-bold">{data.workspace.name}</h1>

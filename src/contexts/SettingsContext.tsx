@@ -9,15 +9,15 @@ interface AppSettings {
   logo_url?: string;
   primary_color?: string;
   background_color?: string;
+  site_url?: string; // Adicionar site_url à interface
+  whatsapp_message_template?: string; // Adicionar whatsapp_message_template
 }
 
 const SettingsContext = createContext<AppSettings | null | undefined>(undefined);
 
 export const useSettings = () => {
   const context = useContext(SettingsContext);
-  if (context === undefined) {
-    throw new Error("useSettings must be used within a SettingsProvider");
-  }
+  // Não lançar erro aqui, pois o contexto pode ser undefined durante a inicialização ou se não houver settings
   return context;
 };
 
