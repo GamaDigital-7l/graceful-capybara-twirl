@@ -236,7 +236,7 @@ export function TaskModal({
                         selected={dueDate}
                         onSelect={setDueDate}
                         initialFocus
-                        locale={ptBR} {/* Adicionado locale={ptBR} aqui */}
+                        locale={ptBR}
                       />
                     </PopoverContent>
                   </Popover>
