@@ -26,7 +26,7 @@ const App = () => (
       <SettingsProvider> {/* Envolver o aplicativo com SettingsProvider */}
         <TooltipProvider>
           <Toaster />
-          <Sonner />
+          <Sonner position="top-center" duration={7000} /> {/* Ajustado aqui */}
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/approve/:token" element={<PublicApprovalPage />} />
