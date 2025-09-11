@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/select";
 import { Task, TaskActionType, Comment } from "./KanbanCard";
 import { useState, useEffect } from "react";
-import { Trash2, Upload, Calendar as CalendarIcon, Download, Eye } from "lucide-react";
+import { Trash2, Upload, Calendar as CalendarIcon, Download, Eye, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { showError, showSuccess } from "@/utils/toast";
 import { format } from "date-fns";
@@ -36,6 +36,14 @@ import { cn } from "@/lib/utils";
 import { AspectRatio } from "./ui/aspect-ratio";
 import { ScrollArea } from "./ui/scroll-area";
 import { ImagePreviewModal } from "./ImagePreviewModal";
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+
+interface UserProfile {
+  id: string;
+  full_name: string;
+  avatar_url: string | null;
+  role: string;
+}
 
 interface TaskModalProps {
   isOpen: boolean;
@@ -45,6 +53,7 @@ interface TaskModalProps {
   task: Task | null;
   columnId?: string;
   currentUser: { full_name: string, role: string } | null;
+  usersForAssignment: UserProfile[]; // Novo prop para usuários
 }
 
 export function TaskModal({
@@ -55,6 +64,7 @@ export function TaskModal({
   task,
   columnId,
   currentUser,
+  usersForAssignment,
 }: TaskModalProps) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -66,6 +76,7 @@ export function TaskModal({
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState("");
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
+  const [assignedTo, setAssignedTo] = useState<string | null>(null); // Novo estado para assignedTo
 
   useEffect(() => {
     if (task) {
@@ -75,6 +86,7 @@ export function TaskModal({
       setActionType(task.actionType || "none");
       setDueDate(task.dueDate ? new Date(task.dueDate) : undefined);
       setComments(task.comments || []);
+      setAssignedTo(task.assignedTo || null); // Carregar assignedTo
     } else {
       setTitle("");
       setDescription("");
@@ -82,6 +94,7 @@ export function TaskModal({
       setActionType("none");
       setDueDate(undefined);
       setComments([]);
+      setAssignedTo(null); // Resetar assignedTo
     }
     setSelectedFile(null);
     setNewComment("");
@@ -153,6 +166,7 @@ export function TaskModal({
         : [],
       dueDate: dueDate?.toISOString(),
       comments: comments,
+      assignedTo: assignedTo, // Salvar assignedTo
     };
     onSave(savedTask);
     onClose();
@@ -164,6 +178,8 @@ export function TaskModal({
       onClose();
     }
   };
+
+  const canAssignTasks = currentUser?.role === 'admin' || currentUser?.role === 'equipe';
 
   return (
     <>
@@ -243,6 +259,33 @@ export function TaskModal({
                     </SelectContent>
                   </Select>
                 </div>
+                {canAssignTasks && (
+                  <div className="space-y-2">
+                    <Label htmlFor="assignedTo">Atribuir a</Label>
+                    <Select
+                      value={assignedTo || ""}
+                      onValueChange={(value) => setAssignedTo(value === "unassigned" ? null : value)}
+                    >
+                      <SelectTrigger id="assignedTo">
+                        <SelectValue placeholder="Ninguém" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="unassigned">Ninguém</SelectItem>
+                        {usersForAssignment.map((user) => (
+                          <SelectItem key={user.id} value={user.id}>
+                            <div className="flex items-center gap-2">
+                              <Avatar className="h-6 w-6">
+                                <AvatarImage src={user.avatar_url || undefined} />
+                                <AvatarFallback>{user.full_name?.charAt(0) || <User className="h-4 w-4" />}</AvatarFallback>
+                              </Avatar>
+                              {user.full_name}
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
               </div>
 
               {/* Coluna da Direita: Imagem e Comentários */}

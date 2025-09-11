@@ -124,6 +124,7 @@ const AdminPage = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="user">Usuário (Cliente)</SelectItem>
+                    <SelectItem value="equipe">Equipe (Funcionário)</SelectItem> {/* Novo papel */}
                     <SelectItem value="admin">Admin (Funcionário)</SelectItem>
                   </SelectContent>
                 </Select>
@@ -171,6 +172,7 @@ const AdminPage = () => {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="user">Usuário (Cliente)</SelectItem>
+                          <SelectItem value="equipe">Equipe (Funcionário)</SelectItem> {/* Novo papel */}
                           <SelectItem value="admin">Admin (Funcionário)</SelectItem>
                         </SelectContent>
                       </Select>

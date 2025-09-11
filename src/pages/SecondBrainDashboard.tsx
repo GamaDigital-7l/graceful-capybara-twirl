@@ -65,7 +65,7 @@ const SecondBrainDashboard = () => {
   }, []);
 
   useEffect(() => {
-    if (!isProfileLoading && userRole !== 'admin') {
+    if (!isProfileLoading && userRole !== 'admin' && userRole !== 'equipe') { // Allow 'equipe' role
       navigate("/");
     }
   }, [isProfileLoading, userRole, navigate]);
@@ -120,7 +120,7 @@ const SecondBrainDashboard = () => {
     return <div className="flex justify-center items-center min-h-screen">Carregando...</div>;
   }
 
-  if (userRole !== 'admin') {
+  if (userRole !== 'admin' && userRole !== 'equipe') { // Allow 'equipe' role
     return (
       <div className="flex justify-center items-center min-h-screen">
         <Card className="w-full max-w-md text-center">

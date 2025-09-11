@@ -53,7 +53,8 @@ const Dashboard = () => {
       if (user) {
         let { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
         if (!profile) {
-          const { data: newProfile, error } = await supabase.from('profiles').insert({ id: user.id, role: 'admin' }).select('role').single();
+          // If no profile, create a default 'user' profile. Admins will manage roles.
+          const { data: newProfile, error } = await supabase.from('profiles').insert({ id: user.id, role: 'user' }).select('role').single();
           if (error) {
             showError("Não foi possível criar o perfil de usuário.");
           } else {
@@ -107,12 +108,16 @@ const Dashboard = () => {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            {userRole === 'admin' && (
+            {(userRole === 'admin' || userRole === 'equipe') && (
               <>
-                <DropdownMenuItem asChild><Link to="/financial" className="flex items-center"><Banknote className="h-4 w-4 mr-2" />Financeiro</Link></DropdownMenuItem>
+                {userRole === 'admin' && (
+                  <>
+                    <DropdownMenuItem asChild><Link to="/financial" className="flex items-center"><Banknote className="h-4 w-4 mr-2" />Financeiro</Link></DropdownMenuItem>
+                    <DropdownMenuItem asChild><Link to="/settings" className="flex items-center"><Palette className="h-4 w-4 mr-2" />Configurações</Link></DropdownMenuItem>
+                    <DropdownMenuItem asChild><Link to="/admin" className="flex items-center"><UserCog className="h-4 w-4 mr-2" />Admin</Link></DropdownMenuItem>
+                  </>
+                )}
                 <DropdownMenuItem asChild><Link to="/second-brain" className="flex items-center"><Brain className="h-4 w-4 mr-2" />Segundo Cérebro</Link></DropdownMenuItem>
-                <DropdownMenuItem asChild><Link to="/settings" className="flex items-center"><Palette className="h-4 w-4 mr-2" />Configurações</Link></DropdownMenuItem>
-                <DropdownMenuItem asChild><Link to="/admin" className="flex items-center"><UserCog className="h-4 w-4 mr-2" />Admin</Link></DropdownMenuItem>
                 <DropdownMenuSeparator />
               </>
             )}
@@ -139,12 +144,6 @@ const Dashboard = () => {
               </Link>
             </Button>
             <Button asChild variant="outline">
-              <Link to="/second-brain">
-                <Brain className="h-4 w-4 mr-2" />
-                Segundo Cérebro
-              </Link>
-            </Button>
-            <Button asChild variant="outline">
               <Link to="/settings">
                 <Palette className="h-4 w-4 mr-2" />
                 Configurações
@@ -158,6 +157,14 @@ const Dashboard = () => {
             </Button>
           </>
         )}
+        {(userRole === 'admin' || userRole === 'equipe') && (
+          <Button asChild variant="outline">
+            <Link to="/second-brain">
+              <Brain className="h-4 w-4 mr-2" />
+              Segundo Cérebro
+            </Link>
+          </Button>
+        )}
         <ThemeToggle />
         <Button onClick={handleLogout} variant="outline">
           <LogOut className="h-4 w-4 mr-2" />
@@ -167,7 +174,7 @@ const Dashboard = () => {
     );
   };
 
-  const renderAdminDashboard = () => (
+  const renderStaffDashboard = () => (
     <Tabs defaultValue="tasks">
       <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between mb-6">
         <TabsList>
@@ -178,10 +185,12 @@ const Dashboard = () => {
             Playbook da Agência
           </TabsTrigger>
         </TabsList>
-        <Button onClick={() => createWorkspaceMutation.mutate("Novo Workspace")}>
-          <PlusCircle className="h-4 w-4 mr-2" />
-          Novo Cliente (Workspace)
-        </Button>
+        {(userRole === 'admin' || userRole === 'equipe') && ( // Allow equipe to create workspaces
+          <Button onClick={() => createWorkspaceMutation.mutate("Novo Workspace")}>
+            <PlusCircle className="h-4 w-4 mr-2" />
+            Novo Cliente (Workspace)
+          </Button>
+        )}
       </div>
       <TabsContent value="tasks">
         <MyTasks />
@@ -235,12 +244,13 @@ const Dashboard = () => {
     if (isProfileLoading || isLoadingWorkspaces) {
       return <Skeleton className="h-64 w-full" />;
     }
-    if (userRole === 'admin') {
-      return renderAdminDashboard();
+    if (userRole === 'admin' || userRole === 'equipe') { // Admins and Equipe see the staff dashboard
+      return renderStaffDashboard();
     }
-    if (userRole === 'user' && workspaces && workspaces.length > 1) {
+    if (userRole === 'user' && workspaces && workspaces.length > 0) { // Clients see their dashboard
       return <ClientDashboard workspaces={workspaces} />;
     }
+    // Fallback for users with no workspaces or other roles
     return <div className="text-center p-8">Carregando seus projetos...</div>;
   };
 

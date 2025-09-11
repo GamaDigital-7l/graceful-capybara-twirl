@@ -28,6 +28,13 @@ interface KanbanBoardProps {
   groupId: string;
 }
 
+interface UserProfile {
+  id: string;
+  full_name: string;
+  avatar_url: string | null;
+  role: string;
+}
+
 const fetchKanbanData = async (groupId: string) => {
   const { data: columns, error: columnsError } = await supabase
     .from("columns")
@@ -42,7 +49,7 @@ const fetchKanbanData = async (groupId: string) => {
 
   const { data: tasksData, error: tasksError } = await supabase
     .from("tasks")
-    .select("*")
+    .select("*, assigned_to:profiles(full_name, avatar_url)") // Fetch assigned user details
     .in("column_id", columnIds)
     .order("position");
   if (tasksError) throw new Error(tasksError.message);
@@ -57,9 +64,18 @@ const fetchKanbanData = async (groupId: string) => {
     actionType: task.action_type,
     attachments: task.attachments,
     comments: task.comments,
+    assignedTo: (task.assigned_to as UserProfile)?.id || null,
+    assignedToName: (task.assigned_to as UserProfile)?.full_name || null,
+    assignedToAvatar: (task.assigned_to as UserProfile)?.avatar_url || null,
   }));
 
   return { columns, tasks };
+};
+
+const fetchUsersForAssignment = async (): Promise<UserProfile[]> => {
+  const { data, error } = await supabase.from("profiles").select("id, full_name, avatar_url, role").in('role', ['admin', 'equipe']);
+  if (error) throw error;
+  return data || [];
 };
 
 export function KanbanBoard({ groupId }: KanbanBoardProps) {
@@ -88,6 +104,11 @@ export function KanbanBoard({ groupId }: KanbanBoardProps) {
     queryFn: () => fetchKanbanData(groupId),
   });
 
+  const { data: usersForAssignment, isLoading: isLoadingUsersForAssignment } = useQuery<UserProfile[]>({
+    queryKey: ["usersForAssignment"],
+    queryFn: fetchUsersForAssignment,
+  });
+
   const { data: workspaceData } = useQuery({
     queryKey: ['workspaceFromGroup', groupId],
     queryFn: async () => {
@@ -100,7 +121,7 @@ export function KanbanBoard({ groupId }: KanbanBoardProps) {
   const workspaceName = workspaceData?.workspaces?.name || 'Workspace Desconhecido';
 
   const triggerNotification = (message: string) => {
-    if (currentUser?.role === 'user') {
+    if (currentUser?.role === 'user') { // Only send notifications for client actions
       supabase.functions.invoke('send-telegram-notification', { body: { message } })
         .catch(err => console.error("Erro ao enviar notificação:", err));
     }
@@ -154,8 +175,14 @@ export function KanbanBoard({ groupId }: KanbanBoardProps) {
 
   const saveTaskMutation = useMutation({
     mutationFn: async (task: Partial<Task>) => {
-      const { id, columnId, dueDate, actionType, ...rest } = task;
-      const dataToSave = { ...rest, column_id: columnId, due_date: dueDate, action_type: actionType };
+      const { id, columnId, dueDate, actionType, assignedTo, ...rest } = task;
+      const dataToSave = { 
+        ...rest, 
+        column_id: columnId, 
+        due_date: dueDate, 
+        action_type: actionType, 
+        assigned_to: assignedTo || null // Save assignedTo
+      };
       Object.keys(dataToSave).forEach(key => dataToSave[key] === undefined && delete dataToSave[key]);
       if (id) {
         const { error } = await supabase.from("tasks").update(dataToSave).eq("id", id);
@@ -318,7 +345,7 @@ export function KanbanBoard({ groupId }: KanbanBoardProps) {
     }
   };
 
-  if (isLoading) return <div className="p-8 text-center">Carregando quadro...</div>;
+  if (isLoading || isLoadingUsersForAssignment) return <div className="p-8 text-center">Carregando quadro...</div>;
 
   return (
     <div>
@@ -353,7 +380,16 @@ export function KanbanBoard({ groupId }: KanbanBoardProps) {
         }
         </DragOverlay>, document.body)}
       </DndContext>
-      <TaskModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSave={(task) => saveTaskMutation.mutate(task)} onDelete={(id) => deleteTaskMutation.mutate(id)} task={selectedTask} columnId={newCardColumn || undefined} currentUser={currentUser} />
+      <TaskModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+        onSave={(task) => saveTaskMutation.mutate(task)} 
+        onDelete={(id) => deleteTaskMutation.mutate(id)} 
+        task={selectedTask} 
+        columnId={newCardColumn || undefined} 
+        currentUser={currentUser} 
+        usersForAssignment={usersForAssignment || []} // Pass users for assignment
+      />
       <EditRequestModal isOpen={isEditRequestModalOpen} onClose={() => setIsEditRequestModalOpen(false)} onConfirm={(taskId, comment, targetColumnId) => requestEditMutation.mutate({ taskId, comment, targetColumnId })} task={taskForEditRequest} />
     </div>
   );

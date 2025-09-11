@@ -5,11 +5,12 @@ import { CSS } from "@dnd-kit/utilities";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { CalendarDays, MessageSquare, Eye } from "lucide-react";
+import { CalendarDays, MessageSquare, Eye, User } from "lucide-react";
 import { format } from "date-fns";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { useState } from "react";
 import { ImagePreviewModal } from "./ImagePreviewModal"; // Importar o modal de pré-visualização
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 
 export interface Attachment {
   id: string;
@@ -36,6 +37,9 @@ export interface Task {
   actionType?: TaskActionType;
   comments?: Comment[];
   position: number;
+  assignedTo?: string; // Novo campo para o ID do usuário atribuído
+  assignedToName?: string; // Novo campo para o nome do usuário atribuído (para exibição)
+  assignedToAvatar?: string; // Novo campo para o avatar do usuário atribuído (para exibição)
 }
 
 interface KanbanCardProps {
@@ -86,8 +90,6 @@ export function KanbanCard({
 
   const coverImage = task.attachments?.find((att) => att.isCover)?.url;
 
-  // A função handleImageClick foi removida, o clique será tratado diretamente no elemento do overlay.
-
   if (isDragging) {
     return (
       <div
@@ -120,7 +122,6 @@ export function KanbanCard({
                 className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
                 onClick={(e) => { // Este onClick é para o modal de pré-visualização da imagem
                   e.stopPropagation(); // Impede que o clique no overlay da imagem ative o onClick do card pai
-                  console.log("Image overlay clicked!"); // Log para depuração
                   if (coverImage) {
                     setPreviewImageUrl(coverImage);
                     setIsPreviewModalOpen(true);
@@ -133,7 +134,16 @@ export function KanbanCard({
           </div>
         )}
         <CardContent className={cn("p-4 pb-2", coverImage && "pt-2")}>
-          <p>{task.title}</p>
+          <p className="font-medium">{task.title}</p>
+          {task.assignedTo && (
+            <div className="flex items-center gap-2 text-xs text-muted-foreground mt-2">
+              <Avatar className="h-5 w-5">
+                <AvatarImage src={task.assignedToAvatar || undefined} />
+                <AvatarFallback className="text-xs">{task.assignedToName?.charAt(0) || <User className="h-3 w-3" />}</AvatarFallback>
+              </Avatar>
+              <span>{task.assignedToName}</span>
+            </div>
+          )}
         </CardContent>
 
         {(task.dueDate || (task.comments && task.comments.length > 0)) && (

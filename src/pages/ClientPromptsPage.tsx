@@ -76,8 +76,8 @@ const ClientPromptsPage = () => {
   }, []);
 
   useEffect(() => {
-    if (!isProfileLoading && userRole !== 'admin') {
-      navigate("/"); // Redirect non-admins
+    if (!isProfileLoading && userRole !== 'admin' && userRole !== 'equipe') { // Allow 'equipe' role
+      navigate("/"); // Redirect non-admins and non-equipe
     }
   }, [isProfileLoading, userRole, navigate]);
 
@@ -142,7 +142,7 @@ const ClientPromptsPage = () => {
     return <div className="flex justify-center items-center min-h-screen">Carregando...</div>;
   }
 
-  if (userRole !== 'admin') {
+  if (userRole !== 'admin' && userRole !== 'equipe') { // Allow 'equipe' role
     return (
       <div className="flex justify-center items-center min-h-screen">
         <Card className="w-full max-w-md text-center">
