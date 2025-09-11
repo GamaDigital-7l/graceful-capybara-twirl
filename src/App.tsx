@@ -6,7 +6,7 @@ import { Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { SettingsProvider } from "@/contexts/SettingsContext"; // Importar SettingsProvider
 import Dashboard from "./pages/Dashboard";
-import Workspace from "./pages/Workspace";
+import WorkspacePage from "./pages/Workspace"; // Renomeado para WorkspacePage
 import PlaybookPage from "./pages/Playbook";
 import AdminPage from "./pages/Admin";
 import SettingsPage from "./pages/Settings";
@@ -42,7 +42,7 @@ const App = () => (
               path="/workspace/:workspaceId"
               element={
                 <ProtectedRoute>
-                  <Workspace />
+                  <WorkspacePage />
                 </ProtectedRoute>
               }
             />

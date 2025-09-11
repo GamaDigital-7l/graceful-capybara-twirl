@@ -21,6 +21,8 @@ interface WorkspaceSettingsModalProps {
   workspace: Workspace | null;
 }
 
+const INTERNAL_WORKSPACE_NAME = "Tarefas Internas"; // Definir o nome do workspace interno
+
 const fetchUsers = async () => {
   const { data, error } = await supabase.functions.invoke("list-users");
   if (error) throw error;
@@ -131,6 +133,8 @@ export function WorkspaceSettingsModal({ isOpen, onClose, workspace }: Workspace
   const memberIds = members?.map(m => m.user_id) || [];
   const availableUsers = allUsers?.filter((user: any) => !memberIds.includes(user.id)) || [];
 
+  const isInternalWorkspace = workspace?.name === INTERNAL_WORKSPACE_NAME;
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent>
@@ -146,7 +150,7 @@ export function WorkspaceSettingsModal({ isOpen, onClose, workspace }: Workspace
           <TabsContent value="general" className="py-4 space-y-4">
             <div className="space-y-2">
               <Label htmlFor="workspace-name">Nome do Cliente</Label>
-              <Input id="workspace-name" value={name} onChange={(e) => setName(e.target.value)} />
+              <Input id="workspace-name" value={name} onChange={(e) => setName(e.target.value)} disabled={isInternalWorkspace} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="logo-upload">Logo do Cliente</Label>
@@ -154,18 +158,18 @@ export function WorkspaceSettingsModal({ isOpen, onClose, workspace }: Workspace
                 <div className="flex-grow p-2 border rounded-md h-10 text-sm truncate">
                   {selectedFile ? selectedFile.name : "Nenhum arquivo selecionado"}
                 </div>
-                <Button asChild variant="outline">
+                <Button asChild variant="outline" disabled={isInternalWorkspace}>
                   <Label htmlFor="logo-upload" className="cursor-pointer">
                     <Upload className="h-4 w-4 mr-2" />
                     Selecionar
-                    <Input id="logo-upload" type="file" className="sr-only" onChange={(e) => setSelectedFile(e.target.files?.[0] || null)} accept="image/*" />
+                    <Input id="logo-upload" type="file" className="sr-only" onChange={(e) => setSelectedFile(e.target.files?.[0] || null)} accept="image/*" disabled={isInternalWorkspace} />
                   </Label>
                 </Button>
               </div>
             </div>
             <DialogFooter>
               <Button onClick={onClose} variant="secondary">Fechar</Button>
-              <Button onClick={handleSave} disabled={isUploading || updateWorkspaceMutation.isPending}>
+              <Button onClick={handleSave} disabled={isUploading || updateWorkspaceMutation.isPending || isInternalWorkspace}>
                 {isUploading ? "Enviando..." : "Salvar Alterações"}
               </Button>
             </DialogFooter>
@@ -225,7 +229,7 @@ export function WorkspaceSettingsModal({ isOpen, onClose, workspace }: Workspace
             <p className="text-sm text-muted-foreground">Esta ação é irreversível. Todo o conteúdo, tarefas e configurações deste workspace serão permanentemente apagados.</p>
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button variant="destructive">
+                <Button variant="destructive" disabled={isInternalWorkspace}>
                   <Trash2 className="h-4 w-4 mr-2" />
                   Deletar este Workspace
                 </Button>
@@ -245,6 +249,9 @@ export function WorkspaceSettingsModal({ isOpen, onClose, workspace }: Workspace
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
+            {isInternalWorkspace && (
+              <p className="text-sm text-yellow-600 mt-2">O workspace "Tarefas Internas" não pode ser deletado.</p>
+            )}
           </TabsContent>
         </Tabs>
       </DialogContent>

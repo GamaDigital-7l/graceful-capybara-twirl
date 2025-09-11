@@ -9,7 +9,7 @@ import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { PlusCircle, Settings, LogOut, UserCog, BookOpen, Palette, MoreVertical, Banknote, Brain } from "lucide-react";
+import { PlusCircle, Settings, LogOut, UserCog, BookOpen, Palette, MoreVertical, Banknote, Brain, Briefcase } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { WorkspaceSettingsModal } from "@/components/WorkspaceSettingsModal";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -19,12 +19,15 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import AgencyPlaybookPage from "./AgencyPlaybookPage";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import WorkspacePage from "./Workspace"; // Importar o componente WorkspacePage
 
 export interface Workspace {
   id: string;
   name: string;
   logo_url: string | null;
 }
+
+const INTERNAL_WORKSPACE_NAME = "Tarefas Internas";
 
 const fetchWorkspaces = async (): Promise<Workspace[]> => {
   const { data, error } = await supabase.from("workspaces").select("*");
@@ -40,6 +43,7 @@ const Dashboard = () => {
   const [userRole, setUserRole] = useState<string | null>(null);
   const [isProfileLoading, setProfileLoading] = useState(true);
   const isMobile = useIsMobile();
+  const [internalWorkspaceId, setInternalWorkspaceId] = useState<string | null>(null);
 
   const { data: workspaces, isLoading: isLoadingWorkspaces } = useQuery<Workspace[]>({
     queryKey: ["workspaces"],
@@ -53,7 +57,6 @@ const Dashboard = () => {
       if (user) {
         let { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
         if (!profile) {
-          // If no profile, create a default 'user' profile. Admins will manage roles.
           const { data: newProfile, error } = await supabase.from('profiles').insert({ id: user.id, role: 'user' }).select('role').single();
           if (error) {
             showError("Não foi possível criar o perfil de usuário.");
@@ -67,6 +70,53 @@ const Dashboard = () => {
     };
     ensureUserProfile();
   }, []);
+
+  useEffect(() => {
+    const ensureInternalWorkspace = async () => {
+      if ((userRole === 'admin' || userRole === 'equipe') && !isLoadingWorkspaces && workspaces) {
+        let internalWs = workspaces.find(ws => ws.name === INTERNAL_WORKSPACE_NAME);
+
+        if (!internalWs) {
+          const { data: newWs, error } = await supabase.from("workspaces").insert({ name: INTERNAL_WORKSPACE_NAME }).select().single();
+          if (error) {
+            console.error("Error creating internal workspace:", error);
+            showError(`Erro ao criar workspace interno: ${error.message}`);
+            return;
+          }
+          internalWs = newWs;
+          queryClient.invalidateQueries({ queryKey: ["workspaces"] });
+
+          const { data: { user: currentUser } } = await supabase.auth.getUser();
+          if (currentUser) {
+            const { error: memberError } = await supabase.from("workspace_members").insert({
+              workspace_id: internalWs.id,
+              user_id: currentUser.id,
+              role: 'owner'
+            });
+            if (memberError) console.error("Error adding owner to internal workspace:", memberError);
+
+            const { data: staffUsers, error: staffError } = await supabase.from('profiles').select('id').in('role', ['admin', 'equipe']);
+            if (staffError) console.error("Error fetching staff users:", staffError);
+            
+            if (staffUsers) {
+              const otherStaffMembers = staffUsers.filter(sUser => sUser.id !== currentUser.id);
+              const memberInserts = otherStaffMembers.map(sUser => ({
+                workspace_id: internalWs.id,
+                user_id: sUser.id,
+                role: 'editor'
+              }));
+              if (memberInserts.length > 0) {
+                const { error: bulkMemberError } = await supabase.from("workspace_members").insert(memberInserts);
+                if (bulkMemberError) console.error("Error adding other staff to internal workspace:", bulkMemberError);
+              }
+            }
+          }
+        }
+        setInternalWorkspaceId(internalWs.id);
+      }
+    };
+    ensureInternalWorkspace();
+  }, [userRole, isLoadingWorkspaces, workspaces, queryClient]);
 
   useEffect(() => {
     if (!isLoadingWorkspaces && userRole === 'user' && workspaces && workspaces.length === 1) {
@@ -99,6 +149,9 @@ const Dashboard = () => {
   };
 
   const renderHeaderActions = () => {
+    const isAdmin = userRole === 'admin';
+    const isStaff = userRole === 'admin' || userRole === 'equipe';
+
     if (isMobile) {
       return (
         <DropdownMenu>
@@ -108,19 +161,17 @@ const Dashboard = () => {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            {(userRole === 'admin' || userRole === 'equipe') && (
+            {isAdmin && (
               <>
-                {userRole === 'admin' && (
-                  <>
-                    <DropdownMenuItem asChild><Link to="/financial" className="flex items-center"><Banknote className="h-4 w-4 mr-2" />Financeiro</Link></DropdownMenuItem>
-                    <DropdownMenuItem asChild><Link to="/settings" className="flex items-center"><Palette className="h-4 w-4 mr-2" />Configurações</Link></DropdownMenuItem>
-                    <DropdownMenuItem asChild><Link to="/admin" className="flex items-center"><UserCog className="h-4 w-4 mr-2" />Admin</Link></DropdownMenuItem>
-                  </>
-                )}
-                <DropdownMenuItem asChild><Link to="/second-brain" className="flex items-center"><Brain className="h-4 w-4 mr-2" />Segundo Cérebro</Link></DropdownMenuItem>
-                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild><Link to="/financial" className="flex items-center"><Banknote className="h-4 w-4 mr-2" />Financeiro</Link></DropdownMenuItem>
+                <DropdownMenuItem asChild><Link to="/settings" className="flex items-center"><Palette className="h-4 w-4 mr-2" />Configurações</Link></DropdownMenuItem>
+                <DropdownMenuItem asChild><Link to="/admin" className="flex items-center"><UserCog className="h-4 w-4 mr-2" />Admin</Link></DropdownMenuItem>
               </>
             )}
+            {isStaff && (
+              <DropdownMenuItem asChild><Link to="/second-brain" className="flex items-center"><Brain className="h-4 w-4 mr-2" />Segundo Cérebro</Link></DropdownMenuItem>
+            )}
+            <DropdownMenuSeparator />
             <DropdownMenuItem>
               <ThemeToggle />
             </DropdownMenuItem>
@@ -135,7 +186,7 @@ const Dashboard = () => {
 
     return (
       <div className="flex items-center gap-2">
-        {userRole === 'admin' && (
+        {isAdmin && (
           <>
             <Button asChild variant="outline">
               <Link to="/financial">
@@ -157,7 +208,7 @@ const Dashboard = () => {
             </Button>
           </>
         )}
-        {(userRole === 'admin' || userRole === 'equipe') && (
+        {isStaff && (
           <Button asChild variant="outline">
             <Link to="/second-brain">
               <Brain className="h-4 w-4 mr-2" />
@@ -174,83 +225,97 @@ const Dashboard = () => {
     );
   };
 
-  const renderStaffDashboard = () => (
-    <Tabs defaultValue="tasks">
-      <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between mb-6">
-        <TabsList>
-          <TabsTrigger value="tasks">Minhas Tarefas</TabsTrigger>
-          <TabsTrigger value="clients">Clientes</TabsTrigger>
-          <TabsTrigger value="agency-playbook">
-            <BookOpen className="h-4 w-4 mr-2" />
-            Playbook da Agência
-          </TabsTrigger>
-        </TabsList>
-        {(userRole === 'admin' || userRole === 'equipe') && ( // Allow equipe to create workspaces
-          <Button onClick={() => createWorkspaceMutation.mutate("Novo Workspace")}>
-            <PlusCircle className="h-4 w-4 mr-2" />
-            Novo Cliente (Workspace)
-          </Button>
-        )}
-      </div>
-      <TabsContent value="tasks">
-        <MyTasks />
-      </TabsContent>
-      <TabsContent value="clients">
-        {isLoadingWorkspaces ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-48 w-full" />)}
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {workspaces?.map((ws) => (
-              <Card key={ws.id} className="hover:shadow-lg transition-shadow flex flex-col">
-                <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
-                  <CardTitle className="text-lg font-medium flex-grow truncate pr-2">{ws.name}</CardTitle>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 -mt-2 -mr-2 flex-shrink-0">
-                        <MoreVertical className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => handleOpenSettings(ws)}>
-                        <Settings className="h-4 w-4 mr-2" />
-                        Configurações
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </CardHeader>
-                <Link to={`/workspace/${ws.id}`} className="flex flex-col flex-grow">
-                  <CardContent className="flex flex-col items-center justify-center pt-4 flex-grow">
-                    <Avatar className="h-24 w-24 mb-4">
-                      <AvatarImage src={ws.logo_url || undefined} alt={ws.name} />
-                      <AvatarFallback>{ws.name.charAt(0).toUpperCase()}</AvatarFallback>
-                    </Avatar>
-                    <Button variant="outline" className="w-full mt-auto">Ver Quadro</Button>
-                  </CardContent>
-                </Link>
-              </Card>
-            ))}
-          </div>
-        )}
-      </TabsContent>
-      <TabsContent value="agency-playbook">
-        <AgencyPlaybookPage />
-      </TabsContent>
-    </Tabs>
-  );
+  const renderStaffDashboard = () => {
+    const isStaff = userRole === 'admin' || userRole === 'equipe';
+    return (
+      <Tabs defaultValue="tasks">
+        <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between mb-6">
+          <TabsList>
+            <TabsTrigger value="tasks">Minhas Tarefas</TabsTrigger>
+            <TabsTrigger value="clients">Clientes</TabsTrigger>
+            {internalWorkspaceId && (
+              <TabsTrigger value="internal-tasks">
+                <Briefcase className="h-4 w-4 mr-2" /> Tarefas Internas
+              </TabsTrigger>
+            )}
+            <TabsTrigger value="agency-playbook">
+              <BookOpen className="h-4 w-4 mr-2" />
+              Playbook da Agência
+            </TabsTrigger>
+          </TabsList>
+          {isStaff && (
+            <Button onClick={() => createWorkspaceMutation.mutate("Novo Workspace")}>
+              <PlusCircle className="h-4 w-4 mr-2" />
+              Novo Cliente (Workspace)
+            </Button>
+          )}
+        </div>
+        <TabsContent value="tasks">
+          <MyTasks />
+        </TabsContent>
+        <TabsContent value="clients">
+          {isLoadingWorkspaces ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-48 w-full" />)}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              {workspaces?.filter(ws => ws.name !== INTERNAL_WORKSPACE_NAME).map((ws) => ( // Filtrar workspace interno
+                <Card key={ws.id} className="hover:shadow-lg transition-shadow flex flex-col">
+                  <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
+                    <CardTitle className="text-lg font-medium flex-grow truncate pr-2">{ws.name}</CardTitle>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 -mt-2 -mr-2 flex-shrink-0">
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => handleOpenSettings(ws)}>
+                          <Settings className="h-4 w-4 mr-2" />
+                          Configurações
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </CardHeader>
+                  <Link to={`/workspace/${ws.id}`} className="flex flex-col flex-grow">
+                    <CardContent className="flex flex-col items-center justify-center pt-4 flex-grow">
+                      <Avatar className="h-24 w-24 mb-4">
+                        <AvatarImage src={ws.logo_url || undefined} alt={ws.name} />
+                        <AvatarFallback>{ws.name.charAt(0).toUpperCase()}</AvatarFallback>
+                      </Avatar>
+                      <Button variant="outline" className="w-full mt-auto">Ver Quadro</Button>
+                    </CardContent>
+                  </Link>
+                </Card>
+              ))}
+            </div>
+          )}
+        </TabsContent>
+        <TabsContent value="internal-tasks">
+          {internalWorkspaceId ? (
+            <WorkspacePage initialWorkspaceId={internalWorkspaceId} />
+          ) : (
+            <Skeleton className="h-64 w-full" />
+          )}
+        </TabsContent>
+        <TabsContent value="agency-playbook">
+          <AgencyPlaybookPage />
+        </TabsContent>
+      </Tabs>
+    );
+  };
 
   const renderContent = () => {
     if (isProfileLoading || isLoadingWorkspaces) {
       return <Skeleton className="h-64 w-full" />;
     }
-    if (userRole === 'admin' || userRole === 'equipe') { // Admins and Equipe see the staff dashboard
+    if (userRole === 'admin' || userRole === 'equipe') {
       return renderStaffDashboard();
     }
-    if (userRole === 'user' && workspaces && workspaces.length > 0) { // Clients see their dashboard
+    if (userRole === 'user' && workspaces && workspaces.length > 0) {
       return <ClientDashboard workspaces={workspaces} />;
     }
-    // Fallback for users with no workspaces or other roles
     return <div className="text-center p-8">Carregando seus projetos...</div>;
   };
 

@@ -99,9 +99,14 @@ export function KanbanBoard({ groupId }: KanbanBoardProps) {
     fetchUser();
   }, []);
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, error } = useQuery({
     queryKey: ["kanbanData", groupId],
     queryFn: () => fetchKanbanData(groupId),
+    enabled: !!groupId, // Garante que a query só roda se groupId estiver disponível
+    onError: (err) => {
+      console.error("Error fetching Kanban data:", err);
+      showError(`Erro ao carregar o quadro: ${err.message}`);
+    }
   });
 
   const { data: usersForAssignment, isLoading: isLoadingUsersForAssignment } = useQuery<UserProfile[]>({
@@ -121,7 +126,9 @@ export function KanbanBoard({ groupId }: KanbanBoardProps) {
   const workspaceName = workspaceData?.workspaces?.name || 'Workspace Desconhecido';
 
   const triggerNotification = (message: string) => {
-    if (currentUser?.role === 'user') { // Only send notifications for client actions
+    // Envia notificação se o usuário atual NÃO for um 'user' (cliente)
+    // Isso significa que ações de admins e 'equipe' irão disparar notificações.
+    if (currentUser?.role !== 'user') {
       supabase.functions.invoke('send-telegram-notification', { body: { message } })
         .catch(err => console.error("Erro ao enviar notificação:", err));
     }
@@ -346,6 +353,7 @@ export function KanbanBoard({ groupId }: KanbanBoardProps) {
   };
 
   if (isLoading || isLoadingUsersForAssignment) return <div className="p-8 text-center">Carregando quadro...</div>;
+  if (error) return <div className="p-8 text-center text-destructive">Erro ao carregar o quadro: {error.message}</div>;
 
   return (
     <div>

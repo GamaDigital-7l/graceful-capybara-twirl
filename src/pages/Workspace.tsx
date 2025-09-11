@@ -25,8 +25,24 @@ const fetchGroups = async (workspaceId: string) => {
   return data;
 };
 
-const Workspace = () => {
-  const { workspaceId } = useParams<{ workspaceId: string }>();
+const fetchWorkspaceName = async (workspaceId: string): Promise<string> => {
+    const { data, error } = await supabase
+        .from("workspaces")
+        .select("name")
+        .eq("id", workspaceId)
+        .single();
+    if (error) throw new Error(error.message);
+    return data.name;
+};
+
+interface WorkspacePageProps {
+  initialWorkspaceId?: string; // Novo prop para o ID do workspace
+}
+
+const WorkspacePage = ({ initialWorkspaceId }: WorkspacePageProps) => {
+  const params = useParams<{ workspaceId: string }>();
+  const workspaceId = initialWorkspaceId || params.workspaceId; // Usa o prop ou o parâmetro da URL
+
   const [activeGroupId, setActiveGroupId] = useState<string | null>(null);
   const queryClient = useQueryClient();
   const isMobile = useIsMobile();
@@ -39,6 +55,12 @@ const Workspace = () => {
   const { data: groups, isLoading: isLoadingGroups } = useQuery<Group[]>({
     queryKey: ["groups", workspaceId],
     queryFn: () => fetchGroups(workspaceId!),
+    enabled: !!workspaceId,
+  });
+
+  const { data: workspaceName, isLoading: isLoadingName } = useQuery({
+    queryKey: ["workspaceName", workspaceId],
+    queryFn: () => fetchWorkspaceName(workspaceId!),
     enabled: !!workspaceId,
   });
 
@@ -145,25 +167,13 @@ const Workspace = () => {
 
       setWhatsappTemplate(settings.whatsapp_message_template || 'Olá! Seus posts estão prontos para aprovação. Por favor, acesse o link a seguir para revisar e aprovar:');
 
-      // --- RLS DEBUG INFO ---
-      console.log("--- RLS DEBUG INFO START ---");
       const { data: { user }, error: getUserError } = await supabase.auth.getUser();
-      console.log("Result of supabase.auth.getUser():", { user, getUserError });
-
-      if (!user) {
-        console.log("User is NOT authenticated. Throwing error.");
+      if (getUserError || !user) {
         throw new Error("Usuário não autenticado.");
       }
 
-      console.log("User IS authenticated. User ID:", user.id);
-      console.log("Workspace ID:", workspaceId);
-      console.log("Group ID:", groupId);
-      console.log("--- RLS DEBUG INFO END ---");
-      // --- END RLS DEBUG INFO ---
-
       const { data: tokenData, error: tokenError } = await supabase.from("public_approval_tokens").insert({ group_id: groupId, workspace_id: workspaceId, user_id: user.id }).select("token").single();
       if (tokenError) {
-        // Log the full error object for better debugging
         console.error("Supabase insert error:", tokenError);
         throw new Error(`Falha ao criar o link: ${tokenError.message}`);
       }
@@ -177,7 +187,6 @@ const Workspace = () => {
     },
     onError: (e: Error) => {
       dismissToast();
-      // Display the actual error message from the Supabase error object
       showError(`Erro ao gerar link: ${e.message}`);
       setIsApprovalModalOpen(false);
     },
@@ -203,6 +212,10 @@ const Workspace = () => {
     setIsApprovalModalOpen(true);
     generateApprovalLinkMutation.mutate(groupId);
   };
+
+  if (!workspaceId) {
+    return <div className="p-8 text-center">Workspace não encontrado.</div>;
+  }
 
   const renderHeaderActions = () => {
     const sendApprovalButton = userRole === 'admin' && activeGroupId && (
@@ -274,8 +287,7 @@ const Workspace = () => {
         {renderHeaderActions()}
       </header>
       <main>
-        {workspaceId ? (
-          isLoadingGroups || isProfileLoading ? (
+        {isLoadingGroups || isProfileLoading ? (
             <div className="p-8 text-center"><Skeleton className="h-10 w-1/2 mx-auto" /></div>
           ) : (
             <GroupTabs
@@ -287,9 +299,7 @@ const Workspace = () => {
               onReorderGroups={(reordered) => reorderGroupsMutation.mutate(reordered)}
             />
           )
-        ) : (
-          <div className="p-8 text-center">Workspace não encontrado.</div>
-        )}
+        }
       </main>
       <Footer />
       <ApprovalLinkModal
@@ -303,4 +313,4 @@ const Workspace = () => {
   );
 };
 
-export default Workspace;
+export default WorkspacePage;
