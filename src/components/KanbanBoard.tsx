@@ -126,9 +126,8 @@ export function KanbanBoard({ groupId }: KanbanBoardProps) {
   const workspaceName = workspaceData?.workspaces?.name || 'Workspace Desconhecido';
 
   const triggerNotification = (message: string) => {
-    // Envia notificação se o usuário atual NÃO for um 'user' (cliente)
-    // Isso significa que ações de admins e 'equipe' irão disparar notificações.
-    if (currentUser?.role !== 'user') {
+    // Envia notificação se o usuário atual for 'equipe' ou 'user' (cliente)
+    if (currentUser?.role === 'equipe' || currentUser?.role === 'user') {
       supabase.functions.invoke('send-telegram-notification', { body: { message } })
         .catch(err => console.error("Erro ao enviar notificação:", err));
     }
