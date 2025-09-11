@@ -25,7 +25,7 @@ import { Trash2, Upload, Calendar as CalendarIcon, Download, Eye, User } from "l
 import { supabase } from "@/integrations/supabase/client";
 import { showError, showSuccess } from "@/utils/toast";
 import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { ptBR } from "date-fns/locale"; // Importar ptBR
 import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
@@ -236,6 +236,7 @@ export function TaskModal({
                         selected={dueDate}
                         onSelect={setDueDate}
                         initialFocus
+                        locale={ptBR} {/* Adicionado locale={ptBR} aqui */}
                       />
                     </PopoverContent>
                   </Popover>

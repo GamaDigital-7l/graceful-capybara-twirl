@@ -15,9 +15,18 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { FinancialControlModal, FinancialData } from "@/components/FinancialControlModal";
 import { Workspace } from "./Dashboard";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; // Importar Select
+import { format, startOfMonth, subMonths } from "date-fns"; // Importar funções de data
+import { ptBR } from "date-fns/locale"; // Importar ptBR
 
-const fetchFinancialData = async () => {
-  const { data, error } = await supabase.from("financial_control").select("*, workspace:workspaces(name)");
+// Modificar fetchFinancialData para aceitar um período
+const fetchFinancialData = async (period?: Date) => {
+  let query = supabase.from("financial_control").select("*, workspace:workspaces(name)");
+  if (period) {
+    query = query.eq("period", format(period, 'yyyy-MM-dd'));
+  }
+  query = query.order("period", { ascending: false }).order("client_name"); // Ordenar para consistência
+  const { data, error } = await query;
   if (error) throw error;
   return data;
 };
@@ -32,10 +41,11 @@ const FinancialDashboard = () => {
   const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedData, setSelectedData] = useState<Partial<FinancialData> | null>(null);
+  const [selectedPeriod, setSelectedPeriod] = useState<Date>(startOfMonth(new Date())); // Estado para o período selecionado
 
   const { data: financialData, isLoading: isLoadingFinancial } = useQuery({
-    queryKey: ["financialData"],
-    queryFn: fetchFinancialData,
+    queryKey: ["financialData", selectedPeriod.toISOString()], // Adicionar selectedPeriod ao queryKey
+    queryFn: () => fetchFinancialData(selectedPeriod), // Passar selectedPeriod
   });
 
   const { data: workspaces, isLoading: isLoadingWorkspaces } = useQuery<Workspace[]>({
@@ -46,12 +56,13 @@ const FinancialDashboard = () => {
   const mutation = useMutation({
     mutationFn: async (data: FinancialData) => {
       const { id, ...rest } = data;
-      const query = id ? supabase.from("financial_control").update(rest).eq("id", id) : supabase.from("financial_control").insert(rest);
+      const dataToSave = { ...rest, period: format(selectedPeriod, 'yyyy-MM-dd') }; // Garantir que o período seja o selecionado
+      const query = id ? supabase.from("financial_control").update(dataToSave).eq("id", id) : supabase.from("financial_control").insert(dataToSave);
       const { error } = await query;
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["financialData"] });
+      queryClient.invalidateQueries({ queryKey: ["financialData", selectedPeriod.toISOString()] });
       showSuccess("Dados salvos com sucesso!");
     },
     onError: (e: Error) => showError(e.message),
@@ -63,7 +74,7 @@ const FinancialDashboard = () => {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["financialData"] });
+      queryClient.invalidateQueries({ queryKey: ["financialData", selectedPeriod.toISOString()] });
       showSuccess("Registro deletado com sucesso!");
     },
     onError: (e: Error) => showError(e.message),
@@ -75,7 +86,8 @@ const FinancialDashboard = () => {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["financialData"] });
+      queryClient.invalidateQueries({ queryKey: ["financialData"] }); // Invalida todos os dados financeiros para recarregar
+      setSelectedPeriod(startOfMonth(addMonths(selectedPeriod, 1))); // Avança para o próximo mês
       showSuccess("Novo mês iniciado com sucesso! Clientes fixos foram transferidos.");
     },
     onError: (e: Error) => showError(e.message),
@@ -84,17 +96,15 @@ const FinancialDashboard = () => {
   const { totalRevenue, activeClients, averageTicket, currentPeriodData } = useMemo(() => {
     if (!financialData || financialData.length === 0) return { totalRevenue: 0, activeClients: 0, averageTicket: 0, currentPeriodData: [] };
     
-    const latestPeriod = financialData.reduce((max, item) => item.period > max ? item.period : max, financialData[0].period);
-    const periodData = financialData.filter(d => d.period === latestPeriod);
-
-    const activeData = periodData.filter(d => d.status === 'Ativo');
+    // Os dados já vêm filtrados pelo selectedPeriod, então não precisamos mais encontrar o latestPeriod
+    const activeData = financialData.filter(d => d.status === 'Ativo');
     const total = activeData.reduce((sum, item) => sum + Number(item.amount), 0);
     const count = activeData.length;
     return {
       totalRevenue: total,
       activeClients: count,
       averageTicket: count > 0 ? total / count : 0,
-      currentPeriodData: periodData,
+      currentPeriodData: financialData, // financialData já é o do período selecionado
     };
   }, [financialData]);
 
@@ -102,9 +112,23 @@ const FinancialDashboard = () => {
 
   const usedWorkspaceIds = financialData?.filter(d => d.workspace_id).map(d => d.workspace_id!) || [];
 
+  // Gerar opções de meses para o seletor
+  const monthOptions = useMemo(() => {
+    const options = [];
+    let current = startOfMonth(new Date());
+    for (let i = 0; i < 12; i++) { // Últimos 12 meses
+      options.push({
+        value: current.toISOString(),
+        label: format(current, "MMMM yyyy", { locale: ptBR }),
+      });
+      current = subMonths(current, 1);
+    }
+    return options.reverse(); // Para ter o mês atual primeiro
+  }, []);
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 md:p-8">
-      <header className="mb-8 flex justify-between items-center">
+      <header className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="flex items-center gap-4">
           <Button asChild variant="outline">
             <Link to="/">
@@ -114,10 +138,25 @@ const FinancialDashboard = () => {
           </Button>
           <h1 className="text-2xl font-bold">Dashboard Financeiro</h1>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
+          <Select
+            value={selectedPeriod.toISOString()}
+            onValueChange={(value) => setSelectedPeriod(new Date(value))}
+          >
+            <SelectTrigger className="w-full sm:w-[180px]">
+              <SelectValue placeholder="Selecione o Mês" />
+            </SelectTrigger>
+            <SelectContent>
+              {monthOptions.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button variant="outline">
+              <Button variant="outline" className="w-full sm:w-auto">
                 <RefreshCw className="h-4 w-4 mr-2" />
                 Iniciar Novo Mês
               </Button>
@@ -137,7 +176,7 @@ const FinancialDashboard = () => {
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
-          <Button onClick={() => { setSelectedData(null); setIsModalOpen(true); }}>
+          <Button onClick={() => { setSelectedData(null); setIsModalOpen(true); }} className="w-full sm:w-auto">
             <PlusCircle className="h-4 w-4 mr-2" />
             Adicionar Lançamento
           </Button>
@@ -176,7 +215,7 @@ const FinancialDashboard = () => {
 
         <Card>
           <CardHeader>
-            <CardTitle>Controle de Clientes do Mês</CardTitle>
+            <CardTitle>Controle de Clientes do Mês ({format(selectedPeriod, "MMMM yyyy", { locale: ptBR })})</CardTitle>
           </CardHeader>
           <CardContent>
             <Table>
