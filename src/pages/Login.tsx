@@ -8,12 +8,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { showError } from "@/utils/toast";
 import { PasswordInput } from "@/components/PasswordInput";
-import { useSettings } from "@/contexts/SettingsContext";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { AppLogo } from "@/components/AppLogo"; // Importar AppLogo
 
 const Login = () => {
   const navigate = useNavigate();
-  const settings = useSettings();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -42,7 +41,7 @@ const Login = () => {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <img src="/logo-gama.png" alt="Gama Creative Logo" className="h-16 w-auto dark:invert" />
+            <AppLogo className="h-16 w-auto" /> {/* Usando AppLogo aqui */}
           </div>
           <CardTitle>Acesse sua Conta</CardTitle>
           <CardDescription>Entre com seu e-mail e senha para continuar.</CardDescription>

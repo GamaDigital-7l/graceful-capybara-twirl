@@ -13,6 +13,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { ApprovalLinkModal } from "@/components/ApprovalLinkModal";
+import { AppLogo } from "@/components/AppLogo"; // Importar AppLogo
 
 const fetchGroups = async (workspaceId: string) => {
   if (!workspaceId) return [];
@@ -283,6 +284,8 @@ const WorkspacePage = ({ initialWorkspaceId }: WorkspacePageProps) => {
       <header className="p-4 bg-white dark:bg-gray-800 shadow-md flex justify-between items-center">
         <div className="flex items-center gap-4">
           <Button asChild variant="outline"><Link to="/"><ArrowLeft className="h-4 w-4 mr-2" /> Voltar ao Dashboard</Link></Button>
+          <AppLogo className="h-8 w-auto" /> {/* Usando AppLogo aqui */}
+          <h1 className="text-xl sm:text-2xl font-bold whitespace-nowrap">{isLoadingName ? <Skeleton className="h-6 w-32" /> : workspaceName}</h1>
         </div>
         {renderHeaderActions()}
       </header>

@@ -21,7 +21,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import WorkspacePage from "./Workspace"; // Importar o componente WorkspacePage
 import { EmployeeDashboardPage } from "./EmployeeDashboardPage"; // Importar a nova página de funcionários
-// import { ClientProgress } from "@/components/ClientProgress"; // Removido, pois agora está dentro de MyTasks
+import { AppLogo } from "@/components/AppLogo"; // Importar AppLogo
 
 export interface Workspace {
   id: string;
@@ -120,11 +120,12 @@ const Dashboard = () => {
     ensureInternalWorkspace();
   }, [userRole, isLoadingWorkspaces, workspaces, queryClient]);
 
-  useEffect(() => {
-    if (!isLoadingWorkspaces && userRole === 'user' && workspaces && workspaces.length === 1) {
-      navigate(`/workspace/${workspaces[0].id}`);
-    }
-  }, [workspaces, isLoadingWorkspaces, userRole, navigate]);
+  // REMOVIDO: Redirecionamento automático para o workspace único do cliente
+  // useEffect(() => {
+  //   if (!isLoadingWorkspaces && userRole === 'user' && workspaces && workspaces.length === 1) {
+  //     navigate(`/workspace/${workspaces[0].id}`);
+  //   }
+  // }, [workspaces, isLoadingWorkspaces, userRole, navigate]);
 
   const createWorkspaceMutation = useMutation({
     mutationFn: async (name: string) => {
@@ -323,7 +324,7 @@ const Dashboard = () => {
     if (userRole === 'admin' || userRole === 'equipe') {
       return renderStaffDashboard();
     }
-    if (userRole === 'user' && workspaces && workspaces.length > 0) {
+    if (userRole === 'user' && workspaces) { // Removido a condição workspaces.length > 0 para sempre renderizar ClientDashboard
       return <ClientDashboard workspaces={workspaces} />;
     }
     return <div className="text-center p-8">Carregando seus projetos...</div>;
@@ -332,7 +333,10 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <header className="p-4 bg-white dark:bg-gray-800 shadow-sm flex justify-between items-center">
-        <h1 className="text-xl sm:text-2xl font-bold whitespace-nowrap">Dashboard Gama Creative</h1>
+        <div className="flex items-center gap-4">
+          <AppLogo className="h-8 w-auto" /> {/* Usando AppLogo aqui */}
+          <h1 className="text-xl sm:text-2xl font-bold whitespace-nowrap">Dashboard</h1>
+        </div>
         {renderHeaderActions()}
       </header>
       <main className="p-4 md:p-8">

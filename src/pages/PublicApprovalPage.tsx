@@ -15,7 +15,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { CheckCircle, Edit, Send, Eye } from "lucide-react";
 import { ImagePreviewModal } from "@/components/ImagePreviewModal";
-import { useSettings } from "@/contexts/SettingsContext"; // Importar useSettings
+import { AppLogo } from "@/components/AppLogo"; // Importar AppLogo
 
 const fetchApprovalData = async (token: string) => {
   const { data, error } = await supabase.functions.invoke("get-tasks-for-approval", {
@@ -33,8 +33,6 @@ const PublicApprovalPage = () => {
   const [editComment, setEditComment] = useState("");
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
   const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
-
-  const settings = useSettings(); // Usar o hook useSettings para obter as configurações da agência
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["approvalData", token],
@@ -104,7 +102,7 @@ const PublicApprovalPage = () => {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 sm:p-8">
       <header className="text-center mb-8">
         <div className="mb-4">
-          <img src="/logo-gama.png" alt="Gama Creative Logo" className="h-12 w-auto mx-auto dark:invert" />
+          <AppLogo className="h-12 w-auto mx-auto" /> {/* Usando AppLogo aqui */}
         </div>
         <div className="flex justify-center items-center gap-4 mb-2">
           {data.workspace.logo_url && <Avatar><AvatarImage src={data.workspace.logo_url} /><AvatarFallback>{data.workspace.name.charAt(0)}</AvatarFallback></Avatar>}
