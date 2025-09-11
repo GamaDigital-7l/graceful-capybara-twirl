@@ -191,7 +191,8 @@ export function KanbanBoard({ groupId }: KanbanBoardProps) {
     },
     onSuccess: ({ taskTitle, comment }) => {
       invalidateKanbanData();
-      showSuccess("Solicitação de edição enviada!");
+      // Usar a mesma mensagem de sucesso aprimorada
+      showSuccess("Sua solicitação de edição foi enviada com sucesso! Nossa equipe fará as alterações necessárias e entraremos em contato em breve com a versão atualizada. Agradecemos a sua paciência!");
       triggerNotification(`*${currentUser?.full_name}* solicitou edição para a tarefa "${taskTitle}" no workspace *${workspaceName}*.\nComentário: _${comment}_`);
     },
     onError: (e: Error) => showError(e.message),
