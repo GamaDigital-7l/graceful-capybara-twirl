@@ -33,11 +33,13 @@ const INTERNAL_WORKSPACE_NAME = "Tarefas"; // Renomeado de "Tarefas Internas" pa
 // Modificado para aceitar userRole e userId
 const fetchWorkspaces = async (userRole: string | null, userId: string | undefined): Promise<Workspace[]> => {
   if (!userId) {
+    console.log("fetchWorkspaces: userId is undefined, returning empty array.");
     return []; // Não há usuário, não há workspaces para buscar
   }
 
   let query;
   if (userRole === 'user') {
+    console.log(`fetchWorkspaces: Fetching for user role '${userRole}' with userId '${userId}'`);
     // Para o papel 'user', explicitamente faz um join com workspace_members
     // para obter apenas os workspaces aos quais o usuário pertence.
     query = supabase
@@ -45,6 +47,7 @@ const fetchWorkspaces = async (userRole: string | null, userId: string | undefin
       .select("workspaces(id, name, logo_url)")
       .eq("user_id", userId);
   } else {
+    console.log(`fetchWorkspaces: Fetching for staff role '${userRole}'`);
     // Para 'admin' ou 'equipe', busca todos os workspaces.
     // As políticas de RLS ainda se aplicarão, mas eles geralmente têm acesso mais amplo.
     query = supabase.from("workspaces").select("id, name, logo_url");
@@ -55,11 +58,15 @@ const fetchWorkspaces = async (userRole: string | null, userId: string | undefin
     console.error("fetchWorkspaces Error:", error.message);
     throw new Error(error.message);
   }
+  console.log("fetchWorkspaces Raw Data:", data);
 
   if (userRole === 'user' && data) {
     // A estrutura de dados retornada por um join é aninhada, então precisamos achatá-la.
-    return data.map((item: any) => item.workspaces);
+    const clientWorkspaces = data.map((item: any) => item.workspaces);
+    console.log("fetchWorkspaces Client Workspaces (mapped):", clientWorkspaces);
+    return clientWorkspaces;
   }
+  console.log("fetchWorkspaces Returning Data:", data);
   return data || [];
 };
 
@@ -77,14 +84,26 @@ const Dashboard = () => {
   useEffect(() => {
     const ensureUserProfile = async () => {
       setProfileLoading(true);
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user }, error: userAuthError } = await supabase.auth.getUser();
+      if (userAuthError) {
+        console.error("Dashboard: Error getting auth user:", userAuthError.message);
+      }
+      console.log("Dashboard: Auth User:", user);
+
       if (user) {
         setCurrentUserId(user.id); // Define o ID do usuário aqui
-        let { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+        let { data: profile, error: profileFetchError } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+        if (profileFetchError && profileFetchError.code !== 'PGRST116') { // PGRST116 means no rows found
+          console.error("Dashboard: Error fetching profile:", profileFetchError.message);
+        }
+        console.log("Dashboard: User Profile:", profile);
+
         if (!profile) {
-          const { data: newProfile, error } = await supabase.from('profiles').insert({ id: user.id, role: 'user' }).select('role').single();
-          if (error) {
+          console.log("Dashboard: Profile not found, creating default 'user' profile.");
+          const { data: newProfile, error: profileInsertError } = await supabase.from('profiles').insert({ id: user.id, role: 'user' }).select('role').single();
+          if (profileInsertError) {
             showError("Não foi possível criar o perfil de usuário.");
+            console.error("Dashboard: Error creating profile:", profileInsertError.message);
           } else {
             profile = newProfile;
           }
@@ -95,15 +114,21 @@ const Dashboard = () => {
         setUserRole(null);
       }
       setProfileLoading(false);
+      console.log("Dashboard: Profile loading finished. userRole:", userRole, "currentUserId:", currentUserId);
     };
     ensureUserProfile();
   }, []);
 
-  const { data: workspaces, isLoading: isLoadingWorkspaces } = useQuery<Workspace[]>({
+  const { data: workspaces, isLoading: isLoadingWorkspaces, error: workspacesError } = useQuery<Workspace[]>({
     queryKey: ["workspaces", userRole, currentUserId], // Adicionar userRole e currentUserId à queryKey
     queryFn: () => fetchWorkspaces(userRole, currentUserId), // Passar argumentos
     enabled: !!userRole && !!currentUserId, // Só executa quando userRole e currentUserId estão disponíveis
   });
+
+  if (workspacesError) {
+    console.error("Dashboard: Workspaces Query Error:", workspacesError.message);
+    showError(`Erro ao carregar workspaces: ${workspacesError.message}`);
+  }
 
   useEffect(() => {
     const ensureInternalWorkspace = async () => {
@@ -111,6 +136,7 @@ const Dashboard = () => {
         let internalWs = workspaces.find(ws => ws.name === INTERNAL_WORKSPACE_NAME);
 
         if (!internalWs) {
+          console.log("Dashboard: Internal workspace not found, creating it.");
           const { data: newWs, error } = await supabase.from("workspaces").insert({ name: INTERNAL_WORKSPACE_NAME }).select().single();
           if (error) {
             console.error("Error creating internal workspace:", error);
@@ -343,18 +369,24 @@ const Dashboard = () => {
   };
 
   const renderContent = () => {
+    console.log("Dashboard renderContent: userRole:", userRole, "isProfileLoading:", isProfileLoading, "isLoadingWorkspaces:", isLoadingWorkspaces, "workspaces:", workspaces);
+
     if (isProfileLoading || isLoadingWorkspaces) {
+      console.log("Dashboard renderContent: Showing skeleton due to loading state.");
       return <Skeleton className="h-64 w-full" />;
     }
     if (userRole === 'admin' || userRole === 'equipe') {
+      console.log("Dashboard renderContent: Rendering staff dashboard.");
       return renderStaffDashboard();
     }
     if (userRole === 'user') {
+      console.log("Dashboard renderContent: User role is 'user'. Checking workspaces for redirection.");
       if (workspaces && workspaces.length > 0) {
-        // Redirecionar para o primeiro workspace do cliente
+        console.log("Dashboard renderContent: Workspaces found for client, redirecting to:", `/workspace/${workspaces[0].id}`);
         navigate(`/workspace/${workspaces[0].id}`);
         return null; // Retorna null enquanto redireciona
       } else {
+        console.log("Dashboard renderContent: No workspaces found for client.");
         return (
           <div className="text-center p-8">
             <Card className="w-full max-w-md mx-auto text-center">
@@ -365,6 +397,7 @@ const Dashboard = () => {
         );
       }
     }
+    console.log("Dashboard renderContent: Fallback - Still loading or unknown state.");
     return <div className="text-center p-8">Carregando seus projetos...</div>;
   };
 
