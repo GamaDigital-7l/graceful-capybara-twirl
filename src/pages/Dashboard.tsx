@@ -239,8 +239,8 @@ const Dashboard = () => {
                 <Briefcase className="h-4 w-4 mr-2" /> {INTERNAL_WORKSPACE_NAME}
               </TabsTrigger>
             )}
-            <TabsTrigger value="employees">
-              <Users className="h-4 w-4 mr-2" /> Funcionários
+            <TabsTrigger value="employees"> {/* Alterado de "employees" para "equipe" */}
+              <Users className="h-4 w-4 mr-2" /> Equipe
             </TabsTrigger>
             <TabsTrigger value="agency-playbook">
               <BookOpen className="h-4 w-4 mr-2" />
