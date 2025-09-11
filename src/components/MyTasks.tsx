@@ -81,24 +81,22 @@ export function MyTasks() {
       <div className="w-full">
         <h2 className="text-2xl font-bold mb-4">Caixa de Entrada de Tarefas</h2>
         {pendingTasks.length > 0 ? (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6"> {/* Ajustado para grade de 2 colunas no desktop */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {Object.entries(groupedTasks).map(([workspaceId, { name, logo_url, tasks }]) => (
-              <Card key={workspaceId}>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-3">
-                    {logo_url ? (
-                      <Avatar className="h-6 w-6">
-                        <AvatarImage src={logo_url} alt={name} />
-                        <AvatarFallback>{name.charAt(0)}</AvatarFallback>
-                      </Avatar>
-                    ) : (
-                      <Briefcase className="h-5 w-5 text-primary" />
-                    )}
-                    {name}
-                    <Badge variant="secondary">{tasks.length}</Badge>
-                  </CardTitle>
+              <Card key={workspaceId} className="shadow-sm hover:shadow-md transition-shadow"> {/* Adicionado shadow-sm */}
+                <CardHeader className="flex flex-row items-center gap-3 pb-4 mb-4 border-b"> {/* Adicionado border-b e ajustado padding */}
+                  {logo_url ? (
+                    <Avatar className="h-6 w-6">
+                      <AvatarImage src={logo_url} alt={name} />
+                      <AvatarFallback>{name.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                  ) : (
+                    <Briefcase className="h-5 w-5 text-primary" />
+                  )}
+                  <CardTitle className="text-lg font-medium flex-grow pr-2">{name}</CardTitle>
+                  <Badge variant="secondary">{tasks.length}</Badge>
                 </CardHeader>
-                <CardContent className="p-4 space-y-3">
+                <CardContent className="p-4 pt-0 space-y-3"> {/* Ajustado padding */}
                   {tasks.map((task) => (
                     <TaskSummaryCard key={task.id} task={task} />
                   ))}
