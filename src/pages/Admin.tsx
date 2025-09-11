@@ -13,9 +13,18 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Link } from "react-router-dom";
-import { ArrowLeft, PlusCircle, Trash2 } from "lucide-react";
+import { ArrowLeft, PlusCircle, Trash2, Edit } from "lucide-react";
 import { PasswordInput } from "@/components/PasswordInput";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { EditUserModal } from "@/components/EditUserModal"; // Importar o novo modal
+
+interface UserProfile {
+  id: string;
+  email: string;
+  full_name: string | null;
+  avatar_url: string | null;
+  role: string;
+}
 
 const fetchUsers = async () => {
   const { data, error } = await supabase.functions.invoke("list-users");
@@ -26,12 +35,14 @@ const fetchUsers = async () => {
 const AdminPage = () => {
   const queryClient = useQueryClient();
   const [isCreateModalOpen, setCreateModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [userToEdit, setUserToEdit] = useState<UserProfile | null>(null);
   const [email, setEmail] = useState("");
   const [fullName, setFullName] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("user");
 
-  const { data: users, isLoading: isLoadingUsers } = useQuery({
+  const { data: users, isLoading: isLoadingUsers } = useQuery<UserProfile[]>({
     queryKey: ["users"],
     queryFn: fetchUsers,
   });
@@ -83,6 +94,26 @@ const AdminPage = () => {
     onError: (e: any) => showError(`Erro: ${e.message}`),
   });
 
+  const handleEditUser = (user: UserProfile) => {
+    setUserToEdit(user);
+    setIsEditModalOpen(true);
+  };
+
+  const handleSaveEditedUser = async (
+    userId: string,
+    updates: {
+      email?: string;
+      password?: string;
+      full_name?: string;
+      avatar_url?: string;
+    }
+  ) => {
+    await supabase.functions.invoke("update-user-profile", {
+      body: { userId, ...updates },
+    });
+    queryClient.invalidateQueries({ queryKey: ["users"] });
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 md:p-8">
       <header className="mb-8 flex justify-between items-center">
@@ -124,7 +155,7 @@ const AdminPage = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="user">Usuário (Cliente)</SelectItem>
-                    <SelectItem value="equipe">Equipe (Funcionário)</SelectItem> {/* Novo papel */}
+                    <SelectItem value="equipe">Equipe (Funcionário)</SelectItem>
                     <SelectItem value="admin">Admin (Funcionário)</SelectItem>
                   </SelectContent>
                 </Select>
@@ -172,10 +203,13 @@ const AdminPage = () => {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="user">Usuário (Cliente)</SelectItem>
-                          <SelectItem value="equipe">Equipe (Funcionário)</SelectItem> {/* Novo papel */}
+                          <SelectItem value="equipe">Equipe (Funcionário)</SelectItem>
                           <SelectItem value="admin">Admin (Funcionário)</SelectItem>
                         </SelectContent>
                       </Select>
+                      <Button variant="outline" size="icon" onClick={() => handleEditUser(user)}>
+                        <Edit className="h-4 w-4" />
+                      </Button>
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
                           <Button variant="destructive" size="icon">
@@ -205,6 +239,12 @@ const AdminPage = () => {
           </CardContent>
         </Card>
       </main>
+      <EditUserModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        user={userToEdit}
+        onSave={handleSaveEditedUser}
+      />
     </div>
   );
 };

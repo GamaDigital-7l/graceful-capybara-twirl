@@ -21,7 +21,7 @@ interface WorkspaceSettingsModalProps {
   workspace: Workspace | null;
 }
 
-const INTERNAL_WORKSPACE_NAME = "Tarefas Internas"; // Definir o nome do workspace interno
+const INTERNAL_WORKSPACE_NAME = "Tarefas"; // Renomeado de "Tarefas Internas" para "Tarefas"
 
 const fetchUsers = async () => {
   const { data, error } = await supabase.functions.invoke("list-users");
@@ -250,7 +250,7 @@ export function WorkspaceSettingsModal({ isOpen, onClose, workspace }: Workspace
               </AlertDialogContent>
             </AlertDialog>
             {isInternalWorkspace && (
-              <p className="text-sm text-yellow-600 mt-2">O workspace "Tarefas Internas" não pode ser deletado.</p>
+              <p className="text-sm text-yellow-600 mt-2">O workspace "Tarefas" não pode ser deletado.</p>
             )}
           </TabsContent>
         </Tabs>

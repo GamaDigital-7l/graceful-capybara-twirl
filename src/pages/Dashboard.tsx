@@ -27,7 +27,7 @@ export interface Workspace {
   logo_url: string | null;
 }
 
-const INTERNAL_WORKSPACE_NAME = "Tarefas Internas";
+const INTERNAL_WORKSPACE_NAME = "Tarefas"; // Renomeado de "Tarefas Internas" para "Tarefas"
 
 const fetchWorkspaces = async (): Promise<Workspace[]> => {
   const { data, error } = await supabase.from("workspaces").select("*");
@@ -235,7 +235,7 @@ const Dashboard = () => {
             <TabsTrigger value="clients">Clientes</TabsTrigger>
             {internalWorkspaceId && (
               <TabsTrigger value="internal-tasks">
-                <Briefcase className="h-4 w-4 mr-2" /> Tarefas Internas
+                <Briefcase className="h-4 w-4 mr-2" /> {INTERNAL_WORKSPACE_NAME}
               </TabsTrigger>
             )}
             <TabsTrigger value="agency-playbook">
