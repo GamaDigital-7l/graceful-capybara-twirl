@@ -21,6 +21,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import WorkspacePage from "./Workspace"; // Importar o componente WorkspacePage
 import { EmployeeDashboardPage } from "./EmployeeDashboardPage"; // Importar a nova página de funcionários
+import { ClientProgress } from "@/components/ClientProgress"; // Importar ClientProgress
 
 export interface Workspace {
   id: string;
@@ -239,9 +240,11 @@ const Dashboard = () => {
                 <Briefcase className="h-4 w-4 mr-2" /> {INTERNAL_WORKSPACE_NAME}
               </TabsTrigger>
             )}
-            <TabsTrigger value="employees"> {/* Alterado de "employees" para "equipe" */}
-              <Users className="h-4 w-4 mr-2" /> Equipe
-            </TabsTrigger>
+            {(userRole === 'admin') && ( // Menu 'Equipe' visível apenas para admin
+              <TabsTrigger value="employees">
+                <Users className="h-4 w-4 mr-2" /> Equipe
+              </TabsTrigger>
+            )}
             <TabsTrigger value="agency-playbook">
               <BookOpen className="h-4 w-4 mr-2" />
               Playbook da Agência
@@ -256,6 +259,9 @@ const Dashboard = () => {
         </div>
         <TabsContent value="tasks">
           <MyTasks />
+          <div className="mt-8"> {/* Adicionado ClientProgress aqui */}
+            <ClientProgress />
+          </div>
         </TabsContent>
         <TabsContent value="clients">
           {isLoadingWorkspaces ? (

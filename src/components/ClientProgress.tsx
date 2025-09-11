@@ -7,6 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Briefcase } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Task {
   id: string;
@@ -27,12 +29,18 @@ interface WorkspaceProgress {
   progress: number;
 }
 
-interface ClientProgressProps {
-  tasks: Task[] | undefined;
-  isLoading: boolean;
-}
+const fetchAllWorkspaceTasksForProgress = async (): Promise<Task[]> => {
+  const { data, error } = await supabase.rpc("get_all_workspace_tasks_for_progress");
+  if (error) throw new Error(error.message);
+  return data || [];
+};
 
-export function ClientProgress({ tasks, isLoading }: ClientProgressProps) {
+export function ClientProgress() {
+  const { data: tasks, isLoading } = useQuery<Task[]>({
+    queryKey: ["all_workspace_tasks_for_progress"],
+    queryFn: fetchAllWorkspaceTasksForProgress,
+  });
+
   const progressByWorkspace = useMemo(() => {
     if (!tasks) return {};
 
@@ -51,7 +59,7 @@ export function ClientProgress({ tasks, isLoading }: ClientProgressProps) {
         };
       }
 
-      if (task.column_title === "Em Produção" || task.column_title === "Editar") {
+      if (task.column_title === "Em Produção" || task.column_title === "Editar" || task.column_title === "Solicitações") {
         grouped[task.workspace_id].pending++;
       } else if (task.column_title === "Para aprovação" || task.column_title === "Aprovado") {
         grouped[task.workspace_id].completed++;

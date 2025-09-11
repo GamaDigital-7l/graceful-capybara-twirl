@@ -10,8 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "./ui/badge";
 import { Briefcase } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { ClientProgress } from "./ClientProgress"; // Adicionado de volta
-import { useIsMobile } from "@/hooks/use-mobile"; // Adicionado de volta
+// ClientProgress e useIsMobile removidos daqui, pois ClientProgress será movido para Dashboard.tsx
 
 const fetchUserTasks = async () => {
   const { data, error } = await supabase.rpc("get_user_tasks");
@@ -24,8 +23,6 @@ export function MyTasks() {
     queryKey: ["user_tasks"],
     queryFn: fetchUserTasks,
   });
-
-  const isMobile = useIsMobile(); // Adicionado de volta
 
   const { pendingTasks, completedTasks } = useMemo(() => {
     if (!tasks) return { pendingTasks: [], completedTasks: [] };
@@ -57,17 +54,10 @@ export function MyTasks() {
             <Skeleton className="h-28" />
             <Skeleton className="h-28" />
         </div>
-        <div className="grid lg:grid-cols-2 gap-8"> {/* Ajustado para 2 colunas */}
-            <div className="space-y-4">
-                <Skeleton className="h-8 w-48 mb-4" />
-                <Skeleton className="h-40" />
-                <Skeleton className="h-40" />
-            </div>
-            <div className="space-y-4">
-                <Skeleton className="h-8 w-48 mb-4" />
-                <Skeleton className="h-40" />
-                <Skeleton className="h-40" />
-            </div>
+        <div className="space-y-4">
+            <Skeleton className="h-8 w-48 mb-4" />
+            <Skeleton className="h-40" />
+            <Skeleton className="h-40" />
         </div>
       </div>
     );
@@ -76,43 +66,36 @@ export function MyTasks() {
   return (
     <div>
       <TaskStats pendingCount={pendingTasks.length} completedCount={completedTasks.length} />
-      <div className="flex flex-col lg:grid lg:grid-cols-2 gap-8 items-start"> {/* Ajustado para 2 colunas */}
-        <div className="w-full"> {/* Conteúdo principal para tarefas */}
-          <h2 className="text-2xl font-bold mb-4">Caixa de Entrada de Tarefas</h2>
-          {pendingTasks.length > 0 ? (
-            <div className="space-y-6">
-              {Object.entries(groupedTasks).map(([workspaceId, { name, logo_url, tasks }]) => (
-                <Card key={workspaceId}>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-3">
-                      {logo_url ? (
-                        <Avatar className="h-6 w-6">
-                          <AvatarImage src={logo_url} alt={name} />
-                          <AvatarFallback>{name.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                      ) : (
-                        <Briefcase className="h-5 w-5 text-primary" />
-                      )}
-                      {name}
-                      <Badge variant="secondary">{tasks.length}</Badge>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-4 space-y-3">
-                    {tasks.map((task) => (
-                      <TaskSummaryCard key={task.id} task={task} />
-                    ))}
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          ) : (
-            <p className="text-muted-foreground mt-4">Nenhuma tarefa pendente. Bom trabalho!</p>
-          )}
-        </div>
-        {!isMobile && (
-          <div className="w-full lg:sticky lg:top-24">
-            <ClientProgress tasks={tasks} isLoading={isLoading} />
+      <div className="w-full">
+        <h2 className="text-2xl font-bold mb-4">Caixa de Entrada de Tarefas</h2>
+        {pendingTasks.length > 0 ? (
+          <div className="space-y-6">
+            {Object.entries(groupedTasks).map(([workspaceId, { name, logo_url, tasks }]) => (
+              <Card key={workspaceId}>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-3">
+                    {logo_url ? (
+                      <Avatar className="h-6 w-6">
+                        <AvatarImage src={logo_url} alt={name} />
+                        <AvatarFallback>{name.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                    ) : (
+                      <Briefcase className="h-5 w-5 text-primary" />
+                    )}
+                    {name}
+                    <Badge variant="secondary">{tasks.length}</Badge>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-4 space-y-3">
+                  {tasks.map((task) => (
+                    <TaskSummaryCard key={task.id} task={task} />
+                  ))}
+                </CardContent>
+              </Card>
+            ))}
           </div>
+        ) : (
+          <p className="text-muted-foreground mt-4">Nenhuma tarefa pendente. Bom trabalho!</p>
         )}
       </div>
     </div>
