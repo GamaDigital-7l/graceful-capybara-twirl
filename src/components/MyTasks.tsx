@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TaskSummaryCard } from "./TaskSummaryCard";
-import { TaskStats } from "./TaskStats";
+import { TaskStats } from "./TaskStats"; // TaskStats agora retorna apenas os cards
 import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "./ui/badge";
@@ -49,10 +49,11 @@ export function MyTasks() {
   if (isLoading) {
     return (
       <div>
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-8">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8"> {/* Ajustado para 4 colunas */}
             <Skeleton className="h-28" />
             <Skeleton className="h-28" />
             <Skeleton className="h-28" />
+            <Skeleton className="h-28" /> {/* Adicionado skeleton para o ClientProgress */}
         </div>
         <div className="space-y-4">
             <Skeleton className="h-8 w-48 mb-4" />
@@ -65,9 +66,9 @@ export function MyTasks() {
 
   return (
     <div>
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8"> {/* Ajustado para 4 colunas */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"> {/* Uma única grade para todos os 4 cards */}
         <TaskStats pendingCount={pendingTasks.length} completedCount={completedTasks.length} />
-        <ClientProgress /> {/* Movido para cá */}
+        <ClientProgress />
       </div>
       <div className="w-full">
         <h2 className="text-2xl font-bold mb-4">Caixa de Entrada de Tarefas</h2>
