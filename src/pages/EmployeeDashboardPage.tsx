@@ -69,9 +69,12 @@ export function EmployeeDashboardPage() {
     allTasks.forEach(task => {
       if (task.assigned_to && progressMap[task.assigned_to]) {
         progressMap[task.assigned_to].total++;
-        if (task.column_title === "Aprovado") {
+        // Contabiliza como concluída se estiver em "Aprovado" OU "Para aprovação"
+        if (task.column_title === "Aprovado" || task.column_title === "Para aprovação") {
           progressMap[task.assigned_to].completed++;
-        } else {
+        } 
+        // Contabiliza como pendente se estiver em "Em Produção" OU "Editar"
+        else if (task.column_title === "Em Produção" || task.column_title === "Editar") {
           progressMap[task.assigned_to].pending++;
         }
       }

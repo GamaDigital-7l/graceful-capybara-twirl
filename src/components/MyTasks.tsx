@@ -10,8 +10,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "./ui/badge";
 import { Briefcase } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { ClientProgress } from "./ClientProgress"; // Import ClientProgress
-import { useIsMobile } from "@/hooks/use-mobile"; // Import useIsMobile
+// import { ClientProgress } from "./ClientProgress"; // Removido
+// import { useIsMobile } from "@/hooks/use-mobile"; // Removido
 
 const fetchUserTasks = async () => {
   const { data, error } = await supabase.rpc("get_user_tasks");
@@ -25,7 +25,7 @@ export function MyTasks() {
     queryFn: fetchUserTasks,
   });
 
-  const isMobile = useIsMobile(); // Use o hook para detectar mobile
+  // const isMobile = useIsMobile(); // Removido
 
   const { pendingTasks, completedTasks } = useMemo(() => {
     if (!tasks) return { pendingTasks: [], completedTasks: [] };
@@ -57,14 +57,11 @@ export function MyTasks() {
             <Skeleton className="h-28" />
             <Skeleton className="h-28" />
         </div>
-        <div className="grid lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2 space-y-4">
+        <div className="grid lg:grid-cols-1 gap-8"> {/* Ajustado para 1 coluna */}
+            <div className="space-y-4">
                 <Skeleton className="h-8 w-48 mb-4" />
                 <Skeleton className="h-40" />
                 <Skeleton className="h-40" />
-            </div>
-            <div>
-                <Skeleton className="h-64" />
             </div>
         </div>
       </div>
@@ -74,13 +71,8 @@ export function MyTasks() {
   return (
     <div>
       <TaskStats pendingCount={pendingTasks.length} completedCount={completedTasks.length} />
-      <div className="flex flex-col lg:grid lg:grid-cols-3 gap-8 items-start">
-        {isMobile && (
-          <div className="w-full lg:col-span-1"> {/* No mobile, ocupa a largura total e vem primeiro */}
-            <ClientProgress tasks={tasks} isLoading={isLoading} />
-          </div>
-        )}
-        <div className="lg:col-span-2 w-full"> {/* Conteúdo principal para tarefas */}
+      <div className="flex flex-col lg:grid lg:grid-cols-1 gap-8 items-start"> {/* Ajustado para 1 coluna */}
+        <div className="w-full"> {/* Conteúdo principal para tarefas */}
           <h2 className="text-2xl font-bold mb-4">Caixa de Entrada de Tarefas</h2>
           {pendingTasks.length > 0 ? (
             <div className="space-y-6">
@@ -112,11 +104,6 @@ export function MyTasks() {
             <p className="text-muted-foreground mt-4">Nenhuma tarefa pendente. Bom trabalho!</p>
           )}
         </div>
-        {!isMobile && (
-          <div className="lg:col-span-1 w-full"> {/* No desktop, ocupa 1/3 da largura e vem por último */}
-            <ClientProgress tasks={tasks} isLoading={isLoading} />
-          </div>
-        )}
       </div>
     </div>
   );
