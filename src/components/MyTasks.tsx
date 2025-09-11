@@ -83,9 +83,8 @@ export function MyTasks() {
             <div className="space-y-6">
               {Object.entries(groupedTasks).map(([workspaceId, { name, logo_url, tasks }]) => (
                 <Card key={workspaceId}>
-                  {/* CardHeader removido conforme solicitado */}
-                  <CardContent className="p-4 space-y-3">
-                    <div className="flex items-center gap-3 mb-2"> {/* Novo div para o título do workspace */}
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-3">
                       {logo_url ? (
                         <Avatar className="h-6 w-6">
                           <AvatarImage src={logo_url} alt={name} />
@@ -94,11 +93,11 @@ export function MyTasks() {
                       ) : (
                         <Briefcase className="h-5 w-5 text-primary" />
                       )}
-                      <CardTitle className="text-lg flex items-center gap-2">
-                        {name}
-                        <Badge variant="secondary">{tasks.length}</Badge>
-                      </CardTitle>
-                    </div>
+                      {name}
+                      <Badge variant="secondary">{tasks.length}</Badge>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-4 space-y-3">
                     {tasks.map((task) => (
                       <TaskSummaryCard key={task.id} task={task} />
                     ))}
@@ -112,7 +111,7 @@ export function MyTasks() {
         </div>
         {!isMobile && (
           <div className="w-full lg:sticky lg:top-24">
-            <ClientProgress />
+            <ClientProgress tasks={tasks} isLoading={isLoading} />
           </div>
         )}
       </div>
