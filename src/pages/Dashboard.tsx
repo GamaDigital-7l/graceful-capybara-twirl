@@ -31,10 +31,32 @@ export interface Workspace {
 
 const INTERNAL_WORKSPACE_NAME = "Tarefas"; // Renomeado de "Tarefas Internas" para "Tarefas"
 
-const fetchWorkspaces = async (): Promise<Workspace[]> => {
-  const { data, error } = await supabase.from("workspaces").select("*");
+// Modificado para aceitar userRole e userId
+const fetchWorkspaces = async (userRole: string | null, userId: string | undefined): Promise<Workspace[]> => {
+  if (!userId) return []; // Não há usuário, não há workspaces para buscar
+
+  let query;
+  if (userRole === 'user') {
+    // Para o papel 'user', explicitamente faz um join com workspace_members
+    // para obter apenas os workspaces aos quais o usuário pertence.
+    query = supabase
+      .from("workspace_members")
+      .select("workspaces(id, name, logo_url)")
+      .eq("user_id", userId);
+  } else {
+    // Para 'admin' ou 'equipe', busca todos os workspaces.
+    // As políticas de RLS ainda se aplicarão, mas eles geralmente têm acesso mais amplo.
+    query = supabase.from("workspaces").select("id, name, logo_url");
+  }
+
+  const { data, error } = await query;
   if (error) throw new Error(error.message);
-  return data;
+
+  if (userRole === 'user' && data) {
+    // A estrutura de dados retornada por um join é aninhada, então precisamos achatá-la.
+    return data.map((item: any) => item.workspaces);
+  }
+  return data || [];
 };
 
 const Dashboard = () => {
@@ -43,20 +65,17 @@ const Dashboard = () => {
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [selectedWorkspace, setSelectedWorkspace] = useState<Workspace | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<string | undefined>(undefined); // Novo estado para o ID do usuário
   const [isProfileLoading, setProfileLoading] = useState(true);
   const isMobile = useIsMobile();
   const [internalWorkspaceId, setInternalWorkspaceId] = useState<string | null>(null);
-
-  const { data: workspaces, isLoading: isLoadingWorkspaces } = useQuery<Workspace[]>({
-    queryKey: ["workspaces"],
-    queryFn: fetchWorkspaces,
-  });
 
   useEffect(() => {
     const ensureUserProfile = async () => {
       setProfileLoading(true);
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
+        setCurrentUserId(user.id); // Define o ID do usuário aqui
         let { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
         if (!profile) {
           const { data: newProfile, error } = await supabase.from('profiles').insert({ id: user.id, role: 'user' }).select('role').single();
@@ -67,6 +86,9 @@ const Dashboard = () => {
           }
         }
         setUserRole(profile?.role || null);
+      } else {
+        setCurrentUserId(undefined); // Limpa o ID se não houver usuário
+        setUserRole(null);
       }
       setProfileLoading(false);
     };
