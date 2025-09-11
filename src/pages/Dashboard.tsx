@@ -33,10 +33,14 @@ const INTERNAL_WORKSPACE_NAME = "Tarefas"; // Renomeado de "Tarefas Internas" pa
 
 // Modificado para aceitar userRole e userId
 const fetchWorkspaces = async (userRole: string | null, userId: string | undefined): Promise<Workspace[]> => {
-  if (!userId) return []; // Não há usuário, não há workspaces para buscar
+  if (!userId) {
+    console.log("fetchWorkspaces: userId is undefined, returning empty array.");
+    return []; // Não há usuário, não há workspaces para buscar
+  }
 
   let query;
   if (userRole === 'user') {
+    console.log(`fetchWorkspaces: Fetching for user role '${userRole}' with userId '${userId}'`);
     // Para o papel 'user', explicitamente faz um join com workspace_members
     // para obter apenas os workspaces aos quais o usuário pertence.
     query = supabase
@@ -44,13 +48,18 @@ const fetchWorkspaces = async (userRole: string | null, userId: string | undefin
       .select("workspaces(id, name, logo_url)")
       .eq("user_id", userId);
   } else {
+    console.log(`fetchWorkspaces: Fetching for staff role '${userRole}'`);
     // Para 'admin' ou 'equipe', busca todos os workspaces.
     // As políticas de RLS ainda se aplicarão, mas eles geralmente têm acesso mais amplo.
     query = supabase.from("workspaces").select("id, name, logo_url");
   }
 
   const { data, error } = await query;
-  if (error) throw new Error(error.message);
+  if (error) {
+    console.error("fetchWorkspaces Error:", error.message);
+    throw new Error(error.message);
+  }
+  console.log("fetchWorkspaces Data:", data);
 
   if (userRole === 'user' && data) {
     // A estrutura de dados retornada por um join é aninhada, então precisamos achatá-la.
@@ -100,6 +109,9 @@ const Dashboard = () => {
     queryFn: () => fetchWorkspaces(userRole, currentUserId), // Passar argumentos
     enabled: !!userRole && !!currentUserId, // Só executa quando userRole e currentUserId estão disponíveis
   });
+
+  console.log("Dashboard State:", { userRole, currentUserId, isLoadingWorkspaces, workspaces });
+
 
   useEffect(() => {
     const ensureInternalWorkspace = async () => {
