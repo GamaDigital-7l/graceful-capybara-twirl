@@ -40,12 +40,12 @@ const fetchWorkspaces = async (userRole: string | null, userId: string | undefin
   let query;
   if (userRole === 'user') {
     console.log(`fetchWorkspaces: Fetching for user role '${userRole}' with userId '${userId}'`);
-    // Para o papel 'user', explicitamente faz um join com workspace_members
-    // para obter apenas os workspaces aos quais o usuário pertence.
+    // Para o papel 'user', consulta diretamente 'workspaces'.
+    // A política de RLS "Users can view workspaces they belong to." na tabela 'workspaces'
+    // que usa 'is_member_of(id)' irá automaticamente filtrar os resultados.
     query = supabase
-      .from("workspace_members")
-      .select("workspaces(id, name, logo_url)")
-      .eq("user_id", userId);
+      .from("workspaces")
+      .select("id, name, logo_url");
   } else {
     console.log(`fetchWorkspaces: Fetching for staff role '${userRole}'`);
     // Para 'admin' ou 'equipe', busca todos os workspaces.
@@ -60,13 +60,8 @@ const fetchWorkspaces = async (userRole: string | null, userId: string | undefin
   }
   console.log("fetchWorkspaces Raw Data:", data);
 
-  if (userRole === 'user' && data) {
-    // A estrutura de dados retornada por um join é aninhada, então precisamos achatá-la.
-    const clientWorkspaces = data.map((item: any) => item.workspaces);
-    console.log("fetchWorkspaces Client Workspaces (mapped):", clientWorkspaces);
-    return clientWorkspaces;
-  }
-  console.log("fetchWorkspaces Returning Data:", data);
+  // Não é mais necessário mapear se estamos consultando 'workspaces' diretamente para o papel 'user'
+  // Os dados já virão no formato Workspace[].
   return data || [];
 };
 
