@@ -27,7 +27,7 @@ export function MyTasks() {
   const { pendingTasks, completedTasks } = useMemo(() => {
     if (!tasks) return { pendingTasks: [], completedTasks: [] };
     const pending = tasks.filter(
-      (task) => task.column_title === "Em Produção" || task.column_title === "Editar"
+      (task) => task.column_title === "Em Produção" || task.column_title === "Editar" || task.column_title === "Solicitações"
     );
     const completed = tasks.filter(
       (task) => task.column_title === "Para aprovação" || task.column_title === "Aprovado"
