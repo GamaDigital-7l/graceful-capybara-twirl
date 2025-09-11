@@ -9,7 +9,7 @@ import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { PlusCircle, Settings, LogOut, UserCog, BookOpen, Palette, MoreVertical, Banknote, Brain, Briefcase } from "lucide-react";
+import { PlusCircle, Settings, LogOut, UserCog, BookOpen, Palette, MoreVertical, Banknote, Brain, Briefcase, Users } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { WorkspaceSettingsModal } from "@/components/WorkspaceSettingsModal";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -20,6 +20,7 @@ import AgencyPlaybookPage from "./AgencyPlaybookPage";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import WorkspacePage from "./Workspace"; // Importar o componente WorkspacePage
+import { EmployeeDashboardPage } from "./EmployeeDashboardPage"; // Importar a nova página de funcionários
 
 export interface Workspace {
   id: string;
@@ -238,6 +239,9 @@ const Dashboard = () => {
                 <Briefcase className="h-4 w-4 mr-2" /> {INTERNAL_WORKSPACE_NAME}
               </TabsTrigger>
             )}
+            <TabsTrigger value="employees">
+              <Users className="h-4 w-4 mr-2" /> Funcionários
+            </TabsTrigger>
             <TabsTrigger value="agency-playbook">
               <BookOpen className="h-4 w-4 mr-2" />
               Playbook da Agência
@@ -298,6 +302,9 @@ const Dashboard = () => {
           ) : (
             <Skeleton className="h-64 w-full" />
           )}
+        </TabsContent>
+        <TabsContent value="employees">
+          <EmployeeDashboardPage />
         </TabsContent>
         <TabsContent value="agency-playbook">
           <AgencyPlaybookPage />

@@ -14,6 +14,7 @@ import FinancialDashboard from "./pages/FinancialDashboard";
 import SecondBrainDashboard from "./pages/SecondBrainDashboard";
 import ClientPromptsPage from "./pages/ClientPromptsPage";
 import PublicApprovalPage from "./pages/PublicApprovalPage";
+import EmployeeDetailsPage from "./pages/EmployeeDetailsPage"; // Importar a nova página de detalhes do funcionário
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -91,6 +92,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <ClientPromptsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/employees/:employeeId"
+              element={
+                <ProtectedRoute>
+                  <EmployeeDetailsPage />
                 </ProtectedRoute>
               }
             />
