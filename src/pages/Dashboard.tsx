@@ -120,13 +120,6 @@ const Dashboard = () => {
     ensureInternalWorkspace();
   }, [userRole, isLoadingWorkspaces, workspaces, queryClient]);
 
-  // REMOVIDO: Redirecionamento automático para o workspace único do cliente
-  // useEffect(() => {
-  //   if (!isLoadingWorkspaces && userRole === 'user' && workspaces && workspaces.length === 1) {
-  //     navigate(`/workspace/${workspaces[0].id}`);
-  //   }
-  // }, [workspaces, isLoadingWorkspaces, userRole, navigate]);
-
   const createWorkspaceMutation = useMutation({
     mutationFn: async (name: string) => {
       const { data, error } = await supabase.from("workspaces").insert({ name }).select().single();
@@ -324,7 +317,7 @@ const Dashboard = () => {
     if (userRole === 'admin' || userRole === 'equipe') {
       return renderStaffDashboard();
     }
-    if (userRole === 'user' && workspaces) { // Removido a condição workspaces.length > 0 para sempre renderizar ClientDashboard
+    if (userRole === 'user' && workspaces) {
       return <ClientDashboard workspaces={workspaces} />;
     }
     return <div className="text-center p-8">Carregando seus projetos...</div>;

@@ -5,9 +5,9 @@ import { Workspace } from "./Dashboard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { CalendarWidget } from "@/components/CalendarWidget";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"; // Importar DropdownMenu
-import { MoreVertical, LayoutDashboard, BookOpen } from "lucide-react"; // Importar ícones
+// import { CalendarWidget } from "@/components/CalendarWidget"; // Removido
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { MoreVertical, LayoutDashboard, BookOpen } from "lucide-react";
 
 interface ClientDashboardProps {
   workspaces: Workspace[];
@@ -16,7 +16,7 @@ interface ClientDashboardProps {
 const ClientDashboard = ({ workspaces }: ClientDashboardProps) => {
   return (
     <div className="space-y-8">
-      <CalendarWidget />
+      {/* CalendarWidget removido daqui */}
 
       <div>
         <h2 className="text-2xl font-bold mb-4">Seus Projetos</h2>
