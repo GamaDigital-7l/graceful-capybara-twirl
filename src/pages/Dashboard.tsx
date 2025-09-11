@@ -95,6 +95,12 @@ const Dashboard = () => {
     ensureUserProfile();
   }, []);
 
+  const { data: workspaces, isLoading: isLoadingWorkspaces } = useQuery<Workspace[]>({
+    queryKey: ["workspaces", userRole, currentUserId], // Adicionar userRole e currentUserId à queryKey
+    queryFn: () => fetchWorkspaces(userRole, currentUserId), // Passar argumentos
+    enabled: !!userRole && !!currentUserId, // Só executa quando userRole e currentUserId estão disponíveis
+  });
+
   useEffect(() => {
     const ensureInternalWorkspace = async () => {
       if ((userRole === 'admin' || userRole === 'equipe') && !isLoadingWorkspaces && workspaces) {
@@ -122,7 +128,7 @@ const Dashboard = () => {
             const { data: staffUsers, error: staffError } = await supabase.from('profiles').select('id').in('role', ['admin', 'equipe']);
             if (staffError) console.error("Error fetching staff users:", staffError);
             
-            if (staffUsers) {
+            if (staffUsers && currentUser) { // Adicionado verificação para currentUser aqui
               const otherStaffMembers = staffUsers.filter(sUser => sUser.id !== currentUser.id);
               const memberInserts = otherStaffMembers.map(sUser => ({
                 workspace_id: internalWs.id,
