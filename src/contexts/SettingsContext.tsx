@@ -5,19 +5,18 @@ import { supabase } from "@/integrations/supabase/client";
 
 interface AppSettings {
   app_name?: string;
-  favicon_url?: string;
+  // favicon_url?: string; // Removido, pois será fixo no index.html
   logo_url?: string;
   primary_color?: string;
   background_color?: string;
-  site_url?: string; // Adicionar site_url à interface
-  whatsapp_message_template?: string; // Adicionar whatsapp_message_template
+  site_url?: string;
+  whatsapp_message_template?: string;
 }
 
 const SettingsContext = createContext<AppSettings | null | undefined>(undefined);
 
 export const useSettings = () => {
   const context = useContext(SettingsContext);
-  // Não lançar erro aqui, pois o contexto pode ser undefined durante a inicialização ou se não houver settings
   return context;
 };
 
@@ -60,11 +59,11 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
         document.title = settings.app_name;
       }
 
-      // Aplicar Favicon
-      const favicon = document.querySelector("link[rel='icon']") || document.createElement('link');
-      favicon.setAttribute('rel', 'icon');
-      favicon.setAttribute('href', settings.favicon_url || '/favicon.ico');
-      document.head.appendChild(favicon);
+      // Favicon agora é gerenciado diretamente no index.html
+      // const favicon = document.querySelector("link[rel='icon']") || document.createElement('link');
+      // favicon.setAttribute('rel', 'icon');
+      // favicon.setAttribute('href', settings.favicon_url || '/favicon.ico');
+      // document.head.appendChild(favicon);
 
       // Aplicar cores
       const root = document.documentElement;

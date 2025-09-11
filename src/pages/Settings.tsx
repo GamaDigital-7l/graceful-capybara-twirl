@@ -26,7 +26,7 @@ const SettingsPage = () => {
   const [primaryColor, setPrimaryColor] = useState("");
   const [backgroundColor, setBackgroundColor] = useState("");
   const [logoFile, setLogoFile] = useState<File | null>(null);
-  const [faviconFile, setFaviconFile] = useState<File | null>(null);
+  // const [faviconFile, setFaviconFile] = useState<File | null>(null); // Removido
   const [telegramBotToken, setTelegramBotToken] = useState("");
   const [telegramChatId, setTelegramChatId] = useState("");
   const [whatsappMessageTemplate, setWhatsappMessageTemplate] = useState("");
@@ -64,7 +64,7 @@ const SettingsPage = () => {
   const handleSave = async () => {
     setIsUploading(true);
     let logoUrl = settings.logo_url;
-    let faviconUrl = settings.favicon_url;
+    // let faviconUrl = settings.favicon_url; // Removido
 
     if (logoFile) {
       const { data, error } = await supabase.storage.from("logos").upload(`public/logo`, logoFile, { upsert: true });
@@ -72,11 +72,12 @@ const SettingsPage = () => {
       logoUrl = supabase.storage.from("logos").getPublicUrl(data.path).data.publicUrl;
     }
 
-    if (faviconFile) {
-      const { data, error } = await supabase.storage.from("logos").upload(`public/favicon`, faviconFile, { upsert: true });
-      if (error) { showError("Erro ao enviar favicon."); setIsUploading(false); return; }
-      faviconUrl = supabase.storage.from("logos").getPublicUrl(data.path).data.publicUrl;
-    }
+    // Favicon agora é gerenciado diretamente no index.html, não precisa de upload aqui
+    // if (faviconFile) {
+    //   const { data, error } = await supabase.storage.from("logos").upload(`public/favicon`, faviconFile, { upsert: true });
+    //   if (error) { showError("Erro ao enviar favicon."); setIsUploading(false); return; }
+    //   faviconUrl = supabase.storage.from("logos").getPublicUrl(data.path).data.publicUrl;
+    // }
 
     // Remove a barra final da URL do site antes de salvar
     const cleanedSiteUrl = siteUrl.endsWith('/') ? siteUrl.slice(0, -1) : siteUrl;
@@ -87,7 +88,7 @@ const SettingsPage = () => {
       primary_color: primaryColor,
       background_color: backgroundColor,
       logo_url: logoUrl,
-      favicon_url: faviconUrl,
+      // favicon_url: faviconUrl, // Removido
       telegram_bot_token: telegramBotToken,
       telegram_chat_id: telegramChatId,
       whatsapp_message_template: whatsappMessageTemplate,
@@ -128,13 +129,14 @@ const SettingsPage = () => {
                 <Button asChild variant="outline"><Label htmlFor="logo-upload" className="cursor-pointer"><Upload className="h-4 w-4 mr-2" /> <Input id="logo-upload" type="file" className="sr-only" onChange={(e) => setLogoFile(e.target.files?.[0] || null)} accept="image/*" /></Label></Button>
               </div>
             </div>
-            <div className="space-y-2">
+            {/* Favicon upload removido */}
+            {/* <div className="space-y-2">
               <Label>Favicon (ícone da aba do navegador)</Label>
               <div className="flex items-center gap-2">
                 <Input id="favicon-display" placeholder={faviconFile ? faviconFile.name : "Nenhum arquivo selecionado"} readOnly className="flex-grow" />
                 <Button asChild variant="outline"><Label htmlFor="favicon-upload" className="cursor-pointer"><Upload className="h-4 w-4" /> <Input id="favicon-upload" type="file" className="sr-only" onChange={(e) => setFaviconFile(e.target.files?.[0] || null)} accept="image/x-icon,image/png,image/svg+xml" /></Label></Button>
               </div>
-            </div>
+            </div> */}
             <div className="space-y-2">
               <Label htmlFor="primaryColor">Cor Primária (Botões e Destaques)</Label>
               <Input id="primaryColor" value={primaryColor} onChange={(e) => setPrimaryColor(e.target.value)} />
