@@ -81,7 +81,7 @@ export function MyTasks() {
       <div className="w-full">
         <h2 className="text-2xl font-bold mb-4">Caixa de Entrada de Tarefas</h2>
         {pendingTasks.length > 0 ? (
-          <div className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6"> {/* Ajustado para grade de 2 colunas no desktop */}
             {Object.entries(groupedTasks).map(([workspaceId, { name, logo_url, tasks }]) => (
               <Card key={workspaceId}>
                 <CardHeader>
