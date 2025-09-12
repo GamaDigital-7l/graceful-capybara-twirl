@@ -29,6 +29,8 @@ const SettingsPage = () => {
   // const [faviconFile, setFaviconFile] = useState<File | null>(null); // Removido
   const [telegramBotToken, setTelegramBotToken] = useState("");
   const [telegramChatId, setTelegramChatId] = useState("");
+  const [telegramBotTokenDeadlines, setTelegramBotTokenDeadlines] = useState(""); // Novo estado
+  const [telegramChatIdDeadlines, setTelegramChatIdDeadlines] = useState(""); // Novo estado
   const [whatsappMessageTemplate, setWhatsappMessageTemplate] = useState("");
   const [isUploading, setIsUploading] = useState(false);
 
@@ -45,6 +47,8 @@ const SettingsPage = () => {
       setBackgroundColor(settings.background_color || "");
       setTelegramBotToken(settings.telegram_bot_token || "");
       setTelegramChatId(settings.telegram_chat_id || "");
+      setTelegramBotTokenDeadlines(settings.telegram_bot_token_deadlines || ""); // Carregar novo estado
+      setTelegramChatIdDeadlines(settings.telegram_chat_id_deadlines || ""); // Carregar novo estado
       setWhatsappMessageTemplate(settings.whatsapp_message_template || "");
     }
   }, [settings]);
@@ -91,6 +95,8 @@ const SettingsPage = () => {
       // favicon_url: faviconUrl, // Removido
       telegram_bot_token: telegramBotToken,
       telegram_chat_id: telegramChatId,
+      telegram_bot_token_deadlines: telegramBotTokenDeadlines, // Salvar novo token
+      telegram_chat_id_deadlines: telegramChatIdDeadlines,     // Salvar novo chat ID
       whatsapp_message_template: whatsappMessageTemplate,
     });
     setIsUploading(false);
@@ -162,7 +168,7 @@ const SettingsPage = () => {
               <p className="text-xs text-muted-foreground">Esta mensagem será usada ao gerar links de aprovação.</p>
             </div>
             <div className="border-t pt-6 space-y-4">
-                <h3 className="text-lg font-medium">Notificações do Telegram</h3>
+                <h3 className="text-lg font-medium">Notificações do Telegram (Aprovações/Edições)</h3>
                 <div className="space-y-2">
                     <Label htmlFor="telegram-token">Token do Bot do Telegram</Label>
                     <PasswordInput id="telegram-token" value={telegramBotToken} onChange={(e) => setTelegramBotToken(e.target.value)} />
@@ -170,6 +176,18 @@ const SettingsPage = () => {
                 <div className="space-y-2">
                     <Label htmlFor="telegram-chat-id">Chat ID do Telegram</Label>
                     <Input id="telegram-chat-id" value={telegramChatId} onChange={(e) => setTelegramChatId(e.target.value)} />
+                </div>
+            </div>
+            <div className="border-t pt-6 space-y-4">
+                <h3 className="text-lg font-medium">Notificações do Telegram (Prazos de Tarefas)</h3>
+                <p className="text-sm text-muted-foreground">Use um bot e chat diferentes para avisos de prazos.</p>
+                <div className="space-y-2">
+                    <Label htmlFor="telegram-token-deadlines">Token do Bot do Telegram (Prazos)</Label>
+                    <PasswordInput id="telegram-token-deadlines" value={telegramBotTokenDeadlines} onChange={(e) => setTelegramBotTokenDeadlines(e.target.value)} />
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="telegram-chat-id-deadlines">Chat ID do Telegram (Prazos)</Label>
+                    <Input id="telegram-chat-id-deadlines" value={telegramChatIdDeadlines} onChange={(e) => setTelegramChatIdDeadlines(e.target.value)} />
                 </div>
             </div>
           </CardContent>

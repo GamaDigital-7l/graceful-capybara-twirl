@@ -22,6 +22,17 @@ serve(async (req) => {
     const twoHoursFromNow = addHours(now, 2);
     const thirtyMinutesFromNow = addMinutes(now, 30);
 
+    // Fetch settings for deadline-specific Telegram credentials
+    const { data: settings, error: settingsError } = await supabaseAdmin
+      .from("app_settings")
+      .select("telegram_bot_token_deadlines, telegram_chat_id_deadlines")
+      .eq("id", 1)
+      .single();
+
+    if (settingsError) throw settingsError;
+
+    const { telegram_bot_token_deadlines, telegram_chat_id_deadlines } = settings;
+
     // Fetch tasks that are not yet approved or awaiting approval
     const { data: tasks, error: tasksError } = await supabaseAdmin
       .from("tasks")
@@ -87,10 +98,21 @@ serve(async (req) => {
     }
 
     for (const notification of notificationsToSend) {
-      // Send Telegram notification
-      await supabaseAdmin.functions.invoke("send-telegram-notification", {
-        body: { message: notification.message },
-      });
+      // Send Telegram notification using deadline-specific credentials
+      if (telegram_bot_token_deadlines && telegram_chat_id_deadlines) {
+        const telegramUrl = `https://api.telegram.org/bot${telegram_bot_token_deadlines}/sendMessage`;
+        await fetch(telegramUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            chat_id: telegram_chat_id_deadlines,
+            text: notification.message,
+            parse_mode: "Markdown",
+          }),
+        });
+      } else {
+        console.warn("Telegram deadline notification settings not configured. Skipping notification for task:", notification.taskId);
+      }
 
       // Update task with last notified timestamp
       const updateField = notification.type === "2hr" ? "last_notified_2hr_at" : "last_notified_30min_at";
