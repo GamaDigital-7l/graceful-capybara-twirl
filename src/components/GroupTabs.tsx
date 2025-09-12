@@ -77,7 +77,7 @@ const SortableGroupTab = ({
     >
       <TabsTrigger
         value={group.id}
-        className="flex-grow cursor-grab data-[state=active]:shadow-sm"
+        className="flex-grow cursor-grab data-[state=active]:shadow-sm flex-shrink-0" // Adicionado flex-shrink-0
         {...attributes}
         {...listeners}
       >
@@ -181,7 +181,7 @@ export function GroupTabs({
             items={groups.map((g) => g.id)}
             strategy={horizontalListSortingStrategy}
           >
-            <TabsList>
+            <TabsList className="inline-flex h-auto p-1"> {/* inline-flex para rolagem horizontal */}
               {groups.map((group) => (
                 <SortableGroupTab
                   key={group.id}

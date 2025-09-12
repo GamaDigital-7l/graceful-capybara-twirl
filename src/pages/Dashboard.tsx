@@ -279,26 +279,28 @@ const Dashboard = () => {
     return (
       <Tabs defaultValue="tasks">
         <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between mb-6">
-          <TabsList>
-            <TabsTrigger value="tasks">Minhas Tarefas</TabsTrigger>
-            <TabsTrigger value="clients">Clientes</TabsTrigger>
-            {internalWorkspaceId && (
-              <TabsTrigger value="internal-tasks">
-                <Briefcase className="h-4 w-4 mr-2" /> {INTERNAL_WORKSPACE_NAME}
+          <div className="w-full overflow-x-auto pb-2"> {/* Wrapper para rolagem horizontal */}
+            <TabsList className="inline-flex h-auto p-1"> {/* inline-flex para manter as abas em uma linha */}
+              <TabsTrigger value="tasks" className="flex-shrink-0">Minhas Tarefas</TabsTrigger>
+              <TabsTrigger value="clients" className="flex-shrink-0">Clientes</TabsTrigger>
+              {internalWorkspaceId && (
+                <TabsTrigger value="internal-tasks" className="flex-shrink-0">
+                  <Briefcase className="h-4 w-4 mr-2" /> {INTERNAL_WORKSPACE_NAME}
+                </TabsTrigger>
+              )}
+              {(userRole === 'admin') && ( // Menu 'Equipe' visível apenas para admin
+                <TabsTrigger value="employees" className="flex-shrink-0">
+                  <Users className="h-4 w-4 mr-2" /> Equipe
+                </TabsTrigger>
+              )}
+              <TabsTrigger value="agency-playbook" className="flex-shrink-0">
+                <BookOpen className="h-4 w-4 mr-2" />
+                Playbook da Agência
               </TabsTrigger>
-            )}
-            {(userRole === 'admin') && ( // Menu 'Equipe' visível apenas para admin
-              <TabsTrigger value="employees">
-                <Users className="h-4 w-4 mr-2" /> Equipe
-              </TabsTrigger>
-            )}
-            <TabsTrigger value="agency-playbook">
-              <BookOpen className="h-4 w-4 mr-2" />
-              Playbook da Agência
-            </TabsTrigger>
-          </TabsList>
+            </TabsList>
+          </div>
           {isStaff && (
-            <Button onClick={() => createWorkspaceMutation.mutate("Novo Workspace")}>
+            <Button onClick={() => createWorkspaceMutation.mutate("Novo Workspace")} className="w-full sm:w-auto">
               <PlusCircle className="h-4 w-4 mr-2" />
               Novo Cliente (Workspace)
             </Button>
