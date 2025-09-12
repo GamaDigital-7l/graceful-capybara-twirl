@@ -17,18 +17,24 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    const { message } = await req.json(); // Telegram webhook sends a 'message' object
+    const payload = await req.json();
+    console.log("Received Telegram webhook payload:", JSON.stringify(payload, null, 2));
+
+    const message = payload?.message;
     const text = message?.text;
     const telegramChatId = message?.chat?.id;
 
     if (!text || !telegramChatId) {
+      console.error("Invalid Telegram message or chat ID received.");
       throw new Error("Mensagem ou Chat ID do Telegram inválidos.");
     }
 
+    console.log(`Processing message from chat ID ${telegramChatId}: "${text}"`);
+
     // --- Lógica para extrair dados do gasto da mensagem ---
     // Exemplo de formato esperado: "Gasto: Descrição do item; Valor: 150.50; Categoria: Alimentação"
-    const descriptionMatch = text.match(/Gasto:\s*(.*?);/i);
-    const amountMatch = text.match(/Valor:\s*([\d.,]+);/i);
+    const descriptionMatch = text.match(/Gasto:\s*(.*?)(;|$)/i);
+    const amountMatch = text.match(/Valor:\s*([\d.,]+)(;|$)/i);
     const categoryMatch = text.match(/Categoria:\s*(.*?)(;|$)/i);
 
     const description = descriptionMatch ? descriptionMatch[1].trim() : null;
@@ -36,30 +42,36 @@ serve(async (req) => {
     const category = categoryMatch ? categoryMatch[1].trim() : null;
 
     if (!description || !amountStr) {
+      console.error("Failed to parse description or amount from message.");
       throw new Error("Formato da mensagem inválido. Use: 'Gasto: [Descrição]; Valor: [Valor]; Categoria: [Categoria (opcional)]'");
     }
 
     const amount = parseFloat(amountStr);
     if (isNaN(amount)) {
+      console.error(`Parsed amount "${amountStr}" is not a valid number.`);
       throw new Error("Valor inválido. Certifique-se de que é um número.");
     }
 
+    console.log(`Parsed: Description='${description}', Amount='${amount}', Category='${category}'`);
+
     // --- Lógica para identificar o user_id ---
-    // Opção 1: Mapear telegram_chat_id para user_id (requer tabela telegram_chat_user_map)
     const { data: userMap, error: mapError } = await supabaseAdmin
       .from('telegram_chat_user_map')
       .select('user_id')
       .eq('telegram_chat_id', telegramChatId.toString())
       .single();
 
+    if (mapError) {
+      console.error("Error fetching user map:", mapError.message);
+      throw new Error("Erro ao buscar mapeamento de usuário do Telegram.");
+    }
+
     let userId = null;
     if (userMap) {
       userId = userMap.user_id;
+      console.log(`Found user ID ${userId} for Telegram chat ID ${telegramChatId}`);
     } else {
-      // Se não houver mapeamento, você pode optar por:
-      // 1. Rejeitar a requisição (mais seguro)
-      // 2. Usar um user_id padrão (menos seguro, mas pode ser útil para testes ou admin)
-      // Por enquanto, vamos rejeitar se não houver mapeamento.
+      console.warn(`No user ID found for Telegram chat ID ${telegramChatId}.`);
       throw new Error("Usuário do Telegram não vinculado a uma conta no aplicativo. Por favor, vincule sua conta primeiro.");
     }
 
@@ -74,14 +86,19 @@ serve(async (req) => {
         expense_date: new Date().toISOString().split('T')[0], // Data atual
       });
 
-    if (insertError) throw insertError;
+    if (insertError) {
+      console.error("Error inserting expense into database:", insertError.message);
+      throw insertError;
+    }
+
+    console.log("Expense successfully recorded.");
 
     return new Response(JSON.stringify({ message: "Gasto registrado com sucesso!" }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
   } catch (error) {
-    console.error("Erro na Edge Function add-expense-from-telegram:", error.message);
+    console.error("Error in Edge Function add-expense-from-telegram:", error.message);
     return new Response(JSON.stringify({ error: error.message }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 400,
