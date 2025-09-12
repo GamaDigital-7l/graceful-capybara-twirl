@@ -34,11 +34,11 @@ serve(async (req) => {
     // --- Lógica para extrair dados do gasto da mensagem ---
     // Exemplo de formato esperado: "Gasto: Descrição do item; Valor: 150.50; Categoria: Alimentação"
     const descriptionMatch = text.match(/Gasto:\s*(.*?)(;|$)/i);
-    const amountMatch = text.match(/Valor:\s*([\d.,]+)(;|$)/i);
+    const amountMatch = text.match(/Valor:\s*([\d.,R$]+)(;|$)/i); // Ajustado para incluir R$ no regex
     const categoryMatch = text.match(/Categoria:\s*(.*?)(;|$)/i);
 
     const description = descriptionMatch ? descriptionMatch[1].trim() : null;
-    const amountStr = amountMatch ? amountMatch[1].replace(',', '.').trim() : null;
+    let amountStr = amountMatch ? amountMatch[1].trim() : null;
     const category = categoryMatch ? categoryMatch[1].trim() : null;
 
     if (!description || !amountStr) {
@@ -46,6 +46,8 @@ serve(async (req) => {
       throw new Error("Formato da mensagem inválido. Use: 'Gasto: [Descrição]; Valor: [Valor]; Categoria: [Categoria (opcional)]'");
     }
 
+    // Remover "R$" e substituir vírgula por ponto para garantir o parseFloat
+    amountStr = amountStr.replace(/R\$/i, '').replace(',', '.');
     const amount = parseFloat(amountStr);
     if (isNaN(amount)) {
       console.error(`Parsed amount "${amountStr}" is not a valid number.`);
