@@ -21,10 +21,10 @@ import {
 } from "@/components/ui/select";
 import { Task, TaskActionType, Comment } from "./KanbanCard";
 import { useState, useEffect } from "react";
-import { Trash2, Upload, Calendar as CalendarIcon, Download, Eye, User } from "lucide-react";
+import { Trash2, Upload, Calendar as CalendarIcon, Download, Eye, User, Clock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { showError, showSuccess } from "@/utils/toast";
-import { format } from "date-fns";
+import { format, setHours, setMinutes, setSeconds, setMilliseconds } from "date-fns";
 import { ptBR } from "date-fns/locale"; // Importar ptBR
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -73,6 +73,7 @@ export function TaskModal({
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [dueDate, setDueDate] = useState<Date | undefined>(undefined);
+  const [dueTime, setDueTime] = useState<string>(""); // Novo estado para a hora de entrega
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState("");
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
@@ -85,6 +86,7 @@ export function TaskModal({
       setAttachmentUrl(task.attachments?.[0]?.url || "");
       setActionType(task.actionType || "none");
       setDueDate(task.dueDate ? new Date(task.dueDate) : undefined);
+      setDueTime(task.due_time ? format(new Date(`2000-01-01T${task.due_time}`), 'HH:mm') : ""); // Carregar due_time
       setComments(task.comments || []);
       setAssignedTo(task.assignedTo || null); // Carregar assignedTo
     } else {
@@ -93,6 +95,7 @@ export function TaskModal({
       setAttachmentUrl("");
       setActionType("none");
       setDueDate(undefined);
+      setDueTime(""); // Resetar due_time
       setComments([]);
       setAssignedTo(null); // Resetar assignedTo
     }
@@ -165,6 +168,7 @@ export function TaskModal({
         ? [{ id: "1", url: finalAttachmentUrl, isCover: true }]
         : [],
       dueDate: dueDate?.toISOString(),
+      due_time: dueTime || null, // Salvar due_time
       comments: comments,
       assignedTo: assignedTo, // Salvar assignedTo
     };
@@ -211,35 +215,49 @@ export function TaskModal({
                     rows={5}
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="dueDate">Data de Entrega</Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant={"outline"}
-                        className={cn(
-                          "w-full justify-start text-left font-normal",
-                          !dueDate && "text-muted-foreground"
-                        )}
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {dueDate ? (
-                          format(dueDate, "PPP", { locale: ptBR })
-                        ) : (
-                          <span>Escolha uma data</span>
-                        )}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
-                      <Calendar
-                        mode="single"
-                        selected={dueDate}
-                        onSelect={setDueDate}
-                        initialFocus
-                        locale={ptBR}
+                <div className="grid grid-cols-2 gap-4"> {/* Grid para Data e Hora */}
+                  <div className="space-y-2">
+                    <Label htmlFor="dueDate">Data de Entrega</Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant={"outline"}
+                          className={cn(
+                            "w-full justify-start text-left font-normal",
+                            !dueDate && "text-muted-foreground"
+                          )}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {dueDate ? (
+                            format(dueDate, "PPP", { locale: ptBR })
+                          ) : (
+                            <span>Escolha uma data</span>
+                          )}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0">
+                        <Calendar
+                          mode="single"
+                          selected={dueDate}
+                          onSelect={setDueDate}
+                          initialFocus
+                          locale={ptBR}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                  {(currentUser?.role === 'admin' || currentUser?.role === 'equipe') && (
+                    <div className="space-y-2">
+                      <Label htmlFor="dueTime">Hora de Entrega</Label>
+                      <Input
+                        id="dueTime"
+                        type="time"
+                        value={dueTime}
+                        onChange={(e) => setDueTime(e.target.value)}
+                        className="w-full"
                       />
-                    </PopoverContent>
-                  </Popover>
+                    </div>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="actionType">Ação do Card</Label>
