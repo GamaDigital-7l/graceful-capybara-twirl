@@ -50,7 +50,7 @@ const fetchAssignedTasks = async (employeeId: string, month: Date): Promise<Assi
   return data || [];
 };
 
-const EmployeeDetailsPage = () => {
+function EmployeeDetailsPage() {
   const { employeeId } = useParams<{ employeeId: string }>();
   const [selectedMonth, setSelectedMonth] = useState<Date>(startOfMonth(new Date()));
 
@@ -229,6 +229,6 @@ const EmployeeDetailsPage = () => {
       </main>
     </div>
   );
-};
+}
 
 export default EmployeeDetailsPage;

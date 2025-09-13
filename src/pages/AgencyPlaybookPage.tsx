@@ -22,7 +22,7 @@ const fetchAgencyPlaybook = async (): Promise<AgencyPlaybook | null> => {
   return data;
 };
 
-const AgencyPlaybookPage = () => {
+function AgencyPlaybookPage() {
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [visiblePasswords, setVisiblePasswords] = useState<Set<string>>(new Set()); // Inicializado como Set vazio
   const queryClient = useQueryClient();
@@ -210,6 +210,6 @@ const AgencyPlaybookPage = () => {
       )}
     </div>
   );
-};
+}
 
 export default AgencyPlaybookPage;
