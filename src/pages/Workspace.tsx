@@ -1,19 +1,15 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { Footer } from "@/components/Footer";
 import { GroupTabs, Group } from "@/components/GroupTabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { showError, showSuccess, showLoading, dismissToast } from "@/utils/toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, LogOut, BookOpen, MoreVertical, CalendarCheck, Send } from "lucide-react";
-import { ThemeToggle } from "@/components/ThemeToggle";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { ArrowLeft, CalendarCheck, Send } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { ApprovalLinkModal } from "@/components/ApprovalLinkModal";
-import { AppLogo } from "@/components/AppLogo"; // Importar AppLogo
 
 const fetchGroups = async (workspaceId: string) => {
   if (!workspaceId) return [];
@@ -37,16 +33,15 @@ const fetchWorkspaceName = async (workspaceId: string): Promise<string> => {
 };
 
 interface WorkspacePageProps {
-  initialWorkspaceId?: string; // Novo prop para o ID do workspace
+  initialWorkspaceId?: string;
 }
 
 const WorkspacePage = ({ initialWorkspaceId }: WorkspacePageProps) => {
   const params = useParams<{ workspaceId: string }>();
-  const workspaceId = initialWorkspaceId || params.workspaceId; // Usa o prop ou o parâmetro da URL
+  const workspaceId = initialWorkspaceId || params.workspaceId;
 
   const [activeGroupId, setActiveGroupId] = useState<string | null>(null);
   const queryClient = useQueryClient();
-  const isMobile = useIsMobile();
   const [userRole, setUserRole] = useState<string | null>(null);
   const [isProfileLoading, setProfileLoading] = useState(true);
   const [isApprovalModalOpen, setIsApprovalModalOpen] = useState(false);
@@ -204,10 +199,6 @@ const WorkspacePage = ({ initialWorkspaceId }: WorkspacePageProps) => {
     }
   }, [groups, activeGroupId]);
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-  };
-
   const handleOpenApprovalModal = (groupId: string) => {
     setGeneratedLink("");
     setIsApprovalModalOpen(true);
@@ -218,7 +209,7 @@ const WorkspacePage = ({ initialWorkspaceId }: WorkspacePageProps) => {
     return <div className="p-8 text-center">Workspace não encontrado.</div>;
   }
 
-  const renderHeaderActions = () => {
+  const renderActions = () => {
     const sendApprovalButton = userRole === 'admin' && activeGroupId && (
       <Button
         variant="default"
@@ -229,36 +220,6 @@ const WorkspacePage = ({ initialWorkspaceId }: WorkspacePageProps) => {
         Enviar para Aprovação
       </Button>
     );
-
-    if (isMobile) {
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon"><MoreVertical className="h-5 w-5" /></Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            {userRole === 'admin' && activeGroupId && (
-              <DropdownMenuItem onClick={() => handleOpenApprovalModal(activeGroupId)} disabled={generateApprovalLinkMutation.isPending}>
-                <Send className="h-4 w-4 mr-2" /> Enviar p/ Aprovação
-              </DropdownMenuItem>
-            )}
-            <DropdownMenuItem asChild><Link to={`/workspace/${workspaceId}/playbook`} className="flex items-center"><BookOpen className="h-4 w-4 mr-2" /> Ver Playbook</Link></DropdownMenuItem>
-            {userRole === 'admin' && activeGroupId && (
-              <AlertDialog>
-                <AlertDialogTrigger asChild><DropdownMenuItem className="flex items-center text-primary"><CalendarCheck className="h-4 w-4 mr-2" /> Finalizar Mês</DropdownMenuItem></AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader><AlertDialogTitle>Finalizar Mês do Grupo?</AlertDialogTitle><AlertDialogDescription>Esta ação moverá todas as tarefas do grupo atual para a coluna 'Aprovado'. Esta ação não pode ser desfeita.</AlertDialogDescription></AlertDialogHeader>
-                  <AlertDialogFooter><AlertDialogCancel>Cancelar</AlertDialogCancel><AlertDialogAction onClick={() => endMonthMutation.mutate(activeGroupId)}>Sim, Finalizar Mês</AlertDialogAction></AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            )}
-            <DropdownMenuItem><ThemeToggle /></DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleLogout} className="text-destructive flex items-center"><LogOut className="h-4 w-4 mr-2" /> Sair</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      );
-    }
 
     return (
       <div className="flex items-center gap-2">
@@ -273,38 +234,38 @@ const WorkspacePage = ({ initialWorkspaceId }: WorkspacePageProps) => {
             </AlertDialogContent>
           </AlertDialog>
         )}
-        <ThemeToggle />
-        <Button onClick={handleLogout} variant="outline"><LogOut className="h-4 w-4 mr-2" /> Sair</Button>
       </div>
     );
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
-      <header className="p-4 bg-white dark:bg-gray-800 shadow-md flex justify-between items-center">
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
         <div className="flex items-center gap-4">
-          <Button asChild variant="outline"><Link to="/"><ArrowLeft className="h-4 w-4 mr-2" /> Voltar ao Dashboard</Link></Button>
-          <AppLogo className="h-8 w-auto" /> {/* Usando AppLogo aqui */}
-          <h1 className="text-xl sm:text-2xl font-bold whitespace-nowrap">{isLoadingName ? <Skeleton className="h-6 w-32" /> : workspaceName}</h1>
+            <Button asChild variant="outline" size="icon">
+                <Link to={`/`}>
+                    <ArrowLeft className="h-4 w-4" />
+                </Link>
+            </Button>
+            <div>
+                <h1 className="text-xl sm:text-2xl font-bold whitespace-nowrap">{isLoadingName ? <Skeleton className="h-6 w-32" /> : workspaceName}</h1>
+            </div>
         </div>
-        {renderHeaderActions()}
-      </header>
-      <main>
-        {isLoadingGroups || isProfileLoading ? (
-            <div className="p-8 text-center"><Skeleton className="h-10 w-1/2 mx-auto" /></div>
-          ) : (
-            <GroupTabs
-              groups={groups || []}
-              activeGroupId={activeGroupId}
-              onGroupChange={setActiveGroupId}
-              onCreateGroup={(name) => createGroupMutation.mutate(name)}
-              onDeleteGroup={(groupId) => deleteGroupMutation.mutate(groupId)}
-              onReorderGroups={(reordered) => reorderGroupsMutation.mutate(reordered)}
-            />
-          )
-        }
-      </main>
-      <Footer />
+        {renderActions()}
+      </div>
+      {isLoadingGroups || isProfileLoading ? (
+          <div className="p-8 text-center"><Skeleton className="h-10 w-1/2 mx-auto" /></div>
+        ) : (
+          <GroupTabs
+            groups={groups || []}
+            activeGroupId={activeGroupId}
+            onGroupChange={setActiveGroupId}
+            onCreateGroup={(name) => createGroupMutation.mutate(name)}
+            onDeleteGroup={(groupId) => deleteGroupMutation.mutate(groupId)}
+            onReorderGroups={(reordered) => reorderGroupsMutation.mutate(reordered)}
+          />
+        )
+      }
       <ApprovalLinkModal
         isOpen={isApprovalModalOpen}
         onClose={() => setIsApprovalModalOpen(false)}

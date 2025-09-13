@@ -8,12 +8,12 @@ import { showError, showSuccess } from "@/utils/toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, PlusCircle, Edit, Trash2, Copy, Brain, MoreVertical } from "lucide-react";
+import { ArrowLeft, PlusCircle, Edit, Trash2, Copy, MoreVertical } from "lucide-react";
 import { PromptModal, Prompt } from "@/components/PromptModal";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
-import { PromptViewModal } from "@/components/PromptViewModal"; // Importar o novo modal de visualização
+import { PromptViewModal } from "@/components/PromptViewModal";
 
 const fetchClientDetails = async (clientId: string) => {
   const { data, error } = await supabase.from("second_brain_clients").select("name").eq("id", clientId).single();
@@ -33,8 +33,8 @@ const ClientPromptsPage = () => {
   const navigate = useNavigate();
   const [isPromptModalOpen, setIsPromptModalOpen] = useState(false);
   const [selectedPrompt, setSelectedPrompt] = useState<Prompt | null>(null);
-  const [isPromptViewModalOpen, setIsPromptViewModalOpen] = useState(false); // Novo estado para o modal de visualização
-  const [viewingPrompt, setViewingPrompt] = useState<Prompt | null>(null); // Novo estado para o prompt a ser visualizado
+  const [isPromptViewModalOpen, setIsPromptViewModalOpen] = useState(false);
+  const [viewingPrompt, setViewingPrompt] = useState<Prompt | null>(null);
   const [userRole, setUserRole] = useState<string | undefined>(undefined);
   const [isProfileLoading, setProfileLoading] = useState(true);
 
@@ -62,12 +62,12 @@ const ClientPromptsPage = () => {
           if (profileError) throw profileError;
           setUserRole(profile?.role || null);
         } else {
-          setUserRole(null); // User is not logged in
+          setUserRole(null);
         }
       } catch (error: any) {
         console.error("Error fetching user role:", error.message);
         showError(`Erro ao carregar perfil: ${error.message}`);
-        setUserRole(null); // Ensure role is null on error
+        setUserRole(null);
       } finally {
         setProfileLoading(false);
       }
@@ -76,8 +76,8 @@ const ClientPromptsPage = () => {
   }, []);
 
   useEffect(() => {
-    if (!isProfileLoading && userRole !== 'admin' && userRole !== 'equipe') { // Allow 'equipe' role
-      navigate("/"); // Redirect non-admins and non-equipe
+    if (!isProfileLoading && userRole !== 'admin' && userRole !== 'equipe') {
+      navigate("/");
     }
   }, [isProfileLoading, userRole, navigate]);
 
@@ -89,7 +89,7 @@ const ClientPromptsPage = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["secondBrainPrompts", clientId] });
       showSuccess("Prompt adicionado!");
-      setIsPromptModalOpen(false); // Close modal on success
+      setIsPromptModalOpen(false);
     },
     onError: (e: Error) => showError(e.message),
   });
@@ -103,7 +103,7 @@ const ClientPromptsPage = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["secondBrainPrompts", clientId] });
       showSuccess("Prompt atualizado!");
-      setIsPromptModalOpen(false); // Close modal on success
+      setIsPromptModalOpen(false);
     },
     onError: (e: Error) => showError(e.message),
   });
@@ -138,11 +138,11 @@ const ClientPromptsPage = () => {
     setIsPromptViewModalOpen(true);
   };
 
-  if (isProfileLoading || userRole === undefined) { // Check for undefined
+  if (isProfileLoading || userRole === undefined) {
     return <div className="flex justify-center items-center min-h-screen">Carregando...</div>;
   }
 
-  if (userRole !== 'admin' && userRole !== 'equipe') { // Allow 'equipe' role
+  if (userRole !== 'admin' && userRole !== 'equipe') {
     return (
       <div className="flex justify-center items-center min-h-screen">
         <Card className="w-full max-w-md text-center">
@@ -154,8 +154,8 @@ const ClientPromptsPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 md:p-8">
-      <header className="mb-8 flex justify-between items-center">
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
         <div className="flex items-center gap-4">
           <Button asChild variant="outline">
             <Link to="/second-brain">
@@ -172,76 +172,74 @@ const ClientPromptsPage = () => {
           <PlusCircle className="h-4 w-4 mr-2" />
           Adicionar Prompt
         </Button>
-      </header>
-      <main className="max-w-6xl mx-auto">
-        <Card>
-          <CardHeader>
-            <CardTitle>Prompts Personalizados</CardTitle>
-            <CardDescription>Gerencie os prompts de IA e notas importantes para este cliente.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {isLoadingPrompts ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-48 w-full" />)}
-              </div>
-            ) : prompts && prompts.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {prompts.map((prompt) => (
-                  <Card key={prompt.id} className="flex flex-col cursor-pointer hover:shadow-md transition-shadow" onClick={() => handleViewPrompt(prompt)}>
-                    <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
-                      <CardTitle className="text-lg font-medium flex-grow pr-2">{prompt.title}</CardTitle>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8 -mt-2 -mr-2 flex-shrink-0" onClick={(e) => e.stopPropagation()}> {/* Impedir que o clique no botão abra o modal de visualização */}
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleCopyPrompt(prompt.content); }}>
-                            <Copy className="h-4 w-4 mr-2" />
-                            Copiar Prompt
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setSelectedPrompt(prompt); setIsPromptModalOpen(true); }}>
-                            <Edit className="h-4 w-4 mr-2" />
-                            Editar Prompt
-                          </DropdownMenuItem>
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <DropdownMenuItem className="text-destructive" onClick={(e) => e.stopPropagation()}>
-                                <Trash2 className="h-4 w-4 mr-2" />
-                                Deletar Prompt
-                              </DropdownMenuItem>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  Tem certeza que deseja deletar o prompt "{prompt.title}"? Esta ação é irreversível.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                <AlertDialogAction onClick={(e) => { e.stopPropagation(); prompt.id && deletePromptMutation.mutate(prompt.id); }} className="bg-destructive hover:bg-destructive/90">
-                                  Deletar
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </CardHeader>
-                    <CardContent className="flex-grow">
-                      <p className="text-sm text-muted-foreground line-clamp-5">{prompt.content}</p>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            ) : (
-              <p className="text-muted-foreground">Nenhum prompt cadastrado para este cliente ainda. Clique em "Adicionar Prompt" para começar.</p>
-            )}
-          </CardContent>
-        </Card>
-      </main>
+      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Prompts Personalizados</CardTitle>
+          <CardDescription>Gerencie os prompts de IA e notas importantes para este cliente.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {isLoadingPrompts ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-48 w-full" />)}
+            </div>
+          ) : prompts && prompts.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {prompts.map((prompt) => (
+                <Card key={prompt.id} className="flex flex-col cursor-pointer hover:shadow-md transition-shadow" onClick={() => handleViewPrompt(prompt)}>
+                  <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
+                    <CardTitle className="text-lg font-medium flex-grow pr-2">{prompt.title}</CardTitle>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 -mt-2 -mr-2 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleCopyPrompt(prompt.content); }}>
+                          <Copy className="h-4 w-4 mr-2" />
+                          Copiar Prompt
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setSelectedPrompt(prompt); setIsPromptModalOpen(true); }}>
+                          <Edit className="h-4 w-4 mr-2" />
+                          Editar Prompt
+                        </DropdownMenuItem>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <DropdownMenuItem className="text-destructive" onClick={(e) => e.stopPropagation()}>
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Deletar Prompt
+                            </DropdownMenuItem>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Tem certeza que deseja deletar o prompt "{prompt.title}"? Esta ação é irreversível.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                              <AlertDialogAction onClick={(e) => { e.stopPropagation(); prompt.id && deletePromptMutation.mutate(prompt.id); }} className="bg-destructive hover:bg-destructive/90">
+                                Deletar
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </CardHeader>
+                  <CardContent className="flex-grow">
+                    <p className="text-sm text-muted-foreground line-clamp-5">{prompt.content}</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <p className="text-muted-foreground">Nenhum prompt cadastrado para este cliente ainda. Clique em "Adicionar Prompt" para começar.</p>
+          )}
+        </CardContent>
+      </Card>
       {clientId && (
         <PromptModal
           isOpen={isPromptModalOpen}

@@ -10,30 +10,28 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, PlusCircle, MoreVertical, Edit, Trash2, TrendingUp, Users, DollarSign, RefreshCw, MinusCircle } from "lucide-react";
+import { MoreVertical, Edit, Trash2, TrendingUp, Users, DollarSign, RefreshCw, MinusCircle } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { FinancialControlModal, FinancialData } from "@/components/FinancialControlModal";
-import { ExpenseModal, ExpenseData } from "@/components/ExpenseModal"; // Importar ExpenseModal
+import { ExpenseModal, ExpenseData } from "@/components/ExpenseModal";
 import { Workspace } from "./Dashboard";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; // Importar Select
-import { format, startOfMonth, subMonths } from "date-fns"; // Importar funções de data
-import { ptBR } from "date-fns/locale"; // Importar ptBR
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"; // Importar Tabs
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { format, startOfMonth, subMonths, addMonths } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
-// Modificar fetchFinancialData para aceitar um período
 const fetchFinancialData = async (period?: Date) => {
   let query = supabase.from("financial_control").select("*, workspace:workspaces(name)");
   if (period) {
     query = query.eq("period", format(period, 'yyyy-MM-dd'));
   }
-  query = query.order("period", { ascending: false }).order("client_name"); // Ordenar para consistência
+  query = query.order("period", { ascending: false }).order("client_name");
   const { data, error } = await query;
   if (error) throw error;
   return data;
 };
 
-// Nova função para buscar gastos
 const fetchExpenses = async (period?: Date) => {
   let query = supabase.from("expenses").select("*");
   if (period) {
@@ -55,17 +53,17 @@ const fetchWorkspaces = async (): Promise<Workspace[]> => {
 const FinancialDashboard = () => {
   const queryClient = useQueryClient();
   const [isIncomeModalOpen, setIsIncomeModalOpen] = useState(false);
-  const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false); // Novo estado para modal de gastos
+  const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
   const [selectedIncomeData, setSelectedIncomeData] = useState<Partial<FinancialData> | null>(null);
-  const [selectedExpenseData, setSelectedExpenseData] = useState<Partial<ExpenseData> | null>(null); // Novo estado para dados de gastos
-  const [selectedPeriod, setSelectedPeriod] = useState<Date>(startOfMonth(new Date())); // Estado para o período selecionado
+  const [selectedExpenseData, setSelectedExpenseData] = useState<Partial<ExpenseData> | null>(null);
+  const [selectedPeriod, setSelectedPeriod] = useState<Date>(startOfMonth(new Date()));
 
   const { data: financialData, isLoading: isLoadingFinancial } = useQuery({
-    queryKey: ["financialData", selectedPeriod.toISOString()], // Adicionar selectedPeriod ao queryKey
-    queryFn: () => fetchFinancialData(selectedPeriod), // Passar selectedPeriod
+    queryKey: ["financialData", selectedPeriod.toISOString()],
+    queryFn: () => fetchFinancialData(selectedPeriod),
   });
 
-  const { data: expenses, isLoading: isLoadingExpenses } = useQuery({ // Nova query para gastos
+  const { data: expenses, isLoading: isLoadingExpenses } = useQuery({
     queryKey: ["expenses", selectedPeriod.toISOString()],
     queryFn: () => fetchExpenses(selectedPeriod),
   });
@@ -78,7 +76,7 @@ const FinancialDashboard = () => {
   const incomeMutation = useMutation({
     mutationFn: async (data: FinancialData) => {
       const { id, ...rest } = data;
-      const dataToSave = { ...rest, period: format(selectedPeriod, 'yyyy-MM-dd') }; // Garantir que o período seja o selecionado
+      const dataToSave = { ...rest, period: format(selectedPeriod, 'yyyy-MM-dd') };
       const query = id ? supabase.from("financial_control").update(dataToSave).eq("id", id) : supabase.from("financial_control").insert(dataToSave);
       const { error } = await query;
       if (error) throw error;
@@ -90,7 +88,7 @@ const FinancialDashboard = () => {
     onError: (e: Error) => showError(e.message),
   });
 
-  const expenseMutation = useMutation({ // Nova mutação para gastos
+  const expenseMutation = useMutation({
     mutationFn: async (data: ExpenseData) => {
       const { id, expense_date, ...rest } = data;
       const { data: { user } } = await supabase.auth.getUser();
@@ -120,7 +118,7 @@ const FinancialDashboard = () => {
     onError: (e: Error) => showError(e.message),
   });
 
-  const deleteExpenseMutation = useMutation({ // Nova mutação para deletar gastos
+  const deleteExpenseMutation = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase.from("expenses").delete().eq("id", id);
       if (error) throw error;
@@ -138,15 +136,15 @@ const FinancialDashboard = () => {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["financialData"] }); // Invalida todos os dados financeiros para recarregar
-      setSelectedPeriod(startOfMonth(addMonths(selectedPeriod, 1))); // Avança para o próximo mês
+      queryClient.invalidateQueries({ queryKey: ["financialData"] });
+      setSelectedPeriod(startOfMonth(addMonths(selectedPeriod, 1)));
       showSuccess("Novo mês iniciado com sucesso! Clientes fixos foram transferidos.");
     },
     onError: (e: Error) => showError(e.message),
   });
 
-  const { totalRevenue, activeClients, averageTicket, totalExpenses, netProfit, currentPeriodIncomeData, currentPeriodExpenseData } = useMemo(() => {
-    if (!financialData && !expenses) return { totalRevenue: 0, activeClients: 0, averageTicket: 0, totalExpenses: 0, netProfit: 0, currentPeriodIncomeData: [], currentPeriodExpenseData: [] };
+  const { totalRevenue, activeClients, totalExpenses, netProfit, currentPeriodIncomeData, currentPeriodExpenseData } = useMemo(() => {
+    if (!financialData && !expenses) return { totalRevenue: 0, activeClients: 0, totalExpenses: 0, netProfit: 0, currentPeriodIncomeData: [], currentPeriodExpenseData: [] };
     
     const activeIncomeData = financialData?.filter(d => d.status === 'Ativo') || [];
     const totalRev = activeIncomeData.reduce((sum, item) => sum + Number(item.amount), 0);
@@ -158,7 +156,6 @@ const FinancialDashboard = () => {
     return {
       totalRevenue: totalRev,
       activeClients: clientCount,
-      averageTicket: clientCount > 0 ? totalRev / clientCount : 0,
       totalExpenses: totalExp,
       netProfit: netProf,
       currentPeriodIncomeData: financialData || [],
@@ -170,32 +167,23 @@ const FinancialDashboard = () => {
 
   const usedWorkspaceIds = financialData?.filter(d => d.workspace_id).map(d => d.workspace_id!) || [];
 
-  // Gerar opções de meses para o seletor
   const monthOptions = useMemo(() => {
     const options = [];
     let current = startOfMonth(new Date());
-    for (let i = 0; i < 12; i++) { // Últimos 12 meses
+    for (let i = 0; i < 12; i++) {
       options.push({
         value: current.toISOString(),
         label: format(current, "MMMM yyyy", { locale: ptBR }),
       });
       current = subMonths(current, 1);
     }
-    return options.reverse(); // Para ter o mês atual primeiro
+    return options.reverse();
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 md:p-8">
-      <header className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div className="flex items-center gap-4">
-          <Button asChild variant="outline">
-            <Link to="/">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Voltar
-            </Link>
-          </Button>
-          <h1 className="text-2xl font-bold">Dashboard Financeiro</h1>
-        </div>
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <h1 className="text-2xl font-bold">Dashboard Financeiro</h1>
         <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
           <Select
             value={selectedPeriod.toISOString()}
@@ -235,193 +223,191 @@ const FinancialDashboard = () => {
             </AlertDialogContent>
           </AlertDialog>
         </div>
-      </header>
-      <main>
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8"> {/* Ajustado para 4 colunas */}
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Faturamento do Mês (Ativos)</CardTitle>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              {isLoadingFinancial ? <Skeleton className="h-8 w-3/4" /> : <div className="text-2xl font-bold">{formatCurrency(totalRevenue)}</div>}
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Clientes Ativos no Mês</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              {isLoadingFinancial ? <Skeleton className="h-8 w-1/4" /> : <div className="text-2xl font-bold">{activeClients}</div>}
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total de Gastos</CardTitle>
-              <MinusCircle className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              {isLoadingExpenses ? <Skeleton className="h-8 w-3/4" /> : <div className="text-2xl font-bold text-destructive">{formatCurrency(totalExpenses)}</div>}
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Lucro Líquido</CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              {(isLoadingFinancial || isLoadingExpenses) ? <Skeleton className="h-8 w-3/4" /> : <div className="text-2xl font-bold">{formatCurrency(netProfit)}</div>}
-            </CardContent>
-          </Card>
+      </div>
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Faturamento do Mês (Ativos)</CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            {isLoadingFinancial ? <Skeleton className="h-8 w-3/4" /> : <div className="text-2xl font-bold">{formatCurrency(totalRevenue)}</div>}
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Clientes Ativos no Mês</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            {isLoadingFinancial ? <Skeleton className="h-8 w-1/4" /> : <div className="text-2xl font-bold">{activeClients}</div>}
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total de Gastos</CardTitle>
+            <MinusCircle className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            {isLoadingExpenses ? <Skeleton className="h-8 w-3/4" /> : <div className="text-2xl font-bold text-destructive">{formatCurrency(totalExpenses)}</div>}
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Lucro Líquido</CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            {(isLoadingFinancial || isLoadingExpenses) ? <Skeleton className="h-8 w-3/4" /> : <div className="text-2xl font-bold">{formatCurrency(netProfit)}</div>}
+          </CardContent>
+        </Card>
+      </div>
+
+      <Tabs defaultValue="income">
+        <div className="flex justify-between items-center mb-4">
+          <TabsList>
+            <TabsTrigger value="income">Recebimentos</TabsTrigger>
+            <TabsTrigger value="expenses">Gastos</TabsTrigger>
+          </TabsList>
+          <div className="flex gap-2">
+            <Button onClick={() => { setSelectedIncomeData(null); setIsIncomeModalOpen(true); }}>
+              <PlusCircle className="h-4 w-4 mr-2" />
+              Adicionar Recebimento
+            </Button>
+            <Button onClick={() => { setSelectedExpenseData(null); setIsExpenseModalOpen(true); }} variant="outline">
+              <MinusCircle className="h-4 w-4 mr-2" />
+              Adicionar Gasto
+            </Button>
+          </div>
         </div>
 
-        <Tabs defaultValue="income">
-          <div className="flex justify-between items-center mb-4">
-            <TabsList>
-              <TabsTrigger value="income">Recebimentos</TabsTrigger>
-              <TabsTrigger value="expenses">Gastos</TabsTrigger>
-            </TabsList>
-            <div className="flex gap-2">
-              <Button onClick={() => { setSelectedIncomeData(null); setIsIncomeModalOpen(true); }}>
-                <PlusCircle className="h-4 w-4 mr-2" />
-                Adicionar Recebimento
-              </Button>
-              <Button onClick={() => { setSelectedExpenseData(null); setIsExpenseModalOpen(true); }} variant="outline">
-                <MinusCircle className="h-4 w-4 mr-2" />
-                Adicionar Gasto
-              </Button>
-            </div>
-          </div>
+        <TabsContent value="income">
+          <Card>
+            <CardHeader>
+              <CardTitle>Controle de Recebimentos do Mês ({format(selectedPeriod, "MMMM yyyy", { locale: ptBR })})</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Cliente</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Valor</TableHead>
+                    <TableHead>Dia Pgto.</TableHead>
+                    <TableHead>Tipo Contrato</TableHead>
+                    <TableHead>Tipo Cliente</TableHead>
+                    <TableHead className="text-right">Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {isLoadingFinancial ? (
+                    [...Array(3)].map((_, i) => (
+                      <TableRow key={i}>
+                        <TableCell colSpan={7}><Skeleton className="h-8 w-full" /></TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    currentPeriodIncomeData?.map(item => (
+                      <TableRow key={item.id}>
+                        <TableCell className="font-medium flex items-center gap-2">
+                          {item.workspace ? item.workspace.name : item.client_name}
+                          {!item.workspace_id && <Badge variant="outline">Avulso</Badge>}
+                        </TableCell>
+                        <TableCell><Badge variant={item.status === 'Ativo' ? 'default' : 'destructive'}>{item.status}</Badge></TableCell>
+                        <TableCell>{formatCurrency(Number(item.amount))}</TableCell>
+                        <TableCell>{item.payment_day}</TableCell>
+                        <TableCell>{item.contract_type}</TableCell>
+                        <TableCell>{item.client_type}</TableCell>
+                        <TableCell className="text-right">
+                          <AlertDialog>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild><Button variant="ghost" size="icon"><MoreVertical className="h-4 w-4" /></Button></DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => { setSelectedIncomeData(item); setIsIncomeModalOpen(true); }}><Edit className="mr-2 h-4 w-4" />Editar</DropdownMenuItem>
+                                <AlertDialogTrigger asChild><DropdownMenuItem className="text-destructive"><Trash2 className="mr-2 h-4 w-4" />Deletar</DropdownMenuItem></AlertDialogTrigger>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+                                <AlertDialogDescription>Tem certeza que deseja deletar este registro? Esta ação é irreversível.</AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => deleteIncomeMutation.mutate(item.id!)} className="bg-destructive hover:bg-destructive/90">Deletar</AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-          <TabsContent value="income">
-            <Card>
-              <CardHeader>
-                <CardTitle>Controle de Recebimentos do Mês ({format(selectedPeriod, "MMMM yyyy", { locale: ptBR })})</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Cliente</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Valor</TableHead>
-                      <TableHead>Dia Pgto.</TableHead>
-                      <TableHead>Tipo Contrato</TableHead>
-                      <TableHead>Tipo Cliente</TableHead>
-                      <TableHead className="text-right">Ações</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {isLoadingFinancial ? (
-                      [...Array(3)].map((_, i) => (
-                        <TableRow key={i}>
-                          <TableCell colSpan={7}><Skeleton className="h-8 w-full" /></TableCell>
-                        </TableRow>
-                      ))
-                    ) : (
-                      currentPeriodIncomeData?.map(item => (
-                        <TableRow key={item.id}>
-                          <TableCell className="font-medium flex items-center gap-2">
-                            {item.workspace ? item.workspace.name : item.client_name}
-                            {!item.workspace_id && <Badge variant="outline">Avulso</Badge>}
-                          </TableCell>
-                          <TableCell><Badge variant={item.status === 'Ativo' ? 'default' : 'destructive'}>{item.status}</Badge></TableCell>
-                          <TableCell>{formatCurrency(Number(item.amount))}</TableCell>
-                          <TableCell>{item.payment_day}</TableCell>
-                          <TableCell>{item.contract_type}</TableCell>
-                          <TableCell>{item.client_type}</TableCell>
-                          <TableCell className="text-right">
-                            <AlertDialog>
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild><Button variant="ghost" size="icon"><MoreVertical className="h-4 w-4" /></Button></DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                  <DropdownMenuItem onClick={() => { setSelectedIncomeData(item); setIsIncomeModalOpen(true); }}><Edit className="mr-2 h-4 w-4" />Editar</DropdownMenuItem>
-                                  <AlertDialogTrigger asChild><DropdownMenuItem className="text-destructive"><Trash2 className="mr-2 h-4 w-4" />Deletar</DropdownMenuItem></AlertDialogTrigger>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
-                                  <AlertDialogDescription>Tem certeza que deseja deletar este registro? Esta ação é irreversível.</AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                  <AlertDialogAction onClick={() => deleteIncomeMutation.mutate(item.id!)} className="bg-destructive hover:bg-destructive/90">Deletar</AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="expenses">
-            <Card>
-              <CardHeader>
-                <CardTitle>Controle de Gastos do Mês ({format(selectedPeriod, "MMMM yyyy", { locale: ptBR })})</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Descrição</TableHead>
-                      <TableHead>Categoria</TableHead>
-                      <TableHead>Valor</TableHead>
-                      <TableHead>Data</TableHead>
-                      <TableHead className="text-right">Ações</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {isLoadingExpenses ? (
-                      [...Array(3)].map((_, i) => (
-                        <TableRow key={i}>
-                          <TableCell colSpan={5}><Skeleton className="h-8 w-full" /></TableCell>
-                        </TableRow>
-                      ))
-                    ) : (
-                      currentPeriodExpenseData?.map(item => (
-                        <TableRow key={item.id}>
-                          <TableCell className="font-medium">{item.description}</TableCell>
-                          <TableCell>{item.category || 'N/A'}</TableCell>
-                          <TableCell className="text-destructive">{formatCurrency(Number(item.amount))}</TableCell>
-                          <TableCell>{format(new Date(item.expense_date), "dd/MM/yyyy")}</TableCell>
-                          <TableCell className="text-right">
-                            <AlertDialog>
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild><Button variant="ghost" size="icon"><MoreVertical className="h-4 w-4" /></Button></DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                  <DropdownMenuItem onClick={() => { setSelectedExpenseData(item); setIsExpenseModalOpen(true); }}><Edit className="mr-2 h-4 w-4" />Editar</DropdownMenuItem>
-                                  <AlertDialogTrigger asChild><DropdownMenuItem className="text-destructive"><Trash2 className="mr-2 h-4 w-4" />Deletar</DropdownMenuItem></AlertDialogTrigger>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
-                                  <AlertDialogDescription>Tem certeza que deseja deletar este registro de gasto? Esta ação é irreversível.</AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                  <AlertDialogAction onClick={() => deleteExpenseMutation.mutate(item.id!)} className="bg-destructive hover:bg-destructive/90">Deletar</AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-      </main>
+        <TabsContent value="expenses">
+          <Card>
+            <CardHeader>
+              <CardTitle>Controle de Gastos do Mês ({format(selectedPeriod, "MMMM yyyy", { locale: ptBR })})</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Descrição</TableHead>
+                    <TableHead>Categoria</TableHead>
+                    <TableHead>Valor</TableHead>
+                    <TableHead>Data</TableHead>
+                    <TableHead className="text-right">Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {isLoadingExpenses ? (
+                    [...Array(3)].map((_, i) => (
+                      <TableRow key={i}>
+                        <TableCell colSpan={5}><Skeleton className="h-8 w-full" /></TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    currentPeriodExpenseData?.map(item => (
+                      <TableRow key={item.id}>
+                        <TableCell className="font-medium">{item.description}</TableCell>
+                        <TableCell>{item.category || 'N/A'}</TableCell>
+                        <TableCell className="text-destructive">{formatCurrency(Number(item.amount))}</TableCell>
+                        <TableCell>{format(new Date(item.expense_date), "dd/MM/yyyy")}</TableCell>
+                        <TableCell className="text-right">
+                          <AlertDialog>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild><Button variant="ghost" size="icon"><MoreVertical className="h-4 w-4" /></Button></DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => { setSelectedExpenseData(item); setIsExpenseModalOpen(true); }}><Edit className="mr-2 h-4 w-4" />Editar</DropdownMenuItem>
+                                <AlertDialogTrigger asChild><DropdownMenuItem className="text-destructive"><Trash2 className="mr-2 h-4 w-4" />Deletar</DropdownMenuItem></AlertDialogTrigger>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+                                <AlertDialogDescription>Tem certeza que deseja deletar este registro de gasto? Esta ação é irreversível.</AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => deleteExpenseMutation.mutate(item.id!)} className="bg-destructive hover:bg-destructive/90">Deletar</AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
       {isIncomeModalOpen && (
         <FinancialControlModal
           isOpen={isIncomeModalOpen}

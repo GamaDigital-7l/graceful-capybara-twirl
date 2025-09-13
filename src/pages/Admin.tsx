@@ -12,11 +12,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Link } from "react-router-dom";
-import { ArrowLeft, PlusCircle, Trash2, Edit } from "lucide-react";
+import { PlusCircle, Trash2, Edit } from "lucide-react";
 import { PasswordInput } from "@/components/PasswordInput";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { EditUserModal } from "@/components/EditUserModal"; // Importar o novo modal
+import { EditUserModal } from "@/components/EditUserModal";
 
 interface UserProfile {
   id: string;
@@ -115,14 +114,8 @@ const AdminPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 md:p-8">
-      <header className="mb-8 flex justify-between items-center">
-        <Button asChild variant="outline">
-          <Link to="/">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Voltar ao Dashboard
-          </Link>
-        </Button>
+    <div className="space-y-6">
+      <div className="flex justify-end">
         <Dialog open={isCreateModalOpen} onOpenChange={setCreateModalOpen}>
           <DialogTrigger asChild>
             <Button>
@@ -169,76 +162,74 @@ const AdminPage = () => {
             </DialogFooter>
           </DialogContent>
         </Dialog>
-      </header>
-      <main className="max-w-4xl mx-auto">
-        <Card>
-          <CardHeader>
-            <CardTitle>Gerenciamento de Usuários</CardTitle>
-            <CardDescription>Adicione, remova e gerencie os papéis globais dos usuários.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {isLoadingUsers ? (
-                [...Array(3)].map((_, i) => <Skeleton key={i} className="h-16 w-full" />)
-              ) : (
-                users?.map((user: any) => (
-                  <div key={user.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 border rounded-lg gap-4 sm:gap-2">
-                    <div className="flex items-center gap-4">
-                      <Avatar>
-                        <AvatarImage src={user.avatar_url} />
-                        <AvatarFallback>{user.full_name?.charAt(0) || 'U'}</AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <p className="font-semibold">{user.full_name}</p>
-                        <p className="text-sm text-muted-foreground">{user.email}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2 w-full sm:w-auto">
-                      <Select
-                        value={user.role || 'user'}
-                        onValueChange={(role) => updateUserRoleMutation.mutate({ userId: user.id, role })}
-                      >
-                        <SelectTrigger className="w-full sm:w-[180px]">
-                          <SelectValue placeholder="Definir papel" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="user">Usuário (Cliente)</SelectItem>
-                          <SelectItem value="equipe">Equipe (Funcionário)</SelectItem>
-                          <SelectItem value="admin">Admin (Funcionário)</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <Button variant="outline" size="icon" onClick={() => handleEditUser(user)}>
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button variant="destructive" size="icon">
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Tem certeza que deseja deletar o usuário {user.full_name}? Esta ação é irreversível.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                            <AlertDialogAction onClick={() => deleteUserMutation.mutate(user.id)} className="bg-destructive hover:bg-destructive/90">
-                              Deletar
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
+      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Gerenciamento de Usuários</CardTitle>
+          <CardDescription>Adicione, remova e gerencie os papéis globais dos usuários.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {isLoadingUsers ? (
+              [...Array(3)].map((_, i) => <Skeleton key={i} className="h-16 w-full" />)
+            ) : (
+              users?.map((user: any) => (
+                <div key={user.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 border rounded-lg gap-4 sm:gap-2">
+                  <div className="flex items-center gap-4">
+                    <Avatar>
+                      <AvatarImage src={user.avatar_url} />
+                      <AvatarFallback>{user.full_name?.charAt(0) || 'U'}</AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="font-semibold">{user.full_name}</p>
+                      <p className="text-sm text-muted-foreground">{user.email}</p>
                     </div>
                   </div>
-                ))
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      </main>
+                  <div className="flex items-center gap-2 w-full sm:w-auto">
+                    <Select
+                      value={user.role || 'user'}
+                      onValueChange={(role) => updateUserRoleMutation.mutate({ userId: user.id, role })}
+                    >
+                      <SelectTrigger className="w-full sm:w-[180px]">
+                        <SelectValue placeholder="Definir papel" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="user">Usuário (Cliente)</SelectItem>
+                        <SelectItem value="equipe">Equipe (Funcionário)</SelectItem>
+                        <SelectItem value="admin">Admin (Funcionário)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Button variant="outline" size="icon" onClick={() => handleEditUser(user)}>
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="destructive" size="icon">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Tem certeza que deseja deletar o usuário {user.full_name}? Esta ação é irreversível.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => deleteUserMutation.mutate(user.id)} className="bg-destructive hover:bg-destructive/90">
+                            Deletar
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </CardContent>
+      </Card>
       <EditUserModal
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}

@@ -5,7 +5,6 @@ import { useParams, Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { showError, showSuccess } from "@/utils/toast";
-import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -29,7 +28,7 @@ const fetchPlaybook = async (workspaceId: string): Promise<Playbook | null> => {
     .eq("workspace_id", workspaceId)
     .single();
   if (error) {
-    if (error.code === 'PGRST116') return null; // No rows found is not an error here
+    if (error.code === 'PGRST116') return null;
     throw new Error(error.message);
   }
   return data;
@@ -102,8 +101,8 @@ const PlaybookPage = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <header className="p-4 bg-white dark:bg-gray-800 shadow-sm flex justify-between items-center">
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
         <div className="flex items-center gap-4">
             <Button asChild variant="outline" size="icon">
                 <Link to={`/workspace/${workspaceId}`}>
@@ -111,7 +110,7 @@ const PlaybookPage = () => {
                 </Link>
             </Button>
             <div>
-                <h1 className="text-2xl font-bold">Playbook</h1>
+                <h1 className="text-xl sm:text-2xl font-bold whitespace-nowrap">Playbook</h1>
                 <p className="text-sm text-muted-foreground">{isLoadingName ? <Skeleton className="h-4 w-32 mt-1" /> : workspaceName}</p>
             </div>
         </div>
@@ -119,97 +118,94 @@ const PlaybookPage = () => {
           <Pencil className="h-4 w-4 mr-2" />
           Editar Playbook
         </Button>
-      </header>
-      <main className="p-4 md:p-8">
-        {isLoadingPlaybook ? renderSkeletons() : (
-          playbook ? (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2"><LinkIcon /> Ativos e Links</CardTitle>
-                  <CardDescription>Links para contrato, logos, fontes, etc.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  {playbook.contract_url ? (
-                    <a href={playbook.contract_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-blue-500 hover:underline">
-                      <BookOpen className="h-4 w-4" /> Ver Contrato
-                    </a>
-                  ) : <p className="text-sm text-muted-foreground">Nenhum link de contrato.</p>}
-                  <ul className="space-y-1">
-                    {playbook.asset_links?.map((link, index) => (
-                      <li key={index}>
-                        <a href={link.url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">{link.name}</a>
-                      </li>
-                    ))}
-                  </ul>
-                  {playbook.asset_links?.length === 0 && !playbook.contract_url && <p className="text-sm text-muted-foreground">Nenhum link de material adicionado.</p>}
-                </CardContent>
-              </Card>
+      </div>
+      {isLoadingPlaybook ? renderSkeletons() : (
+        playbook ? (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2"><LinkIcon /> Ativos e Links</CardTitle>
+                <CardDescription>Links para contrato, logos, fontes, etc.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {playbook.contract_url ? (
+                  <a href={playbook.contract_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-blue-500 hover:underline">
+                    <BookOpen className="h-4 w-4" /> Ver Contrato
+                  </a>
+                ) : <p className="text-sm text-muted-foreground">Nenhum link de contrato.</p>}
+                <ul className="space-y-1">
+                  {playbook.asset_links?.map((link, index) => (
+                    <li key={index}>
+                      <a href={link.url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">{link.name}</a>
+                    </li>
+                  ))}
+                </ul>
+                {playbook.asset_links?.length === 0 && !playbook.contract_url && <p className="text-sm text-muted-foreground">Nenhum link de material adicionado.</p>}
+              </CardContent>
+            </Card>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2"><Paperclip /> Documentos</CardTitle>
-                  <CardDescription>Anexos e documentos importantes.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-1">
-                    {playbook.documents?.map((doc, index) => (
-                      <li key={index}>
-                        <a href={doc.url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">{doc.name}</a>
-                      </li>
-                    ))}
-                  </ul>
-                  {playbook.documents?.length === 0 && <p className="text-sm text-muted-foreground">Nenhum documento adicionado.</p>}
-                </CardContent>
-              </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2"><Paperclip /> Documentos</CardTitle>
+                <CardDescription>Anexos e documentos importantes.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-1">
+                  {playbook.documents?.map((doc, index) => (
+                    <li key={index}>
+                      <a href={doc.url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">{doc.name}</a>
+                    </li>
+                  ))}
+                </ul>
+                {playbook.documents?.length === 0 && <p className="text-sm text-muted-foreground">Nenhum documento adicionado.</p>}
+              </CardContent>
+            </Card>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2"><KeyRound /> Logins de Redes Sociais</CardTitle>
-                  <CardDescription>Credenciais para as plataformas do cliente.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-2">
-                    {playbook.social_media_logins?.map((login, index) => (
-                      <li key={index} className="p-2 border rounded-md bg-muted/50">
-                        <p className="font-bold">{login.platform}</p>
-                        <p className="text-sm">Usuário: {login.username}</p>
-                        {login.password && (
-                          <div className="flex items-center gap-2 text-sm">
-                            <span>Senha: {visiblePasswords.has(login.platform) ? login.password : '********'}</span>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-6 w-6"
-                              onClick={() => togglePasswordVisibility(login.platform)}
-                            >
-                              {visiblePasswords.has(login.platform) ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                            </Button>
-                          </div>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                  {playbook.social_media_logins?.length === 0 && <p className="text-sm text-muted-foreground">Nenhum login adicionado.</p>}
-                </CardContent>
-              </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2"><KeyRound /> Logins de Redes Sociais</CardTitle>
+                <CardDescription>Credenciais para as plataformas do cliente.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-2">
+                  {playbook.social_media_logins?.map((login, index) => (
+                    <li key={index} className="p-2 border rounded-md bg-muted/50">
+                      <p className="font-bold">{login.platform}</p>
+                      <p className="text-sm">Usuário: {login.username}</p>
+                      {login.password && (
+                        <div className="flex items-center gap-2 text-sm">
+                          <span>Senha: {visiblePasswords.has(login.platform) ? login.password : '********'}</span>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6"
+                            onClick={() => togglePasswordVisibility(login.platform)}
+                          >
+                            {visiblePasswords.has(login.platform) ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                          </Button>
+                        </div>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+                {playbook.social_media_logins?.length === 0 && <p className="text-sm text-muted-foreground">Nenhum login adicionado.</p>}
+              </CardContent>
+            </Card>
 
-              <Card className="lg:col-span-2">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2"><FileText /> Briefing</CardTitle>
-                  <CardDescription>Respostas e informações chave do projeto.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="prose dark:prose-invert max-w-none whitespace-pre-wrap">
-                    {playbook.briefing || <p className="text-muted-foreground">Nenhum briefing preenchido.</p>}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          ) : <p className="text-center text-muted-foreground">Nenhum playbook encontrado para este workspace.</p>
-        )}
-      </main>
-      <Footer />
+            <Card className="lg:col-span-2">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2"><FileText /> Briefing</CardTitle>
+                <CardDescription>Respostas e informações chave do projeto.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="prose dark:prose-invert max-w-none whitespace-pre-wrap">
+                  {playbook.briefing || <p className="text-muted-foreground">Nenhum briefing preenchido.</p>}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        ) : <p className="text-center text-muted-foreground">Nenhum playbook encontrado para este workspace.</p>
+      )}
       {playbook && (
         <PlaybookEditor
           isOpen={isEditorOpen}

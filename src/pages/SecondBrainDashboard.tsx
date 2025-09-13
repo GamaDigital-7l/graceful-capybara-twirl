@@ -8,12 +8,11 @@ import { showError, showSuccess } from "@/utils/toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { PlusCircle, ArrowLeft, Edit, Trash2, MoreVertical } from "lucide-react";
+import { PlusCircle, Edit, Trash2, MoreVertical } from "lucide-react";
 import { SecondBrainClientModal, SecondBrainClient } from "@/components/SecondBrainClientModal";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
-// A interface SecondBrainClient já não inclui photo_url
 export interface SecondBrainClient {
   id: string;
   name: string;
@@ -65,7 +64,7 @@ const SecondBrainDashboard = () => {
   }, []);
 
   useEffect(() => {
-    if (!isProfileLoading && userRole !== 'admin' && userRole !== 'equipe') { // Allow 'equipe' role
+    if (!isProfileLoading && userRole !== 'admin' && userRole !== 'equipe') {
       navigate("/");
     }
   }, [isProfileLoading, userRole, navigate]);
@@ -89,7 +88,7 @@ const SecondBrainDashboard = () => {
 
       const { error: updateError } = await supabase
         .from("second_brain_clients")
-        .update({ name: client.name }) // Removido photo_url do update
+        .update({ name: client.name })
         .eq("id", currentClientId);
       if (updateError) throw updateError;
     },
@@ -120,7 +119,7 @@ const SecondBrainDashboard = () => {
     return <div className="flex justify-center items-center min-h-screen">Carregando...</div>;
   }
 
-  if (userRole !== 'admin' && userRole !== 'equipe') { // Allow 'equipe' role
+  if (userRole !== 'admin' && userRole !== 'equipe') {
     return (
       <div className="flex justify-center items-center min-h-screen">
         <Card className="w-full max-w-md text-center">
@@ -132,90 +131,79 @@ const SecondBrainDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 md:p-8">
-      <header className="mb-8 flex justify-between items-center">
-        <div className="flex items-center gap-4">
-          <Button asChild variant="outline">
-            <Link to="/">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Voltar ao Dashboard
-            </Link>
-          </Button>
-          <h1 className="text-2xl font-bold">Segundo Cérebro</h1>
-        </div>
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold">Segundo Cérebro</h1>
         <Button onClick={() => { setSelectedClient(null); setIsClientModalOpen(true); }}>
           <PlusCircle className="h-4 w-4 mr-2" />
           Adicionar Cliente
         </Button>
-      </header>
-      <main className="max-w-6xl mx-auto">
-        <Card>
-          <CardHeader>
-            <CardTitle>Meus Clientes</CardTitle>
-            <CardDescription>Gerencie os clientes e seus prompts personalizados.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {isLoadingClients ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-48 w-full" />)}
-              </div>
-            ) : clients && clients.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                {clients.map((client) => (
-                  <Card key={client.id} className="hover:shadow-lg transition-shadow flex flex-col">
-                    <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
-                      <CardTitle className="text-lg font-medium flex-grow truncate pr-2">{client.name}</CardTitle>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8 -mt-2 -mr-2 flex-shrink-0">
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => { setSelectedClient(client); setIsClientModalOpen(true); }}>
-                            <Edit className="h-4 w-4 mr-2" />
-                            Editar Cliente
-                          </DropdownMenuItem>
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <DropdownMenuItem className="text-destructive">
-                                <Trash2 className="h-4 w-4 mr-2" />
-                                Deletar Cliente
-                              </DropdownMenuItem>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  Tem certeza que deseja deletar o cliente "{client.name}" e todos os seus prompts? Esta ação é irreversível.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => client.id && deleteClientMutation.mutate(client.id)} className="bg-destructive hover:bg-destructive/90">
-                                  Deletar
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </CardHeader>
-                    <Link to={`/second-brain/${client.id}`} className="flex flex-col flex-grow">
-                      <CardContent className="flex-grow flex items-end justify-center p-4">
-                        {/* Removido o Avatar e AvatarFallback */}
-                        <Button variant="outline" className="w-full">Ver Prompts</Button>
-                      </CardContent>
-                    </Link>
-                  </Card>
-                ))}
-              </div>
-            ) : (
-              <p className="text-muted-foreground">Nenhum cliente cadastrado ainda. Clique em "Adicionar Cliente" para começar.</p>
-            )}
-          </CardContent>
-        </Card>
-      </main>
+      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Meus Clientes</CardTitle>
+          <CardDescription>Gerencie os clientes e seus prompts personalizados.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {isLoadingClients ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-48 w-full" />)}
+            </div>
+          ) : clients && clients.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              {clients.map((client) => (
+                <Card key={client.id} className="hover:shadow-lg transition-shadow flex flex-col">
+                  <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
+                    <CardTitle className="text-lg font-medium flex-grow truncate pr-2">{client.name}</CardTitle>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 -mt-2 -mr-2 flex-shrink-0">
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => { setSelectedClient(client); setIsClientModalOpen(true); }}>
+                          <Edit className="h-4 w-4 mr-2" />
+                          Editar Cliente
+                        </DropdownMenuItem>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <DropdownMenuItem className="text-destructive">
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Deletar Cliente
+                            </DropdownMenuItem>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Tem certeza que deseja deletar o cliente "{client.name}" e todos os seus prompts? Esta ação é irreversível.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => client.id && deleteClientMutation.mutate(client.id)} className="bg-destructive hover:bg-destructive/90">
+                                Deletar
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </CardHeader>
+                  <Link to={`/second-brain/${client.id}`} className="flex flex-col flex-grow">
+                    <CardContent className="flex-grow flex items-end justify-center p-4">
+                      <Button variant="outline" className="w-full">Ver Prompts</Button>
+                    </CardContent>
+                  </Link>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <p className="text-muted-foreground">Nenhum cliente cadastrado ainda. Clique em "Adicionar Cliente" para começar.</p>
+          )}
+        </CardContent>
+      </Card>
       <SecondBrainClientModal
         isOpen={isClientModalOpen}
         onClose={() => setIsClientModalOpen(false)}

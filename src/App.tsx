@@ -14,10 +14,11 @@ import FinancialDashboard from "./pages/FinancialDashboard";
 import SecondBrainDashboard from "./pages/SecondBrainDashboard";
 import ClientPromptsPage from "./pages/ClientPromptsPage";
 import PublicApprovalPage from "./pages/PublicApprovalPage";
-import { EmployeeDetailsPage } from "./pages/EmployeeDetailsPage"; // Importação corrigida
+import { EmployeeDetailsPage } from "./pages/EmployeeDetailsPage";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
-import ProtectedRoute from "./components/ProtectedRoute";
+import { Layout } from "./components/Layout"; // Import the new Layout component
+import AgencyPlaybookPage from "./pages/AgencyPlaybookPage"; // Ensure this is imported
 
 const queryClient = new QueryClient();
 
@@ -31,76 +32,93 @@ const App = () => (
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/approve/:token" element={<PublicApprovalPage />} />
+            {/* Wrap all protected routes with the new Layout component */}
             <Route
               path="/"
               element={
-                <ProtectedRoute>
+                <Layout>
                   <Dashboard />
-                </ProtectedRoute>
+                </Layout>
               }
             />
             <Route
               path="/workspace/:workspaceId"
               element={
-                <ProtectedRoute>
+                <Layout>
                   <WorkspacePage />
-                </ProtectedRoute>
+                </Layout>
               }
             />
             <Route
               path="/workspace/:workspaceId/playbook"
               element={
-                <ProtectedRoute>
+                <Layout pageTitle="Playbook do Cliente"> {/* Custom title for Playbook */}
                   <PlaybookPage />
-                </ProtectedRoute>
+                </Layout>
               }
             />
             <Route
               path="/admin"
               element={
-                <ProtectedRoute>
+                <Layout>
                   <AdminPage />
-                </ProtectedRoute>
+                </Layout>
               }
             />
             <Route
               path="/settings"
               element={
-                <ProtectedRoute>
+                <Layout>
                   <SettingsPage />
-                </ProtectedRoute>
+                </Layout>
               }
             />
             <Route
               path="/financial"
               element={
-                <ProtectedRoute>
+                <Layout>
                   <FinancialDashboard />
-                </ProtectedRoute>
+                </Layout>
               }
             />
             <Route
               path="/second-brain"
               element={
-                <ProtectedRoute>
+                <Layout>
                   <SecondBrainDashboard />
-                </ProtectedRoute>
+                </Layout>
               }
             />
             <Route
               path="/second-brain/:clientId"
               element={
-                <ProtectedRoute>
+                <Layout pageTitle="Prompts do Cliente"> {/* Custom title for Client Prompts */}
                   <ClientPromptsPage />
-                </ProtectedRoute>
+                </Layout>
+              }
+            />
+            <Route
+              path="/employees"
+              element={
+                <Layout>
+                  <EmployeeDashboardPage />
+                </Layout>
               }
             />
             <Route
               path="/employees/:employeeId"
               element={
-                <ProtectedRoute>
+                <Layout pageTitle="Detalhes do Funcionário"> {/* Custom title for Employee Details */}
                   <EmployeeDetailsPage />
-                </ProtectedRoute>
+                </Layout>
+              }
+            />
+            <Route
+              path="/agency-playbook"
+              element={
+                <Layout>
+                  <AgencyPlaybookPage />
+                </Layout>
               }
             />
             <Route path="*" element={<NotFound />} />

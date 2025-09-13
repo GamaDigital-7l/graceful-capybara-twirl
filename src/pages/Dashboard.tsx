@@ -5,22 +5,18 @@ import { Link, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { showError, showSuccess } from "@/utils/toast";
-import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { PlusCircle, Settings, LogOut, UserCog, BookOpen, Palette, MoreVertical, Banknote, Brain, Briefcase, Users } from "lucide-react";
+import { PlusCircle, Settings, MoreVertical, Briefcase, Users } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { WorkspaceSettingsModal } from "@/components/WorkspaceSettingsModal";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MyTasks } from "@/components/MyTasks";
-import { ThemeToggle } from "@/components/ThemeToggle";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import WorkspacePage from "./Workspace";
+import { EmployeeDashboardPage } from "./EmployeeDashboardPage";
 import AgencyPlaybookPage from "./AgencyPlaybookPage";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import WorkspacePage from "./Workspace"; // Importar o componente WorkspacePage
-import { EmployeeDashboardPage } from "./EmployeeDashboardPage"; // Importar a nova página de funcionários
-import { AppLogo } from "@/components/AppLogo"; // Importar AppLogo
 
 export interface Workspace {
   id: string;
@@ -28,52 +24,37 @@ export interface Workspace {
   logo_url: string | null;
 }
 
-const INTERNAL_WORKSPACE_NAME = "Tarefas"; // Renomeado de "Tarefas Internas" para "Tarefas"
+const INTERNAL_WORKSPACE_NAME = "Tarefas";
 
-// Modificado para aceitar userRole e userId
 const fetchWorkspaces = async (userRole: string | null, userId: string | undefined): Promise<Workspace[]> => {
   if (!userId) {
-    console.log("fetchWorkspaces: userId is undefined, returning empty array.");
-    return []; // Não há usuário, não há workspaces para buscar
+    return [];
   }
 
   let query;
   if (userRole === 'user') {
-    console.log(`fetchWorkspaces: Fetching for user role '${userRole}' with userId '${userId}'`);
-    // Para o papel 'user', consulta diretamente 'workspaces'.
-    // A política de RLS "Users can view workspaces they belong to." na tabela 'workspaces'
-    // que usa 'is_member_of(id)' irá automaticamente filtrar os resultados.
     query = supabase
       .from("workspaces")
       .select("id, name, logo_url");
   } else {
-    console.log(`fetchWorkspaces: Fetching for staff role '${userRole}'`);
-    // Para 'admin' ou 'equipe', busca todos os workspaces.
-    // As políticas de RLS ainda se aplicarão, mas eles geralmente têm acesso mais amplo.
     query = supabase.from("workspaces").select("id, name, logo_url");
   }
 
   const { data, error } = await query;
   if (error) {
-    console.error("fetchWorkspaces Error:", error.message);
     throw new Error(error.message);
   }
-  console.log("fetchWorkspaces Raw Data:", data);
-
-  // Não é mais necessário mapear se estamos consultando 'workspaces' diretamente para o papel 'user'
-  // Os dados já virão no formato Workspace[].
   return data || [];
 };
 
 const Dashboard = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+  const [isSettingsModalOpen, setIsSettingsModal] = useState(false);
   const [selectedWorkspace, setSelectedWorkspace] = useState<Workspace | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
-  const [currentUserId, setCurrentUserId] = useState<string | undefined>(undefined); // Novo estado para o ID do usuário
+  const [currentUserId, setCurrentUserId] = useState<string | undefined>(undefined);
   const [isProfileLoading, setProfileLoading] = useState(true);
-  const isMobile = useIsMobile();
   const [internalWorkspaceId, setInternalWorkspaceId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -83,18 +64,15 @@ const Dashboard = () => {
       if (userAuthError) {
         console.error("Dashboard: Error getting auth user:", userAuthError.message);
       }
-      console.log("Dashboard: Auth User:", user);
 
       if (user) {
-        setCurrentUserId(user.id); // Define o ID do usuário aqui
+        setCurrentUserId(user.id);
         let { data: profile, error: profileFetchError } = await supabase.from('profiles').select('role').eq('id', user.id).single();
-        if (profileFetchError && profileFetchError.code !== 'PGRST116') { // PGRST116 means no rows found
+        if (profileFetchError && profileFetchError.code !== 'PGRST116') {
           console.error("Dashboard: Error fetching profile:", profileFetchError.message);
         }
-        console.log("Dashboard: User Profile:", profile);
 
         if (!profile) {
-          console.log("Dashboard: Profile not found, creating default 'user' profile.");
           const { data: newProfile, error: profileInsertError } = await supabase.from('profiles').insert({ id: user.id, role: 'user' }).select('role').single();
           if (profileInsertError) {
             showError("Não foi possível criar o perfil de usuário.");
@@ -105,23 +83,21 @@ const Dashboard = () => {
         }
         setUserRole(profile?.role || null);
       } else {
-        setCurrentUserId(undefined); // Limpa o ID se não houver usuário
+        setCurrentUserId(undefined);
         setUserRole(null);
       }
       setProfileLoading(false);
-      console.log("Dashboard: Profile loading finished. userRole:", userRole, "currentUserId:", currentUserId);
     };
     ensureUserProfile();
   }, []);
 
   const { data: workspaces, isLoading: isLoadingWorkspaces, error: workspacesError } = useQuery<Workspace[]>({
-    queryKey: ["workspaces", userRole, currentUserId], // Adicionar userRole e currentUserId à queryKey
-    queryFn: () => fetchWorkspaces(userRole, currentUserId), // Passar argumentos
-    enabled: !!userRole && !!currentUserId, // Só executa quando userRole e currentUserId estão disponíveis
+    queryKey: ["workspaces", userRole, currentUserId],
+    queryFn: () => fetchWorkspaces(userRole, currentUserId),
+    enabled: !!userRole && !!currentUserId,
   });
 
   if (workspacesError) {
-    console.error("Dashboard: Workspaces Query Error:", workspacesError.message);
     showError(`Erro ao carregar workspaces: ${workspacesError.message}`);
   }
 
@@ -131,10 +107,8 @@ const Dashboard = () => {
         let internalWs = workspaces.find(ws => ws.name === INTERNAL_WORKSPACE_NAME);
 
         if (!internalWs) {
-          console.log("Dashboard: Internal workspace not found, creating it.");
           const { data: newWs, error } = await supabase.from("workspaces").insert({ name: INTERNAL_WORKSPACE_NAME }).select().single();
           if (error) {
-            console.error("Error creating internal workspace:", error);
             showError(`Erro ao criar workspace interno: ${error.message}`);
             return;
           }
@@ -153,7 +127,7 @@ const Dashboard = () => {
             const { data: staffUsers, error: staffError } = await supabase.from('profiles').select('id').in('role', ['admin', 'equipe']);
             if (staffError) console.error("Error fetching staff users:", staffError);
             
-            if (staffUsers && currentUser) { // Adicionado verificação para currentUser aqui
+            if (staffUsers && currentUser) {
               const otherStaffMembers = staffUsers.filter(sUser => sUser.id !== currentUser.id);
               const memberInserts = otherStaffMembers.map(sUser => ({
                 workspace_id: internalWs.id,
@@ -182,7 +156,7 @@ const Dashboard = () => {
     onSuccess: (newWorkspace) => {
       queryClient.invalidateQueries({ queryKey: ["workspaces"] });
       setSelectedWorkspace(newWorkspace);
-      setIsSettingsModalOpen(true);
+      setIsSettingsModal(true);
       showSuccess("Workspace criado! Adicione uma logo.");
     },
     onError: (e: Error) => showError(e.message),
@@ -190,88 +164,7 @@ const Dashboard = () => {
 
   const handleOpenSettings = (workspace: Workspace) => {
     setSelectedWorkspace(workspace);
-    setIsSettingsModalOpen(true);
-  };
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-  };
-
-  const renderHeaderActions = () => {
-    const isAdmin = userRole === 'admin';
-    const isStaff = userRole === 'admin' || userRole === 'equipe';
-
-    if (isMobile) {
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon">
-              <MoreVertical className="h-5 w-5" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            {isAdmin && (
-              <>
-                <DropdownMenuItem asChild><Link to="/financial" className="flex items-center"><Banknote className="h-4 w-4 mr-2" />Financeiro</Link></DropdownMenuItem>
-                <DropdownMenuItem asChild><Link to="/settings" className="flex items-center"><Palette className="h-4 w-4 mr-2" />Configurações</Link></DropdownMenuItem>
-                <DropdownMenuItem asChild><Link to="/admin" className="flex items-center"><UserCog className="h-4 w-4 mr-2" />Admin</Link></DropdownMenuItem>
-              </>
-            )}
-            {isStaff && (
-              <DropdownMenuItem asChild><Link to="/second-brain" className="flex items-center"><Brain className="h-4 w-4 mr-2" />Segundo Cérebro</Link></DropdownMenuItem>
-            )}
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <ThemeToggle />
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleLogout} className="text-destructive flex items-center">
-              <LogOut className="h-4 w-4 mr-2" />Sair
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      );
-    }
-
-    return (
-      <div className="flex items-center gap-2">
-        {isAdmin && (
-          <>
-            <Button asChild variant="outline">
-              <Link to="/financial">
-                <Banknote className="h-4 w-4 mr-2" />
-                Financeiro
-              </Link>
-            </Button>
-            <Button asChild variant="outline">
-              <Link to="/settings">
-                <Palette className="h-4 w-4 mr-2" />
-                Configurações
-              </Link>
-            </Button>
-            <Button asChild variant="outline">
-              <Link to="/admin">
-                <UserCog className="h-4 w-4 mr-2" />
-                Admin
-              </Link>
-            </Button>
-          </>
-        )}
-        {isStaff && (
-          <Button asChild variant="outline">
-            <Link to="/second-brain">
-              <Brain className="h-4 w-4 mr-2" />
-              Segundo Cérebro
-            </Link>
-          </Button>
-        )}
-        <ThemeToggle />
-        <Button onClick={handleLogout} variant="outline">
-          <LogOut className="h-4 w-4 mr-2" />
-          Sair
-        </Button>
-      </div>
-    );
+    setIsSettingsModal(true);
   };
 
   const renderStaffDashboard = () => {
@@ -279,8 +172,8 @@ const Dashboard = () => {
     return (
       <Tabs defaultValue="tasks">
         <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between mb-6">
-          <div className="w-full overflow-x-auto pb-2"> {/* Wrapper para rolagem horizontal */}
-            <TabsList className="inline-flex h-auto p-1"> {/* inline-flex para manter as abas em uma linha */}
+          <div className="w-full overflow-x-auto pb-2">
+            <TabsList className="inline-flex h-auto p-1">
               <TabsTrigger value="tasks" className="flex-shrink-0">Minhas Tarefas</TabsTrigger>
               <TabsTrigger value="clients" className="flex-shrink-0">Clientes</TabsTrigger>
               {internalWorkspaceId && (
@@ -288,7 +181,7 @@ const Dashboard = () => {
                   <Briefcase className="h-4 w-4 mr-2" /> {INTERNAL_WORKSPACE_NAME}
                 </TabsTrigger>
               )}
-              {(userRole === 'admin') && ( // Menu 'Equipe' visível apenas para admin
+              {(userRole === 'admin') && (
                 <TabsTrigger value="employees" className="flex-shrink-0">
                   <Users className="h-4 w-4 mr-2" /> Equipe
                 </TabsTrigger>
@@ -307,7 +200,7 @@ const Dashboard = () => {
           )}
         </div>
         <TabsContent value="tasks">
-          <MyTasks /> {/* MyTasks agora inclui TaskStats e ClientProgress */}
+          <MyTasks />
         </TabsContent>
         <TabsContent value="clients">
           {isLoadingWorkspaces ? (
@@ -316,7 +209,7 @@ const Dashboard = () => {
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {workspaces?.filter(ws => ws.name !== INTERNAL_WORKSPACE_NAME).map((ws) => ( // Filtrar workspace interno
+              {workspaces?.filter(ws => ws.name !== INTERNAL_WORKSPACE_NAME).map((ws) => (
                 <Card key={ws.id} className="hover:shadow-lg transition-shadow flex flex-col">
                   <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
                     <CardTitle className="text-lg font-medium flex-grow truncate pr-2">{ws.name}</CardTitle>
@@ -366,24 +259,17 @@ const Dashboard = () => {
   };
 
   const renderContent = () => {
-    console.log("Dashboard renderContent: userRole:", userRole, "isProfileLoading:", isProfileLoading, "isLoadingWorkspaces:", isLoadingWorkspaces, "workspaces:", workspaces);
-
     if (isProfileLoading || isLoadingWorkspaces) {
-      console.log("Dashboard renderContent: Showing skeleton due to loading state.");
       return <Skeleton className="h-64 w-full" />;
     }
     if (userRole === 'admin' || userRole === 'equipe') {
-      console.log("Dashboard renderContent: Rendering staff dashboard.");
       return renderStaffDashboard();
     }
     if (userRole === 'user') {
-      console.log("Dashboard renderContent: User role is 'user'. Checking workspaces for redirection.");
       if (workspaces && workspaces.length > 0) {
-        console.log("Dashboard renderContent: Workspaces found for client, redirecting to:", `/workspace/${workspaces[0].id}`);
         navigate(`/workspace/${workspaces[0].id}`);
-        return null; // Retorna null enquanto redireciona
+        return null;
       } else {
-        console.log("Dashboard renderContent: No workspaces found for client.");
         return (
           <div className="text-center p-8">
             <Card className="w-full max-w-md mx-auto text-center">
@@ -394,29 +280,18 @@ const Dashboard = () => {
         );
       }
     }
-    console.log("Dashboard renderContent: Fallback - Still loading or unknown state.");
     return <div className="text-center p-8">Carregando seus projetos...</div>;
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <header className="p-4 bg-white dark:bg-gray-800 shadow-sm flex justify-between items-center">
-        <div className="flex items-center gap-4">
-          <AppLogo className="h-8 w-auto" /> {/* Usando AppLogo aqui */}
-          <h1 className="text-xl sm:text-2xl font-bold whitespace-nowrap">Dashboard</h1>
-        </div>
-        {renderHeaderActions()}
-      </header>
-      <main className="p-4 md:p-8">
-        {renderContent()}
-      </main>
-      <Footer />
+    <>
+      {renderContent()}
       <WorkspaceSettingsModal
-        isOpen={isSettingsModalOpen}
-        onClose={() => setIsSettingsModalOpen(false)}
+        isOpen={isSettingsModal}
+        onClose={() => setIsSettingsModal(false)}
         workspace={selectedWorkspace}
       />
-    </div>
+    </>
   );
 };
 
