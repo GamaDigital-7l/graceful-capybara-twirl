@@ -71,144 +71,146 @@ function AgencyPlaybookPage() {
   );
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-end">
-        <Button onClick={() => setIsEditorOpen(true)}>
-          <Pencil className="h-4 w-4 mr-2" />
-          Editar Playbook da Agência
-        </Button>
-      </div>
+    <React.Fragment>
+      <div className="space-y-6">
+        <div className="flex justify-end">
+          <Button onClick={() => setIsEditorOpen(true)}>
+            <Pencil className="h-4 w-4 mr-2" />
+            Editar Playbook da Agência
+          </Button>
+        </div>
 
-      {isLoadingPlaybook ? renderSkeletons() : (
-        playbook ? (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2"><LinkIcon /> Links Essenciais</CardTitle>
-                <CardDescription>Acessos rápidos para ferramentas e documentos.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <h4 className="font-semibold text-sm mb-2 flex items-center gap-2"><FileText className="h-4 w-4" /> Briefings</h4>
-                  {playbook.briefings?.length > 0 ? (
-                    <ul className="space-y-1 list-disc list-inside">
-                      {playbook.briefings.map((link, index) => (
-                        <li key={index}><a href={link.url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">{link.name}</a></li>
-                      ))}
-                    </ul>
-                  ) : <p className="text-sm text-muted-foreground">Nenhum link de briefing.</p>}
-                </div>
-                <div>
-                  <h4 className="font-semibold text-sm mb-2 flex items-center gap-2"><Lightbulb className="h-4 w-4" /> Agentes de IA</h4>
-                  {playbook.ai_agents?.length > 0 ? (
-                    <ul className="space-y-1 list-disc list-inside">
-                      {playbook.ai_agents.map((link, index) => (
-                        <li key={index}><a href={link.url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">{link.name}</a></li>
-                      ))}
-                    </ul>
-                  ) : <p className="text-sm text-muted-foreground">Nenhum link de agente de IA.</p>}
-                </div>
-                <div>
-                  <h4 className="font-semibold text-sm mb-2 flex items-center gap-2"><LinkIcon className="h-4 w-4" /> Links Úteis</h4>
-                  {playbook.useful_links?.length > 0 ? (
-                    <ul className="space-y-1 list-disc list-inside">
-                      {playbook.useful_links.map((link, index) => (
-                        <li key={index}><a href={link.url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">{link.name}</a></li>
-                      ))}
-                    </ul>
-                  ) : <p className="text-sm text-muted-foreground">Nenhum link útil.</p>}
-                </div>
-                {playbook.drive_link && (
+        {isLoadingPlaybook ? renderSkeletons() : (
+          playbook ? (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2"><LinkIcon /> Links Essenciais</CardTitle>
+                  <CardDescription>Acessos rápidos para ferramentas e documentos.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
                   <div>
-                    <h4 className="font-semibold text-sm mb-2 flex items-center gap-2"><Cloud className="h-4 w-4" /> Drive (Nextcloud)</h4>
-                    <a href={playbook.drive_link} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">Acessar Drive</a>
+                    <h4 className="font-semibold text-sm mb-2 flex items-center gap-2"><FileText className="h-4 w-4" /> Briefings</h4>
+                    {playbook.briefings?.length > 0 ? (
+                      <ul className="space-y-1 list-disc list-inside">
+                        {playbook.briefings.map((link, index) => (
+                          <li key={index}><a href={link.url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">{link.name}</a></li>
+                        ))}
+                      </ul>
+                    ) : <p className="text-sm text-muted-foreground">Nenhum link de briefing.</p>}
                   </div>
-                )}
-              </CardContent>
-            </Card>
+                  <div>
+                    <h4 className="font-semibold text-sm mb-2 flex items-center gap-2"><Lightbulb className="h-4 w-4" /> Agentes de IA</h4>
+                    {playbook.ai_agents?.length > 0 ? (
+                      <ul className="space-y-1 list-disc list-inside">
+                        {playbook.ai_agents.map((link, index) => (
+                          <li key={index}><a href={link.url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">{link.name}</a></li>
+                        ))}
+                      </ul>
+                    ) : <p className="text-sm text-muted-foreground">Nenhum link de agente de IA.</p>}
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-sm mb-2 flex items-center gap-2"><LinkIcon className="h-4 w-4" /> Links Úteis</h4>
+                    {playbook.useful_links?.length > 0 ? (
+                      <ul className="space-y-1 list-disc list-inside">
+                        {playbook.useful_links.map((link, index) => (
+                          <li key={index}><a href={link.url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">{link.name}</a></li>
+                        ))}
+                      </ul>
+                    ) : <p className="text-sm text-muted-foreground">Nenhum link útil.</p>}
+                  </div>
+                  {playbook.drive_link && (
+                    <div>
+                      <h4 className="font-semibold text-sm mb-2 flex items-center gap-2"><Cloud className="h-4 w-4" /> Drive (Nextcloud)</h4>
+                      <a href={playbook.drive_link} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">Acessar Drive</a>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2"><FileText /> Proposta Comercial</CardTitle>
-                <CardDescription>Link para o modelo de proposta comercial.</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {playbook.commercial_proposal_link ? (
-                  <a href={playbook.commercial_proposal_link} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-blue-500 hover:underline">
-                    Acessar Proposta Comercial
-                  </a>
-                ) : (
-                  <p className="text-sm text-muted-foreground">Nenhum link de proposta comercial configurado.</p>
-                )}
-              </CardContent>
-            </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2"><FileText /> Proposta Comercial</CardTitle>
+                  <CardDescription>Link para o modelo de proposta comercial.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {playbook.commercial_proposal_link ? (
+                    <a href={playbook.commercial_proposal_link} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-blue-500 hover:underline">
+                      Acessar Proposta Comercial
+                    </a>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">Nenhum link de proposta comercial configurado.</p>
+                  )}
+                </CardContent>
+              </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2"><Users /> Processos da Agência</CardTitle>
-                <CardDescription>Passo a passo para as operações internas.</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="prose dark:prose-invert max-w-none whitespace-pre-wrap">
-                  {playbook.agency_processes || <p className="text-muted-foreground">Nenhum processo da agência preenchido.</p>}
-                </div>
-              </CardContent>
-            </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2"><Users /> Processos da Agência</CardTitle>
+                  <CardDescription>Passo a passo para as operações internas.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="prose dark:prose-invert max-w-none whitespace-pre-wrap">
+                    {playbook.agency_processes || <p className="text-muted-foreground">Nenhum processo da agência preenchido.</p>}
+                  </div>
+                </CardContent>
+              </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2"><KeyRound /> Logins de Plataformas</CardTitle>
-                <CardDescription>Credenciais para ferramentas e IAs da agência.</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2">
-                  {playbook.logins?.map((login, index) => (
-                    <li key={index} className="p-2 border rounded-md bg-muted/50">
-                      <p className="font-bold">{login.platform}</p>
-                      <p className="text-sm">Usuário: {login.username}</p>
-                      {login.password && (
-                        <div className="flex items-center gap-2 text-sm">
-                          <span>Senha: {visiblePasswords.has(login.platform) ? login.password : '********'}</span>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-6 w-6"
-                            onClick={() => togglePasswordVisibility(login.platform)}
-                          >
-                            {visiblePasswords.has(login.platform) ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                          </Button>
-                        </div>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-                {playbook.logins?.length === 0 && <p className="text-sm text-muted-foreground">Nenhum login adicionado.</p>}
-              </CardContent>
-            </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2"><KeyRound /> Logins de Plataformas</CardTitle>
+                  <CardDescription>Credenciais para ferramentas e IAs da agência.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-2">
+                    {playbook.logins?.map((login, index) => (
+                      <li key={index} className="p-2 border rounded-md bg-muted/50">
+                        <p className="font-bold">{login.platform}</p>
+                        <p className="text-sm">Usuário: {login.username}</p>
+                        {login.password && (
+                          <div className="flex items-center gap-2 text-sm">
+                            <span>Senha: {visiblePasswords.has(login.platform) ? login.password : '********'}</span>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-6 w-6"
+                              onClick={() => togglePasswordVisibility(login.platform)}
+                            >
+                              {visiblePasswords.has(login.platform) ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                            </Button>
+                          </div>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                  {playbook.logins?.length === 0 && <p className="text-sm text-muted-foreground">Nenhum login adicionado.</p>}
+                </CardContent>
+              </Card>
 
-            <Card className="lg:col-span-2">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2"><FileText /> Cultura e Valores</CardTitle>
-                <CardDescription>Informações sobre a empresa, o que fazer, prazos, etc.</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="prose dark:prose-invert max-w-none whitespace-pre-wrap">
-                  {playbook.culture_and_values || <p className="text-muted-foreground">Nenhuma informação de cultura e valores preenchida.</p>}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        ) : <p className="text-center text-muted-foreground">Nenhum playbook da agência encontrado. Por favor, edite para adicionar conteúdo.</p>
-      )}
-      {playbook && (
-        <AgencyPlaybookEditor
-          isOpen={isEditorOpen}
-          onClose={() => setIsEditorOpen(false)}
-          playbook={playbook}
-          onSave={(data) => updatePlaybookMutation.mutate(data)}
-        />
-      )}
-    </div>
+              <Card className="lg:col-span-2">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2"><FileText /> Cultura e Valores</CardTitle>
+                  <CardDescription>Informações sobre a empresa, o que fazer, prazos, etc.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="prose dark:prose-invert max-w-none whitespace-pre-wrap">
+                    {playbook.culture_and_values || <p className="text-muted-foreground">Nenhuma informação de cultura e valores preenchida.</p>}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          ) : <p className="text-center text-muted-foreground">Nenhum playbook da agência encontrado. Por favor, edite para adicionar conteúdo.</p>
+        )}
+        {playbook && (
+          <AgencyPlaybookEditor
+            isOpen={isEditorOpen}
+            onClose={() => setIsEditorOpen(false)}
+            playbook={playbook}
+            onSave={(data) => updatePlaybookMutation.mutate(data)}
+          />
+        )}
+      </div>
+    </React.Fragment>
   );
 }
 
