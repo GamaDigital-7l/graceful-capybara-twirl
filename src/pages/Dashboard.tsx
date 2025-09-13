@@ -285,7 +285,7 @@ const Dashboard = () => {
     <>
       {renderContent()}
       <WorkspaceSettingsModal
-        isOpen={isSettingsModal}
+        isOpen={isSettingsModalOpen}
         onClose={() => setIsSettingsModal(false)}
         workspace={selectedWorkspace}
       />
