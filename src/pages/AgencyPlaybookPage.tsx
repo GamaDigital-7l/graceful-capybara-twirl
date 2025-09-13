@@ -24,9 +24,9 @@ const fetchAgencyPlaybook = async (): Promise<AgencyPlaybook | null> => {
   return data;
 };
 
-function AgencyPlaybookPage() {
+const AgencyPlaybookPage = () => {
   const [isEditorOpen, setIsEditorOpen] = useState(false);
-  const [visiblePasswords, setVisiblePasswords] = useState<Set<string>>(new Set()); // Inicializado como Set vazio
+  const [visiblePasswords, setVisiblePasswords] = useState<Set<string>>(new Set());
   const queryClient = useQueryClient();
 
   const { data: playbook, isLoading: isLoadingPlaybook } = useQuery({

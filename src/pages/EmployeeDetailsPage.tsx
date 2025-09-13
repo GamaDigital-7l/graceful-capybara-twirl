@@ -12,8 +12,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft, User, ListTodo, CheckCircle, AlertCircle, CalendarDays, Briefcase } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { showError } from "@/utils/toast";
-import { format, isPast, startOfMonth, endOfMonth, addMonths, subMonths } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { format, isPast, startOfMonth, endOfMonth, addMonths, subMonths } from "https://esm.sh/date-fns@2.30.0";
+import { ptBR } from "https://esm.sh/date-fns@2.30.0/locale/pt-BR";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -52,7 +52,7 @@ const fetchAssignedTasks = async (employeeId: string, month: Date): Promise<Assi
   return data || [];
 };
 
-function EmployeeDetailsPage() {
+const EmployeeDetailsPage = () => {
   const { employeeId } = useParams<{ employeeId: string }>();
   const [selectedMonth, setSelectedMonth] = useState<Date>(startOfMonth(new Date()));
 
