@@ -1,5 +1,3 @@
-"use client";
-
 import React, { useMemo, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -178,7 +176,7 @@ const EmployeeDetailsPage = () => {
               <div className="pt-4 space-y-2">
                 <p className="font-medium">Progresso Geral</p>
                 <Progress value={progressPercentage} className="w-full" />
-                <p className="text-sm text-muted-foreground text-right">{percentage.toFixed(0)}%</p>
+                <p className="text-sm text-muted-foreground text-right">{progressPercentage.toFixed(0)}%</p>
               </div>
             </CardContent>
           </Card>

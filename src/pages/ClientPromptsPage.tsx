@@ -1,5 +1,3 @@
-"use client";
-
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -37,18 +35,6 @@ const ClientPromptsPage = () => {
   const [viewingPrompt, setViewingPrompt] = useState<Prompt | null>(null);
   const [userRole, setUserRole] = useState<string | undefined>(undefined);
   const [isProfileLoading, setProfileLoading] = useState(true);
-
-  const { data: clientDetails, isLoading: isLoadingClientDetails } = useQuery({
-    queryKey: ["secondBrainClientDetails", clientId],
-    queryFn: () => fetchClientDetails(clientId!),
-    enabled: !!clientId,
-  });
-
-  const { data: prompts, isLoading: isLoadingPrompts } = useQuery<Prompt[]>({
-    queryKey: ["secondBrainPrompts", clientId],
-    queryFn: () => fetchClientPrompts(clientId!),
-    enabled: !!clientId,
-  });
 
   useEffect(() => {
     const fetchUserRole = async () => {

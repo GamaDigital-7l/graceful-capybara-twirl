@@ -1,5 +1,3 @@
-"use client";
-
 import { SheetContent } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "react-router-dom";

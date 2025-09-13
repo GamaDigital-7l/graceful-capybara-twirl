@@ -1,5 +1,3 @@
-"use client";
-
 import { useTheme } from "next-themes";
 
 interface AppLogoProps {

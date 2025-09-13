@@ -1,5 +1,3 @@
-"use client";
-
 import React, { useState, useMemo, useEffect } from "react";
 import {
   DndContext,
@@ -352,7 +350,7 @@ export function KanbanBoard({ groupId }: KanbanBoardProps) {
   };
 
   if (isLoading || isLoadingUsersForAssignment) return <div className="p-8 text-center">Carregando quadro...</div>;
-  if (error) return <div className="p-8 text-center text-destructive">Erro ao carregar o quadro: {error.message}</div>;
+  if (error) return <div className="p-8 text-center text-destructive">Erro ao carregar o quadro: ${error.message}</div>;
 
   return (
     <div>

@@ -1,5 +1,3 @@
-"use client";
-
 import { useState, useEffect } from "react";
 import { Playbook } from "@/pages/Playbook";
 import { Button } from "@/components/ui/button";

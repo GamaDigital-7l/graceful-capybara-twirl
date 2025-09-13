@@ -1,5 +1,3 @@
-"use client";
-
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -8,14 +6,14 @@ import { showError, showSuccess } from "@/utils/toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { PlusCircle, Settings, MoreVertical, Briefcase, Users } from "lucide-react";
+import { PlusCircle, Settings, MoreVertical, Briefcase, Users, BookOpen } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { WorkspaceSettingsModal } from "@/components/WorkspaceSettingsModal";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MyTasks } from "@/components/MyTasks";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import WorkspacePage from "./Workspace";
-import { EmployeeDashboardPage } from "./EmployeeDashboardPage";
+import EmployeeDashboardPage from "./EmployeeDashboardPage";
 import AgencyPlaybookPage from "./AgencyPlaybookPage";
 
 export interface Workspace {

@@ -1,5 +1,3 @@
-"use client";
-
 import { SortableContext, useSortable } from "@dnd-kit/sortable";
 import { useMemo, useState } from "react";
 import { KanbanCard, Task } from "./KanbanCard";

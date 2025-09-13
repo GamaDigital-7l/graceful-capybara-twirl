@@ -1,5 +1,3 @@
-"use client";
-
 import { Link, useLocation } from "react-router-dom";
 import { AppLogo } from "./AppLogo";
 import { ThemeToggle } from "./ThemeToggle";

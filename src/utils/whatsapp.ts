@@ -1,5 +1,3 @@
-"use client";
-
 import { supabase } from "@/integrations/supabase/client";
 import { showError, showSuccess } from "./toast";
 
