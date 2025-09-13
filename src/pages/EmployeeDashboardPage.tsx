@@ -46,7 +46,7 @@ const fetchAllStaffTasks = async (): Promise<EmployeeTask[]> => {
   })) || [];
 };
 
-export function EmployeeDashboardPage() {
+export function EmployeeDashboardPage() { // Componente EmployeeDashboardPage
   const { data: employees, isLoading: isLoadingEmployees, error: employeesError } = useQuery<EmployeeProfile[]>({
     queryKey: ["staffUsers"],
     queryFn: fetchStaffUsers,

@@ -25,7 +25,7 @@ const fetchAgencyPlaybook = async (): Promise<AgencyPlaybook | null> => {
 
 const AgencyPlaybookPage = () => {
   const [isEditorOpen, setIsEditorOpen] = useState(false);
-  const [visiblePasswords, setVisiblePasswords] = useState<Set<string>>(new Set());
+  const [visiblePasswords, setVisiblePasswords] = new Set<string>(); // Inicializado como Set vazio
   const queryClient = useQueryClient();
 
   const { data: playbook, isLoading: isLoadingPlaybook } = useQuery({
@@ -64,7 +64,6 @@ const AgencyPlaybookPage = () => {
 
   const renderSkeletons = () => (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <Skeleton className="h-48 w-full" />
       <Skeleton className="h-48 w-full" />
       <Skeleton className="h-48 w-full" />
       <Skeleton className="h-48 w-full" />

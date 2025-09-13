@@ -10,12 +10,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft, User, ListTodo, CheckCircle, AlertCircle, CalendarDays, Briefcase } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { showError } from "@/utils/toast";
-import { useMemo, useState } from "react"; // Importar useState
-import { format, isPast, startOfMonth, endOfMonth, addMonths, subMonths } from "date-fns"; // Importar funções de data
+import { useMemo, useState } from "react";
+import { format, isPast, startOfMonth, endOfMonth, addMonths, subMonths } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; // Importar Select
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface EmployeeProfile {
   id: string;
@@ -42,11 +42,10 @@ const fetchEmployeeProfile = async (employeeId: string): Promise<EmployeeProfile
   return data;
 };
 
-// Modificar fetchAssignedTasks para aceitar um mês
 const fetchAssignedTasks = async (employeeId: string, month: Date): Promise<AssignedTask[]> => {
   const { data, error } = await supabase.rpc("get_tasks_assigned_to_user_by_month", { 
     p_assigned_to_user_id: employeeId, 
-    p_month: format(month, 'yyyy-MM-dd') // Formatar a data para o RPC
+    p_month: format(month, 'yyyy-MM-dd')
   });
   if (error) throw new Error(error.message);
   return data || [];
@@ -54,7 +53,7 @@ const fetchAssignedTasks = async (employeeId: string, month: Date): Promise<Assi
 
 export function EmployeeDetailsPage() {
   const { employeeId } = useParams<{ employeeId: string }>();
-  const [selectedMonth, setSelectedMonth] = useState<Date>(startOfMonth(new Date())); // Estado para o mês selecionado
+  const [selectedMonth, setSelectedMonth] = useState<Date>(startOfMonth(new Date()));
 
   const { data: employee, isLoading: isLoadingEmployee, error: employeeError } = useQuery<EmployeeProfile>({
     queryKey: ["employeeProfile", employeeId],
@@ -63,8 +62,8 @@ export function EmployeeDetailsPage() {
   });
 
   const { data: tasks, isLoading: isLoadingTasks, error: tasksError } = useQuery<AssignedTask[]>({
-    queryKey: ["assignedTasks", employeeId, selectedMonth.toISOString()], // Adicionar selectedMonth ao queryKey
-    queryFn: () => fetchAssignedTasks(employeeId!, selectedMonth), // Passar selectedMonth
+    queryKey: ["assignedTasks", employeeId, selectedMonth.toISOString()],
+    queryFn: () => fetchAssignedTasks(employeeId!, selectedMonth),
     enabled: !!employeeId,
   });
 
@@ -73,7 +72,7 @@ export function EmployeeDetailsPage() {
 
     const completed = tasks.filter(task => task.column_title === "Aprovado").length;
     const pending = tasks.filter(task => task.column_title !== "Aprovado");
-    const overdue = pending.filter(task => task.due_date && isPast(new Date(task.due_date), endOfMonth(selectedMonth))); // Verificar atraso até o final do mês selecionado
+    const overdue = pending.filter(task => task.due_date && isPast(new Date(task.due_date), endOfMonth(selectedMonth)));
 
     return {
       totalTasks: tasks.length,
@@ -88,18 +87,17 @@ export function EmployeeDetailsPage() {
   if (employeeError) showError(`Erro ao carregar perfil do funcionário: ${employeeError.message}`);
   if (tasksError) showError(`Erro ao carregar tarefas do funcionário: ${tasksError.message}`);
 
-  // Gerar opções de meses para o seletor
   const monthOptions = useMemo(() => {
     const options = [];
     let current = startOfMonth(new Date());
-    for (let i = 0; i < 12; i++) { // Últimos 12 meses
+    for (let i = 0; i < 12; i++) {
       options.push({
         value: current.toISOString(),
         label: format(current, "MMMM yyyy", { locale: ptBR }),
       });
       current = subMonths(current, 1);
     }
-    return options.reverse(); // Para ter o mês atual primeiro
+    return options.reverse();
   }, []);
 
   if (isLoadingEmployee || isLoadingTasks) {
@@ -119,8 +117,8 @@ export function EmployeeDetailsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 md:p-8">
-      <header className="mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <Button asChild variant="outline">
             <Link to="/employees">
@@ -156,9 +154,9 @@ export function EmployeeDetailsPage() {
             </SelectContent>
           </Select>
         </div>
-      </header>
+      </div>
 
-      <main className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-1 space-y-6">
           <Card>
             <CardHeader>
