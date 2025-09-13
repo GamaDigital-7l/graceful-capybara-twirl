@@ -1,5 +1,4 @@
-import * as React from "react";
-import { useMemo } from "react";
+import React, { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -95,53 +94,51 @@ function EmployeeDashboardPage() { // Componente EmployeeDashboardPage
   }
 
   return (
-    <React.Fragment>
-      <div className="space-y-6">
-        <h2 className="text-2xl font-bold">Visão Geral da Equipe</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {employees?.map((employee) => {
-            const progress = employeeProgress[employee.id] || { total: 0, completed: 0, pending: 0 };
-            const percentage = progress.total > 0 ? (progress.completed / progress.total) * 100 : 0;
+    <div className="space-y-6">
+      <h2 className="text-2xl font-bold">Visão Geral da Equipe</h2>
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        {employees?.map((employee) => {
+          const progress = employeeProgress[employee.id] || { total: 0, completed: 0, pending: 0 };
+          const percentage = progress.total > 0 ? (progress.completed / progress.total) * 100 : 0;
 
-            return (
-              <Card key={employee.id} className="hover:shadow-lg transition-shadow flex flex-col">
-                <CardHeader className="flex flex-row items-center gap-4 pb-2">
-                  <Avatar className="h-12 w-12">
-                    <AvatarImage src={employee.avatar_url || undefined} />
-                    <AvatarFallback>{employee.full_name?.charAt(0) || <User className="h-6 w-6" />}</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <CardTitle className="text-lg">{employee.full_name}</CardTitle>
-                    <CardDescription className="capitalize">{employee.role}</CardDescription>
+          return (
+            <Card key={employee.id} className="hover:shadow-lg transition-shadow flex flex-col">
+              <CardHeader className="flex flex-row items-center gap-4 pb-2">
+                <Avatar className="h-12 w-12">
+                  <AvatarImage src={employee.avatar_url || undefined} />
+                  <AvatarFallback>{employee.full_name?.charAt(0) || <User className="h-6 w-6" />}</AvatarFallback>
+                </Avatar>
+                <div>
+                  <CardTitle className="text-lg">{employee.full_name}</CardTitle>
+                  <CardDescription className="capitalize">{employee.role}</CardDescription>
+                </div>
+              </CardHeader>
+              <CardContent className="flex-grow flex flex-col justify-between pt-4">
+                <div className="space-y-2 mb-4">
+                  <div className="flex items-center justify-between text-sm text-muted-foreground">
+                    <span className="flex items-center gap-1"><ListTodo className="h-4 w-4" /> Pendentes:</span>
+                    <span>{progress.pending}</span>
                   </div>
-                </CardHeader>
-                <CardContent className="flex-grow flex flex-col justify-between pt-4">
-                  <div className="space-y-2 mb-4">
-                    <div className="flex items-center justify-between text-sm text-muted-foreground">
-                      <span className="flex items-center gap-1"><ListTodo className="h-4 w-4" /> Pendentes:</span>
-                      <span>{progress.pending}</span>
-                    </div>
-                    <div className="flex items-center justify-between text-sm text-muted-foreground">
-                      <span className="flex items-center gap-1"><CheckCircle className="h-4 w-4" /> Concluídas:</span>
-                      <span>{progress.completed}</span>
-                    </div>
+                  <div className="flex items-center justify-between text-sm text-muted-foreground">
+                    <span className="flex items-center gap-1"><CheckCircle className="h-4 w-4" /> Concluídas:</span>
+                    <span>{progress.completed}</span>
                   </div>
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium">Progresso Geral</p>
-                    <Progress value={percentage} className="w-full" />
-                    <p className="text-xs text-muted-foreground text-right">{percentage.toFixed(0)}%</p>
-                  </div>
-                  <Link to={`/employees/${employee.id}`} className="mt-4">
-                    <Button variant="outline" className="w-full">Ver Detalhes</Button>
-                  </Link>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
+                </div>
+                <div className="space-y-2">
+                  <p className="text-sm font-medium">Progresso Geral</p>
+                  <Progress value={percentage} className="w-full" />
+                  <p className="text-xs text-muted-foreground text-right">{percentage.toFixed(0)}%</p>
+                </div>
+                <Link to={`/employees/${employee.id}`} className="mt-4">
+                  <Button variant="outline" className="w-full">Ver Detalhes</Button>
+                </Link>
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
-    </React.Fragment>
+    </div>
   );
-};
+}
 
 export default EmployeeDashboardPage;

@@ -1,5 +1,4 @@
-import * as React from "react";
-import { useState } from "react";
+import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { showError, showSuccess } from "@/utils/toast";
@@ -71,48 +70,47 @@ function AgencyPlaybookPage() {
   );
 
   return (
-    <React.Fragment>
-      <div className="space-y-6">
-        <div className="flex justify-end">
-          <Button onClick={() => setIsEditorOpen(true)}>
-            <Pencil className="h-4 w-4 mr-2" />
-            Editar Playbook da Agência
-          </Button>
-        </div>
+    <div className="space-y-6">
+      <div className="flex justify-end">
+        <Button onClick={() => setIsEditorOpen(true)}>
+          <Pencil className="h-4 w-4 mr-2" />
+          Editar Playbook da Agência
+        </Button>
+      </div>
 
-        {isLoadingPlaybook ? renderSkeletons() : (
-          playbook ? (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2"><LinkIcon /> Links Essenciais</CardTitle>
-                  <CardDescription>Acessos rápidos para ferramentas e documentos.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <h4 className="font-semibold text-sm mb-2 flex items-center gap-2"><FileText className="h-4 w-4" /> Briefings</h4>
-                    {playbook.briefings?.length > 0 ? (
-                      <ul className="space-y-1 list-disc list-inside">
-                        {playbook.briefings.map((link, index) => (
-                          <li key={index}><a href={link.url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">{link.name}</a></li>
-                        ))}
-                      </ul>
-                    ) : <p className="text-sm text-muted-foreground">Nenhum link de briefing.</p>}
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-sm mb-2 flex items-center gap-2"><Lightbulb className="h-4 w-4" /> Agentes de IA</h4>
-                    {playbook.ai_agents?.length > 0 ? (
-                      <ul className="space-y-1 list-disc list-inside">
-                        {playbook.ai_agents.map((link, index) => (
-                          <li key={index}><a href={link.url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">{link.name}</a></li>
-                        ))}
-                      </ul>
-                    ) : <p className="text-sm text-muted-foreground">Nenhum link de agente de IA.</p>}
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-sm mb-2 flex items-center gap-2"><LinkIcon className="h-4 w-4" /> Links Úteis</h4>
-                    {playbook.useful_links?.length > 0 ? (
-                      <ul className="space-y-1 list-disc list-inside">
+      {isLoadingPlaybook ? renderSkeletons() : (
+        playbook ? (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2"><LinkIcon /> Links Essenciais</CardTitle>
+                <CardDescription>Acessos rápidos para ferramentas e documentos.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <h4 className="font-semibold text-sm mb-2 flex items-center gap-2"><FileText className="h-4 w-4" /> Briefings</h4>
+                  {playbook.briefings?.length > 0 ? (
+                    <ul className="space-y-1 list-disc list-inside">
+                      {playbook.briefings.map((link, index) => (
+                        <li key={index}><a href={link.url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">{link.name}</a></li>
+                      ))}
+                    </ul>
+                  ) : <p className="text-sm text-muted-foreground">Nenhum link de briefing.</p>}
+                </div>
+                <div>
+                  <h4 className="font-semibold text-sm mb-2 flex items-center gap-2"><Lightbulb className="h-4 w-4" /> Agentes de IA</h4>
+                  {playbook.ai_agents?.length > 0 ? (
+                    <ul className="space-y-1 list-disc list-inside">
+                      {playbook.ai_agents.map((link, index) => (
+                        <li key={index}><a href={link.url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">{link.name}</a></li>
+                      ))}
+                    </ul>
+                  ) : <p className="text-sm text-muted-foreground">Nenhum link de agente de IA.</p>}
+                </div>
+                <div>
+                  <h4 className="font-semibold text-sm mb-2 flex items-center gap-2"><LinkIcon className="h-4 w-4" /> Links Úteis</h4>
+                  {playbook.useful_links?.length > 0 ? (
+                    <ul className="space-y-1 list-disc list-inside">
                         {playbook.useful_links.map((link, index) => (
                           <li key={index}><a href={link.url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">{link.name}</a></li>
                         ))}
