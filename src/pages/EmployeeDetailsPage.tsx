@@ -1,5 +1,6 @@
 "use client";
 
+import React, { useMemo, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,7 +11,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft, User, ListTodo, CheckCircle, AlertCircle, CalendarDays, Briefcase } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { showError } from "@/utils/toast";
-import { useMemo, useState } from "react";
 import { format, isPast, startOfMonth, endOfMonth, addMonths, subMonths } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
@@ -51,7 +51,7 @@ const fetchAssignedTasks = async (employeeId: string, month: Date): Promise<Assi
   return data || [];
 };
 
-export function EmployeeDetailsPage() {
+const EmployeeDetailsPage = () => {
   const { employeeId } = useParams<{ employeeId: string }>();
   const [selectedMonth, setSelectedMonth] = useState<Date>(startOfMonth(new Date()));
 
@@ -178,7 +178,7 @@ export function EmployeeDetailsPage() {
               <div className="pt-4 space-y-2">
                 <p className="font-medium">Progresso Geral</p>
                 <Progress value={progressPercentage} className="w-full" />
-                <p className="text-sm text-muted-foreground text-right">{progressPercentage.toFixed(0)}%</p>
+                <p className="text-sm text-muted-foreground text-right">{percentage.toFixed(0)}%</p>
               </div>
             </CardContent>
           </Card>
@@ -230,4 +230,6 @@ export function EmployeeDetailsPage() {
       </main>
     </div>
   );
-}
+};
+
+export default EmployeeDetailsPage;

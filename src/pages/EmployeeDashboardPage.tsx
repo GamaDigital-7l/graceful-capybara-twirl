@@ -1,5 +1,6 @@
 "use client";
 
+import React, { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,7 +11,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { User, Briefcase, CheckCircle, ListTodo } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { showError } from "@/utils/toast";
-import { useMemo } from "react";
 
 interface EmployeeProfile {
   id: string;
@@ -24,6 +24,7 @@ interface EmployeeTask {
   title: string;
   due_date: string | null;
   column_title: string;
+  assigned_to: string | null; // Adicionado assigned_to para o useMemo
 }
 
 const fetchStaffUsers = async (): Promise<EmployeeProfile[]> => {
@@ -46,7 +47,7 @@ const fetchAllStaffTasks = async (): Promise<EmployeeTask[]> => {
   })) || [];
 };
 
-export function EmployeeDashboardPage() { // Componente EmployeeDashboardPage
+const EmployeeDashboardPage = () => { // Componente EmployeeDashboardPage
   const { data: employees, isLoading: isLoadingEmployees, error: employeesError } = useQuery<EmployeeProfile[]>({
     queryKey: ["staffUsers"],
     queryFn: fetchStaffUsers,
@@ -140,4 +141,6 @@ export function EmployeeDashboardPage() { // Componente EmployeeDashboardPage
       </div>
     </div>
   );
-}
+};
+
+export default EmployeeDashboardPage;

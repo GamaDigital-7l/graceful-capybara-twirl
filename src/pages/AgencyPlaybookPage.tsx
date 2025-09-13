@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { showError, showSuccess } from "@/utils/toast";
@@ -25,7 +25,7 @@ const fetchAgencyPlaybook = async (): Promise<AgencyPlaybook | null> => {
 
 const AgencyPlaybookPage = () => {
   const [isEditorOpen, setIsEditorOpen] = useState(false);
-  const [visiblePasswords, setVisiblePasswords] = new Set<string>(); // Inicializado como Set vazio
+  const [visiblePasswords, setVisiblePasswords] = useState<Set<string>>(new Set()); // Inicializado como Set vazio
   const queryClient = useQueryClient();
 
   const { data: playbook, isLoading: isLoadingPlaybook } = useQuery({

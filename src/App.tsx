@@ -14,11 +14,12 @@ import FinancialDashboard from "./pages/FinancialDashboard";
 import SecondBrainDashboard from "./pages/SecondBrainDashboard";
 import ClientPromptsPage from "./pages/ClientPromptsPage";
 import PublicApprovalPage from "./pages/PublicApprovalPage";
-import { EmployeeDetailsPage } from "./pages/EmployeeDetailsPage";
+import EmployeeDashboardPage from "./pages/EmployeeDashboardPage"; // Updated import
+import EmployeeDetailsPage from "./pages/EmployeeDetailsPage"; // Updated import
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
-import { Layout } from "./components/Layout"; // Import the new Layout component
-import AgencyPlaybookPage from "./pages/AgencyPlaybookPage"; // Ensure this is imported
+import { Layout } from "./components/Layout";
+import AgencyPlaybookPage from "./pages/AgencyPlaybookPage"; // Updated import
 
 const queryClient = new QueryClient();
 
