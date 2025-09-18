@@ -135,7 +135,9 @@ export function KanbanBoard({ groupId }: KanbanBoardProps) {
     queryFn: async () => {
       const { data, error } = await supabase.from('groups').select('workspaces(name)').eq('id', groupId).single();
       if (error) throw error;
-      return data as WorkspaceFromGroupData; // Adicionado cast para garantir a tipagem
+      // O Supabase retorna um array para relacionamentos, mesmo que single() seja usado na query principal.
+      // O cast é necessário para garantir que o TypeScript entenda a estrutura.
+      return data as WorkspaceFromGroupData; 
     },
     enabled: !!groupId
   });
