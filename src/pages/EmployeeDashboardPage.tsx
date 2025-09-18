@@ -25,7 +25,7 @@ interface RawEmployeeTask {
   title: string;
   due_date: string | null;
   column_id: string;
-  columns: { title: string }[] | null; // Alterado para array
+  columns: { title: any }[] | null; // Alterado para array de objetos com 'title: any'
   assigned_to: string | null;
 }
 

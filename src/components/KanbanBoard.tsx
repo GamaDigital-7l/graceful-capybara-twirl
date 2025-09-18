@@ -126,8 +126,8 @@ export function KanbanBoard({ groupId }: KanbanBoardProps) {
   // Definir a interface para os dados do workspace
   interface WorkspaceFromGroupData {
     workspaces: {
-      name: string;
-    }[] | null; // Alterado para array
+      name: any; // Alterado para 'any' para corresponder à inferência do Supabase
+    }[] | null;
   }
 
   const { data: workspaceData } = useQuery<WorkspaceFromGroupData, Error>({ // Tipagem explícita
@@ -135,9 +135,7 @@ export function KanbanBoard({ groupId }: KanbanBoardProps) {
     queryFn: async () => {
       const { data, error } = await supabase.from('groups').select('workspaces(name)').eq('id', groupId).single();
       if (error) throw error;
-      // O Supabase retorna um array para relacionamentos, mesmo que single() seja usado na query principal.
-      // O cast é necessário para garantir que o TypeScript entenda a estrutura.
-      return data as WorkspaceFromGroupData; 
+      return data as WorkspaceFromGroupData; // Adicionado cast para garantir a tipagem
     },
     enabled: !!groupId
   });
