@@ -11,11 +11,8 @@ import { SecondBrainClientModal, SecondBrainClient } from "@/components/SecondBr
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
-export interface SecondBrainClient {
-  id: string;
-  name: string;
-  created_by?: string;
-}
+// A interface SecondBrainClient já é importada de "@/components/SecondBrainClientModal"
+// Removendo a declaração duplicada aqui.
 
 const fetchSecondBrainClients = async (): Promise<SecondBrainClient[]> => {
   const { data, error } = await supabase.from("second_brain_clients").select("*").order("name");

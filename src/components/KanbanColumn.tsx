@@ -28,6 +28,7 @@ import { Badge } from "./ui/badge";
 export interface Column {
   id: string;
   title: string;
+  position: number; // Adicionado
 }
 
 interface KanbanColumnProps {

@@ -10,6 +10,19 @@ import { Briefcase } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { ClientProgress } from "./ClientProgress";
 
+interface UserTask {
+  id: string;
+  title: string;
+  column_id: string;
+  column_title: string;
+  workspace_id: string;
+  workspace_name: string;
+  workspace_logo_url: string | null;
+  assigned_to: string | null;
+  assigned_to_name: string | null;
+  assigned_to_avatar: string | null;
+}
+
 const fetchUserTasks = async () => {
   const { data, error } = await supabase.rpc("get_user_tasks");
   if (error) throw new Error(error.message);
@@ -17,7 +30,7 @@ const fetchUserTasks = async () => {
 };
 
 export function MyTasks() {
-  const { data: tasks, isLoading } = useQuery({
+  const { data: tasks, isLoading } = useQuery<UserTask[]>({
     queryKey: ["user_tasks"],
     queryFn: fetchUserTasks,
   });
@@ -35,13 +48,13 @@ export function MyTasks() {
 
   const groupedTasks = useMemo(() => {
     if (!pendingTasks) return {};
-    return pendingTasks.reduce((acc, task) => {
+    return pendingTasks.reduce((acc: Record<string, { name: string; logo_url: string | null; tasks: UserTask[] }>, task) => {
       if (!acc[task.workspace_id]) {
         acc[task.workspace_id] = { name: task.workspace_name, logo_url: task.workspace_logo_url, tasks: [] };
       }
       acc[task.workspace_id].tasks.push(task);
       return acc;
-    }, {} as Record<string, { name: string; logo_url: string | null; tasks: typeof pendingTasks }>);
+    }, {});
   }, [pendingTasks]);
 
   if (isLoading) {

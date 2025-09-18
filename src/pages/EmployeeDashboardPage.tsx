@@ -20,12 +20,21 @@ interface EmployeeProfile {
   role: string;
 }
 
+interface RawEmployeeTask {
+  id: string;
+  title: string;
+  due_date: string | null;
+  column_id: string;
+  columns: { title: string } | null; // Como é retornado pelo Supabase
+  assigned_to: string | null;
+}
+
 interface EmployeeTask {
   id: string;
   title: string;
   due_date: string | null;
   column_title: string;
-  assigned_to: string | null; // Adicionado assigned_to para o useMemo
+  assigned_to: string | null;
 }
 
 const fetchStaffUsers = async (): Promise<EmployeeProfile[]> => {
@@ -39,11 +48,11 @@ const fetchAllStaffTasks = async (): Promise<EmployeeTask[]> => {
   if (error) throw new Error(error.message);
   
   // Flatten the data to include column_title directly
-  return data.map(task => ({
+  return data.map((task: RawEmployeeTask) => ({ // Tipagem explícita para o item do map
     id: task.id,
     title: task.title,
     due_date: task.due_date,
-    column_title: (task.columns as { title: string }).title,
+    column_title: task.columns?.title || 'Unknown', // Acessa com segurança
     assigned_to: task.assigned_to,
   })) || [];
 };

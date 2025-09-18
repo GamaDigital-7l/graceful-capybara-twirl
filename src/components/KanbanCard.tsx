@@ -31,6 +31,7 @@ export interface Task {
   title: string;
   description?: string;
   dueDate?: string;
+  due_time?: string; // Novo campo adicionado
   attachments?: Attachment[];
   actionType?: TaskActionType;
   comments?: Comment[];

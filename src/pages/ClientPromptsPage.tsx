@@ -36,6 +36,20 @@ const ClientPromptsPage = () => {
   const [userRole, setUserRole] = useState<string | undefined>(undefined);
   const [isProfileLoading, setProfileLoading] = useState(true);
 
+  // Adicionando useQuery para buscar detalhes do cliente
+  const { data: clientDetails, isLoading: isLoadingClientDetails } = useQuery({
+    queryKey: ["secondBrainClientDetails", clientId],
+    queryFn: () => fetchClientDetails(clientId!),
+    enabled: !!clientId,
+  });
+
+  // Adicionando useQuery para buscar prompts do cliente
+  const { data: prompts, isLoading: isLoadingPrompts } = useQuery<Prompt[]>({
+    queryKey: ["secondBrainPrompts", clientId],
+    queryFn: () => fetchClientPrompts(clientId!),
+    enabled: !!clientId,
+  });
+
   useEffect(() => {
     const fetchUserRole = async () => {
       setProfileLoading(true);

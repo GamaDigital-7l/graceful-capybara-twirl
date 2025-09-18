@@ -12,8 +12,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft, User, ListTodo, CheckCircle, AlertCircle, CalendarDays, Briefcase } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { showError } from "@/utils/toast";
-import { format, isPast, startOfMonth, endOfMonth, addMonths, subMonths } from "https://esm.sh/date-fns@2.30.0";
-import ptBR from "https://esm.sh/date-fns@2.30.0/locale/pt-BR"; // Alterado para default import
+import { format, isPast, startOfMonth, endOfMonth, addMonths, subMonths } from "date-fns"; // Corrigido
+import { ptBR } from "date-fns/locale"; // Corrigido
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -87,19 +87,6 @@ const EmployeeDetailsPage = () => {
 
   if (employeeError) showError(`Erro ao carregar perfil do funcionário: ${employeeError.message}`);
   if (tasksError) showError(`Erro ao carregar tarefas do funcionário: ${tasksError.message}`);
-
-  const monthOptions = useMemo(() => {
-    const options = [];
-    let current = startOfMonth(new Date());
-    for (let i = 0; i < 12; i++) {
-      options.push({
-        value: current.toISOString(),
-        label: format(current, "MMMM yyyy", { locale: ptBR }),
-      });
-      current = subMonths(current, 1);
-    }
-    return options.reverse();
-  }, []);
 
   if (isLoadingEmployee || isLoadingTasks) {
     return (

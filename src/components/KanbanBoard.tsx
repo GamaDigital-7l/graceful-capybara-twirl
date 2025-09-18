@@ -33,7 +33,13 @@ interface UserProfile {
   role: string;
 }
 
-const fetchKanbanData = async (groupId: string) => {
+// Definir a interface para os dados retornados por fetchKanbanData
+interface KanbanData {
+  columns: Column[];
+  tasks: Task[];
+}
+
+const fetchKanbanData = async (groupId: string): Promise<KanbanData> => {
   const { data: columns, error: columnsError } = await supabase
     .from("columns")
     .select("id, title, position")
@@ -47,7 +53,7 @@ const fetchKanbanData = async (groupId: string) => {
 
   const { data: tasksData, error: tasksError } = await supabase
     .from("tasks")
-    .select("*, assigned_to:profiles(full_name, avatar_url)") // Fetch assigned user details
+    .select("*, assigned_to:profiles(id, full_name, avatar_url)") // Fetch assigned user details, including id
     .in("column_id", columnIds)
     .order("position");
   if (tasksError) throw new Error(tasksError.message);
@@ -59,6 +65,7 @@ const fetchKanbanData = async (groupId: string) => {
     description: task.description,
     position: task.position,
     dueDate: task.due_date,
+    due_time: task.due_time, // Adicionado
     actionType: task.action_type,
     attachments: task.attachments,
     comments: task.comments,
@@ -97,22 +104,33 @@ export function KanbanBoard({ groupId }: KanbanBoardProps) {
     fetchUser();
   }, []);
 
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading, error } = useQuery<KanbanData, Error>({ // Tipagem explícita para data e error
     queryKey: ["kanbanData", groupId],
     queryFn: () => fetchKanbanData(groupId),
     enabled: !!groupId, // Garante que a query só roda se groupId estiver disponível
-    onError: (err) => {
-      console.error("Error fetching Kanban data:", err);
-      showError(`Erro ao carregar o quadro: ${err.message}`);
-    }
   });
+
+  // Tratamento de erro fora das opções do useQuery
+  useEffect(() => {
+    if (error) {
+      console.error("Error fetching Kanban data:", error);
+      showError(`Erro ao carregar o quadro: ${error.message}`);
+    }
+  }, [error]);
 
   const { data: usersForAssignment, isLoading: isLoadingUsersForAssignment } = useQuery<UserProfile[]>({
     queryKey: ["usersForAssignment"],
     queryFn: fetchUsersForAssignment,
   });
 
-  const { data: workspaceData } = useQuery({
+  // Definir a interface para os dados do workspace
+  interface WorkspaceFromGroupData {
+    workspaces: {
+      name: string;
+    } | null;
+  }
+
+  const { data: workspaceData } = useQuery<WorkspaceFromGroupData, Error>({ // Tipagem explícita
     queryKey: ['workspaceFromGroup', groupId],
     queryFn: async () => {
       const { data, error } = await supabase.from('groups').select('workspaces(name)').eq('id', groupId).single();
@@ -179,13 +197,14 @@ export function KanbanBoard({ groupId }: KanbanBoardProps) {
 
   const saveTaskMutation = useMutation({
     mutationFn: async (task: Partial<Task>) => {
-      const { id, columnId, dueDate, actionType, assignedTo, ...rest } = task;
+      const { id, columnId, dueDate, actionType, assignedTo, due_time, ...rest } = task; // Incluir due_time
       const dataToSave = { 
         ...rest, 
         column_id: columnId, 
         due_date: dueDate, 
+        due_time: due_time || null, // Salvar due_time
         action_type: actionType, 
-        assigned_to: assignedTo || null // Save assignedTo
+        assigned_to: assignedTo || null // Salvar assignedTo
       };
       Object.keys(dataToSave).forEach(key => dataToSave[key] === undefined && delete dataToSave[key]);
       if (id) {
@@ -269,9 +288,9 @@ export function KanbanBoard({ groupId }: KanbanBoardProps) {
   const onDragStart = (event: DragStartEvent) => {
     const { active } = event;
     if (active.data.current?.type === "Column") {
-      setActiveEl({ type: "Column", data: active.data.current.column });
+      setActiveEl({ type: "Column", data: active.data.current.column as Column }); // Adicionado cast
     } else if (active.data.current?.type === "Task") {
-      setActiveEl({ type: "Task", data: active.data.current.task });
+      setActiveEl({ type: "Task", data: active.data.current.task as Task }); // Adicionado cast
     }
   };
 
@@ -290,7 +309,7 @@ export function KanbanBoard({ groupId }: KanbanBoardProps) {
         const activeIndex = columns.findIndex((c) => c.id === activeId);
         const overIndex = columns.findIndex((c) => c.id === overId);
         if (activeIndex !== overIndex) {
-            const reorderedColumns = arrayMove(columns, activeIndex, overIndex);
+            const reorderedColumns: Column[] = arrayMove(columns, activeIndex, overIndex); // Tipagem explícita
             updateColumnPositionMutation.mutate(reorderedColumns.map((col, index) => ({ ...col, position: index })));
         }
         return;
@@ -323,7 +342,7 @@ export function KanbanBoard({ groupId }: KanbanBoardProps) {
         if (sourceColumnId === destinationColumnId) {
             const activeIndex = sourceTasks.findIndex(t => t.id === activeId);
             const overIndex = destTasks.findIndex(t => t.id === overId);
-            const reordered = arrayMove(sourceTasks, activeIndex, overIndex);
+            const reordered: Task[] = arrayMove(sourceTasks, activeIndex, overIndex); // Tipagem explícita
             finalTasksToUpdate = reordered.map((task, index) => ({ ...task, position: index }));
         } else {
             const activeIndex = sourceTasks.findIndex(t => t.id === activeId);
