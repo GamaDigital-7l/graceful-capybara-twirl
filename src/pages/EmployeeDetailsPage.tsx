@@ -73,7 +73,7 @@ const EmployeeDetailsPage = () => {
 
     const completed = tasks.filter(task => task.column_title === "Aprovado").length;
     const pending = tasks.filter(task => task.column_title !== "Aprovado");
-    const overdue = pending.filter(task => task.due_date && isPast(new Date(task.due_date), endOfMonth(selectedMonth)));
+    const overdue = pending.filter(task => task.due_date && isPast(new Date(task.due_date))); // Removido o segundo argumento
 
     return {
       totalTasks: tasks.length,
@@ -84,6 +84,19 @@ const EmployeeDetailsPage = () => {
   }, [tasks, selectedMonth]);
 
   const progressPercentage = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
+
+  const monthOptions = useMemo(() => {
+    const options = [];
+    let current = startOfMonth(new Date());
+    for (let i = 0; i < 12; i++) {
+      options.push({
+        value: current.toISOString(),
+        label: format(current, "MMMM yyyy", { locale: ptBR }),
+      });
+      current = subMonths(current, 1);
+    }
+    return options.reverse();
+  }, []);
 
   if (employeeError) showError(`Erro ao carregar perfil do funcionário: ${employeeError.message}`);
   if (tasksError) showError(`Erro ao carregar tarefas do funcionário: ${tasksError.message}`);
@@ -184,7 +197,7 @@ const EmployeeDetailsPage = () => {
                   <Link to={`/workspace/${task.workspace_id}`} key={task.id}>
                     <Card className={cn(
                       "hover:shadow-md transition-shadow",
-                      task.due_date && isPast(new Date(task.due_date), endOfMonth(selectedMonth)) && task.column_title !== "Aprovado" && "border-destructive/50 ring-1 ring-destructive/50"
+                      task.due_date && isPast(new Date(task.due_date)) && task.column_title !== "Aprovado" && "border-destructive/50 ring-1 ring-destructive/50"
                     )}>
                       <CardContent className="p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                         <div>
@@ -199,7 +212,7 @@ const EmployeeDetailsPage = () => {
                           <div className="flex items-center gap-1 text-sm text-muted-foreground">
                             <CalendarDays className="h-4 w-4" />
                             <span className={cn(
-                              task.due_date && isPast(new Date(task.due_date), endOfMonth(selectedMonth)) && task.column_title !== "Aprovado" && "text-destructive font-semibold"
+                              task.due_date && isPast(new Date(task.due_date)) && task.column_title !== "Aprovado" && "text-destructive font-semibold"
                             )}>
                               {format(new Date(task.due_date), "dd MMM, yyyy", { locale: ptBR })}
                             </span>
@@ -219,5 +232,18 @@ const EmployeeDetailsPage = () => {
     </div>
   );
 }
+
+const monthOptions = useMemo(() => {
+  const options = [];
+  let current = startOfMonth(new Date());
+  for (let i = 0; i < 12; i++) {
+    options.push({
+      value: current.toISOString(),
+      label: format(current, "MMMM yyyy", { locale: ptBR }),
+    });
+    current = subMonths(current, 1);
+  }
+  return options.reverse();
+}, []);
 
 export default EmployeeDetailsPage;
