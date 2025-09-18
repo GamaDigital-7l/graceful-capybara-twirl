@@ -25,7 +25,7 @@ interface RawEmployeeTask {
   title: string;
   due_date: string | null;
   column_id: string;
-  columns: { title: string } | null; // Como é retornado pelo Supabase
+  columns: { title: string }[] | null; // Alterado para array
   assigned_to: string | null;
 }
 
@@ -52,7 +52,7 @@ const fetchAllStaffTasks = async (): Promise<EmployeeTask[]> => {
     id: task.id,
     title: task.title,
     due_date: task.due_date,
-    column_title: task.columns?.title || 'Unknown', // Acessa com segurança
+    column_title: task.columns?.[0]?.title || 'Unknown', // Acessa o primeiro item do array
     assigned_to: task.assigned_to,
   })) || [];
 };

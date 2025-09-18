@@ -127,7 +127,7 @@ export function KanbanBoard({ groupId }: KanbanBoardProps) {
   interface WorkspaceFromGroupData {
     workspaces: {
       name: string;
-    } | null;
+    }[] | null; // Alterado para array
   }
 
   const { data: workspaceData } = useQuery<WorkspaceFromGroupData, Error>({ // Tipagem explícita
@@ -139,7 +139,7 @@ export function KanbanBoard({ groupId }: KanbanBoardProps) {
     },
     enabled: !!groupId
   });
-  const workspaceName = workspaceData?.workspaces?.name || 'Workspace Desconhecido';
+  const workspaceName = workspaceData?.workspaces?.[0]?.name || 'Workspace Desconhecido'; // Acessar o primeiro item do array
 
   const triggerNotification = (message: string) => {
     // Envia notificação se o usuário atual for 'equipe' ou 'user' (cliente)
