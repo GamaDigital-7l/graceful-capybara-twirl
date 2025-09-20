@@ -23,7 +23,7 @@ import {
   CartesianGrid,
   Tooltip,
   Legend,
-} from "recharts"; // Removido LineChart e Line
+} from "recharts";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import { format } from "date-fns";
@@ -90,13 +90,6 @@ const InstagramInsightsDashboard = () => {
     enabled: !!workspaceId,
   });
 
-  // Removido o fetch de insights históricos, pois o relatório será pontual.
-  // const { data: historicalInsights, isLoading: isLoadingHistoricalInsights } = useQuery<InstagramInsightData[]>({
-  //   queryKey: ["instagramInsights", workspaceId],
-  //   queryFn: () => fetchInstagramInsights(workspaceId!),
-  //   enabled: !!workspaceId,
-  // });
-
   const saveReportMutation = useMutation({
     mutationFn: async (report: { workspace_id: string; report_url: string; ai_summary?: string; period_start?: string; period_end?: string; created_by: string }) => {
       const { error } = await supabase.from("instagram_reports").insert(report);
@@ -143,20 +136,6 @@ const InstagramInsightsDashboard = () => {
         insights.key_metrics.push({ name: "Número de Posts", value: String(instagramData.posts_count) });
       }
       setGeminiOutput(insights);
-
-      // Removido o salvamento automático de insights históricos
-      // const newInsight: InstagramInsightData = {
-      //   workspace_id: workspaceId,
-      //   insight_date: instagramData.date,
-      //   followers: instagramData.followers,
-      //   engagement_rate: instagramData.engagement_rate,
-      //   reach: instagramData.reach,
-      //   impressions: instagramData.impressions,
-      //   profile_views: instagramData.profile_views,
-      //   posts_count: instagramData.posts_count,
-      //   raw_data: instagramData,
-      // };
-      // await saveInsightMutation.mutateAsync(newInsight);
       
       showSuccess("Insights gerados com sucesso!");
     } catch (error: any) {
@@ -185,27 +164,36 @@ const InstagramInsightsDashboard = () => {
         throw new Error("Elemento do dashboard não encontrado.");
       }
 
+      console.log("Iniciando captura do dashboard para PDF...");
       // Temporariamente ajustar o estilo para o PDF
       dashboardElement.style.padding = '20px'; // Adicionar padding para o PDF
       dashboardElement.style.backgroundColor = 'white'; // Fundo branco para o PDF
 
       const canvas = await html2canvas(dashboardElement, { scale: 2, useCORS: true });
       const imgData = canvas.toDataURL("image/png");
+
+      // Restaurar estilos após a captura
+      dashboardElement.style.padding = '';
+      dashboardElement.style.backgroundColor = '';
+
+      if (!imgData || imgData.length < 100) { // Basic check for empty/small image data
+        throw new Error("Falha ao capturar o conteúdo do dashboard. A imagem está vazia ou muito pequena.");
+      }
+      console.log("Conteúdo do dashboard capturado com sucesso.");
+
       const pdf = new jsPDF("p", "mm", "a4");
       const imgProps = pdf.getImageProperties(imgData);
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
 
       pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-
-      // Restaurar estilos após a captura
-      dashboardElement.style.padding = '';
-      dashboardElement.style.backgroundColor = '';
+      console.log("Imagem adicionada ao PDF.");
 
       const pdfBlob = pdf.output('blob');
       const fileName = `relatorio_instagram_${workspaceDetails?.name || 'cliente'}_${format(reportStartDate, 'yyyyMMdd')}_${format(reportEndDate, 'yyyyMMdd')}.pdf`;
       const filePath = `instagram-reports/${workspaceId}/${fileName}`;
 
+      console.log("Iniciando upload do PDF para o Supabase Storage...");
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from("instagram-reports")
         .upload(filePath, pdfBlob, {
@@ -216,14 +204,21 @@ const InstagramInsightsDashboard = () => {
       if (uploadError) {
         throw new Error(`Erro ao fazer upload do PDF: ${uploadError.message}`);
       }
+      console.log("PDF enviado para o Supabase Storage:", uploadData.path);
 
       const { data: publicUrlData } = supabase.storage
         .from("instagram-reports")
         .getPublicUrl(uploadData.path);
 
+      if (!publicUrlData.publicUrl) {
+        throw new Error("URL pública do PDF não gerada.");
+      }
+      console.log("URL pública do PDF:", publicUrlData.publicUrl);
+
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Usuário não autenticado para salvar relatório.");
 
+      console.log("Registrando relatório no banco de dados...");
       await saveReportMutation.mutateAsync({
         workspace_id: workspaceId!,
         report_url: publicUrlData.publicUrl,
@@ -232,17 +227,24 @@ const InstagramInsightsDashboard = () => {
         period_end: format(reportEndDate, 'yyyy-MM-dd'),
         created_by: user.id,
       });
+      console.log("Relatório registrado com sucesso.");
 
-      window.open(publicUrlData.publicUrl, "_blank");
-      showSuccess("PDF gerado e salvo com sucesso!");
+      console.log("Tentando abrir o PDF em uma nova aba...");
+      const newWindow = window.open(publicUrlData.publicUrl, "_blank");
+      if (!newWindow || newWindow.closed || typeof newWindow.focus !== 'function') {
+        showError("O navegador bloqueou o pop-up. Por favor, permita pop-ups para este site e tente novamente.");
+      } else {
+        newWindow.focus();
+        showSuccess("PDF gerado e salvo com sucesso! Verifique a nova aba.");
+      }
     } catch (error: any) {
-      showError(`Erro ao gerar PDF: ${error.message}`);
+      console.error("Erro detalhado ao gerar PDF:", error);
+      showError(`Erro ao gerar PDF: ${error.message}. Verifique o console para mais detalhes.`);
     } finally {
       dismissToast(loadingToastId);
     }
   };
 
-  // O gráfico agora será um BarChart simples com os dados do insight atual
   const chartData = useMemo(() => {
     if (!geminiOutput || !insightDate || followers === "" || engagementRate === "" || reach === "" || impressions === "" || profileViews === "" || postsCount === "") return [];
     
