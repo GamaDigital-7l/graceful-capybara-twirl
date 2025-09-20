@@ -12,8 +12,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft, User, ListTodo, CheckCircle, AlertCircle, CalendarDays, Briefcase } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { showError } from "@/utils/toast";
-import { format, isPast, startOfMonth, endOfMonth, addMonths, subMonths } from "date-fns"; // Corrigido
-import { ptBR } from "date-fns/locale"; // Corrigido
+import { format, isPast, startOfMonth, subMonths, addMonths } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -73,7 +73,7 @@ const EmployeeDetailsPage = () => {
 
     const completed = tasks.filter(task => task.column_title === "Aprovado").length;
     const pending = tasks.filter(task => task.column_title !== "Aprovado");
-    const overdue = pending.filter(task => task.due_date && isPast(new Date(task.due_date))); // Removido o segundo argumento
+    const overdue = pending.filter(task => task.due_date && isPast(new Date(task.due_date)));
 
     return {
       totalTasks: tasks.length,
@@ -232,18 +232,5 @@ const EmployeeDetailsPage = () => {
     </div>
   );
 }
-
-const monthOptions = useMemo(() => {
-  const options = [];
-  let current = startOfMonth(new Date());
-  for (let i = 0; i < 12; i++) {
-    options.push({
-      value: current.toISOString(),
-      label: format(current, "MMMM yyyy", { locale: ptBR }),
-    });
-    current = subMonths(current, 1);
-  }
-  return options.reverse();
-}, []);
 
 export default EmployeeDetailsPage;
