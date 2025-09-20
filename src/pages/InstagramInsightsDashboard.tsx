@@ -96,7 +96,7 @@ const InstagramInsightsDashboard = () => {
       if (error) throw error;
     },
     onSuccess: () => {
-      showSuccess("Relatório PDF salvo e registrado!");
+      // showSuccess("Relatório PDF salvo e registrado!"); // Removido para evitar duplicidade com o final do handleExportPdf
     },
     onError: (e: Error) => showError(e.message),
   });
@@ -166,6 +166,8 @@ const InstagramInsightsDashboard = () => {
 
       console.log("Iniciando captura do dashboard para PDF...");
       // Temporariamente ajustar o estilo para o PDF
+      const originalPadding = dashboardElement.style.padding;
+      const originalBg = dashboardElement.style.backgroundColor;
       dashboardElement.style.padding = '20px'; // Adicionar padding para o PDF
       dashboardElement.style.backgroundColor = 'white'; // Fundo branco para o PDF
 
@@ -173,8 +175,8 @@ const InstagramInsightsDashboard = () => {
       const imgData = canvas.toDataURL("image/png");
 
       // Restaurar estilos após a captura
-      dashboardElement.style.padding = '';
-      dashboardElement.style.backgroundColor = '';
+      dashboardElement.style.padding = originalPadding;
+      dashboardElement.style.backgroundColor = originalBg;
 
       if (!imgData || imgData.length < 100) { // Basic check for empty/small image data
         throw new Error("Falha ao capturar o conteúdo do dashboard. A imagem está vazia ou muito pequena.");
@@ -229,10 +231,18 @@ const InstagramInsightsDashboard = () => {
       });
       console.log("Relatório registrado com sucesso.");
 
-      console.log("Tentando abrir o PDF em uma nova aba...");
+      // Tentar abrir em nova aba E oferecer download direto
       const newWindow = window.open(publicUrlData.publicUrl, "_blank");
       if (!newWindow || newWindow.closed || typeof newWindow.focus !== 'function') {
-        showError("O navegador bloqueou o pop-up. Por favor, permita pop-ups para este site e tente novamente.");
+        showError("O navegador bloqueou o pop-up. Por favor, verifique seus downloads ou permita pop-ups para este site. O PDF também foi salvo no armazenamento.");
+        // Criar um link temporário para download direto
+        const downloadLink = document.createElement('a');
+        downloadLink.href = publicUrlData.publicUrl;
+        downloadLink.download = fileName;
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        document.body.removeChild(downloadLink);
+        showSuccess("PDF gerado e salvo! Verifique seus downloads.");
       } else {
         newWindow.focus();
         showSuccess("PDF gerado e salvo com sucesso! Verifique a nova aba.");
