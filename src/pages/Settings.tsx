@@ -10,8 +10,20 @@ import { PasswordInput } from "@/components/PasswordInput";
 import { Textarea } from "@/components/ui/textarea";
 
 const fetchSettings = async () => {
-  const { data, error } = await supabase.from("app_settings").select("*").eq("id", 1).single();
-  if (error) throw new Error(error.message);
+  let { data, error } = await supabase.from("app_settings").select("*").eq("id", 1).single();
+
+  if (error && error.code === 'PGRST116') { // No rows found
+    console.warn("No app_settings found with id=1. Creating a default entry.");
+    const { data: newSettings, error: insertError } = await supabase
+      .from("app_settings")
+      .insert({ id: 1, app_name: "Gama Creative Flow", site_url: "http://localhost:32100" }) // Inserir valores padrão
+      .select("*")
+      .single();
+    if (insertError) throw new Error(`Failed to create default app settings: ${insertError.message}`);
+    data = newSettings;
+  } else if (error) {
+    throw new Error(error.message);
+  }
   return data;
 };
 
@@ -28,8 +40,8 @@ const SettingsPage = () => {
   const [whatsappMessageTemplate, setWhatsappMessageTemplate] = useState("");
   const [whatsappApiToken, setWhatsappApiToken] = useState("");
   const [whatsappPhoneNumberId, setWhatsappPhoneNumberId] = useState("");
-  const [geminiApiKey, setGeminiApiKey] = useState(""); // Novo estado para Gemini API Key
-  const [isUploading, setIsUploading] = useState(false);
+  const [geminiApiKey, setGeminiApiKey] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
 
   const { data: settings } = useQuery({
     queryKey: ["appSettings"],
@@ -49,7 +61,7 @@ const SettingsPage = () => {
       setWhatsappMessageTemplate(settings.whatsapp_message_template || "");
       setWhatsappApiToken(settings.whatsapp_api_token || "");
       setWhatsappPhoneNumberId(settings.whatsapp_phone_number_id || "");
-      setGeminiApiKey(settings.gemini_api_key || ""); // Carregar Gemini API Key
+      setGeminiApiKey(settings.gemini_api_key || "");
     }
   }, [settings]);
 
@@ -66,7 +78,7 @@ const SettingsPage = () => {
   });
 
   const handleSave = async () => {
-    setIsUploading(true);
+    setIsSaving(true);
     
     const cleanedSiteUrl = siteUrl.endsWith('/') ? siteUrl.slice(0, -1) : siteUrl;
 
@@ -82,9 +94,9 @@ const SettingsPage = () => {
       whatsapp_message_template: whatsappMessageTemplate,
       whatsapp_api_token: whatsappApiToken,
       whatsapp_phone_number_id: whatsappPhoneNumberId,
-      gemini_api_key: geminiApiKey, // Salvar Gemini API Key
+      gemini_api_key: geminiApiKey,
     });
-    setIsUploading(false);
+    setIsSaving(false);
   };
 
   return (
@@ -173,8 +185,8 @@ const SettingsPage = () => {
         </CardContent>
       </Card>
       
-      <Button onClick={handleSave} disabled={isUploading || updateSettingsMutation.isPending} className="w-full">
-        {isUploading ? "Enviando..." : "Salvar Todas as Alterações"}
+      <Button onClick={handleSave} disabled={isSaving || updateSettingsMutation.isPending} className="w-full">
+        {isSaving ? "Salvando..." : "Salvar Todas as Alterações"}
         </Button>
     </div>
   );
