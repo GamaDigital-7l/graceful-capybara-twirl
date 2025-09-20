@@ -2,7 +2,7 @@ import { Link, useLocation } from "react-router-dom";
 import { AppLogo } from "./AppLogo";
 import { ThemeToggle } from "./ThemeToggle";
 import { Button } from "@/components/ui/button";
-import { LogOut, Home, Banknote, Brain, UserCog, Palette, Users, BookOpen, Menu } from "lucide-react";
+import { LogOut, Home, Banknote, Brain, UserCog, Palette, Users, BookOpen, Menu, BarChart } from "lucide-react"; // Adicionado BarChart
 import { supabase } from "@/integrations/supabase/client";
 import { useState, useEffect } from "react";
 import { showError } from "@/utils/toast";
@@ -55,8 +55,9 @@ export function Header({ pageTitle }: HeaderProps) {
     if (pageTitle) return pageTitle;
     const path = location.pathname;
     if (path === "/") return "Dashboard";
-    if (path.startsWith("/workspace/") && !path.includes("/playbook")) return "Workspace";
+    if (path.startsWith("/workspace/") && !path.includes("/playbook") && !path.includes("/instagram-insights")) return "Workspace"; // Atualizado
     if (path.includes("/playbook")) return "Playbook";
+    if (path.includes("/instagram-insights")) return "Insights do Instagram"; // Novo
     if (path.startsWith("/admin")) return "Admin";
     if (path.startsWith("/settings")) return "Configurações";
     if (path.startsWith("/financial")) return "Financeiro";

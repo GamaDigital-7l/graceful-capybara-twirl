@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "react-router-dom";
 import { AppLogo } from "./AppLogo";
 import { ThemeToggle } from "./ThemeToggle";
-import { LogOut, Home, Banknote, Brain, UserCog, Palette, Users, BookOpen } from "lucide-react";
+import { LogOut, Home, Banknote, Brain, UserCog, Palette, Users, BookOpen, BarChart } from "lucide-react"; // Adicionado BarChart
 import { supabase } from "@/integrations/supabase/client";
 
 interface MobileSidebarProps {

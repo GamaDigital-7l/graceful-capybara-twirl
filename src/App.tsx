@@ -14,12 +14,13 @@ import FinancialDashboard from "./pages/FinancialDashboard";
 import SecondBrainDashboard from "./pages/SecondBrainDashboard";
 import ClientPromptsPage from "./pages/ClientPromptsPage";
 import PublicApprovalPage from "./pages/PublicApprovalPage";
-import EmployeeDashboardPage from "./pages/EmployeeDashboardPage"; // Updated import
-import EmployeeDetailsPage from "./pages/EmployeeDetailsPage"; // Updated import
+import EmployeeDashboardPage from "./pages/EmployeeDashboardPage";
+import EmployeeDetailsPage from "./pages/EmployeeDetailsPage";
+import InstagramInsightsDashboard from "./pages/InstagramInsightsDashboard"; // Novo import
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import { Layout } from "./components/Layout";
-import AgencyPlaybookPage from "./pages/AgencyPlaybookPage"; // Updated import
+import AgencyPlaybookPage from "./pages/AgencyPlaybookPage";
 
 const queryClient = new QueryClient();
 
@@ -55,6 +56,14 @@ const App = () => (
               element={
                 <Layout pageTitle="Playbook do Cliente"> {/* Custom title for Playbook */}
                   <PlaybookPage />
+                </Layout>
+              }
+            />
+            <Route
+              path="/workspace/:workspaceId/instagram-insights" // Nova rota
+              element={
+                <Layout pageTitle="Insights do Instagram">
+                  <InstagramInsightsDashboard />
                 </Layout>
               }
             />

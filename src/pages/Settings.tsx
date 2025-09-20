@@ -26,8 +26,9 @@ const SettingsPage = () => {
   const [telegramBotTokenDeadlines, setTelegramBotTokenDeadlines] = useState("");
   const [telegramChatIdDeadlines, setTelegramChatIdDeadlines] = useState("");
   const [whatsappMessageTemplate, setWhatsappMessageTemplate] = useState("");
-  const [whatsappApiToken, setWhatsappApiToken] = useState(""); // Novo estado
-  const [whatsappPhoneNumberId, setWhatsappPhoneNumberId] = useState(""); // Novo estado
+  const [whatsappApiToken, setWhatsappApiToken] = useState("");
+  const [whatsappPhoneNumberId, setWhatsappPhoneNumberId] = useState("");
+  const [geminiApiKey, setGeminiApiKey] = useState(""); // Novo estado para Gemini API Key
   const [isUploading, setIsUploading] = useState(false);
 
   const { data: settings } = useQuery({
@@ -46,8 +47,9 @@ const SettingsPage = () => {
       setTelegramBotTokenDeadlines(settings.telegram_bot_token_deadlines || "");
       setTelegramChatIdDeadlines(settings.telegram_chat_id_deadlines || "");
       setWhatsappMessageTemplate(settings.whatsapp_message_template || "");
-      setWhatsappApiToken(settings.whatsapp_api_token || ""); // Carregar novo estado
-      setWhatsappPhoneNumberId(settings.whatsapp_phone_number_id || ""); // Carregar novo estado
+      setWhatsappApiToken(settings.whatsapp_api_token || "");
+      setWhatsappPhoneNumberId(settings.whatsapp_phone_number_id || "");
+      setGeminiApiKey(settings.gemini_api_key || ""); // Carregar Gemini API Key
     }
   }, [settings]);
 
@@ -78,8 +80,9 @@ const SettingsPage = () => {
       telegram_bot_token_deadlines: telegramBotTokenDeadlines,
       telegram_chat_id_deadlines: telegramChatIdDeadlines,
       whatsapp_message_template: whatsappMessageTemplate,
-      whatsapp_api_token: whatsappApiToken, // Salvar novo token
-      whatsapp_phone_number_id: whatsappPhoneNumberId, // Salvar novo ID
+      whatsapp_api_token: whatsappApiToken,
+      whatsapp_phone_number_id: whatsappPhoneNumberId,
+      gemini_api_key: geminiApiKey, // Salvar Gemini API Key
     });
     setIsUploading(false);
   };
@@ -157,6 +160,14 @@ const SettingsPage = () => {
               <div className="space-y-2">
                   <Label htmlFor="telegram-chat-id-deadlines">Chat ID do Telegram (Prazos)</Label>
                   <Input id="telegram-chat-id-deadlines" value={telegramChatIdDeadlines} onChange={(e) => setTelegramChatIdDeadlines(e.target.value)} />
+              </div>
+          </div>
+          <div className="border-t pt-6 space-y-4">
+              <h3 className="text-lg font-medium">Integração Google Gemini API</h3>
+              <p className="text-sm text-muted-foreground">Chave da API para usar o Google Gemini para geração de insights.</p>
+              <div className="space-y-2">
+                  <Label htmlFor="gemini-api-key">Chave da API do Gemini</Label>
+                  <PasswordInput id="gemini-api-key" value={geminiApiKey} onChange={(e) => setGeminiApiKey(e.target.value)} />
               </div>
           </div>
         </CardContent>

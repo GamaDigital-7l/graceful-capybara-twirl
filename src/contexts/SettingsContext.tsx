@@ -3,12 +3,11 @@ import { supabase } from "@/integrations/supabase/client";
 
 interface AppSettings {
   app_name?: string;
-  // favicon_url?: string; // Removido, pois será fixo no index.html
-  // logo_url?: string; // Removido, pois será fixo no index.html
   primary_color?: string;
   background_color?: string;
   site_url?: string;
   whatsapp_message_template?: string;
+  gemini_api_key?: string; // Adicionado
 }
 
 const SettingsContext = createContext<AppSettings | null | undefined>(undefined);
@@ -56,12 +55,6 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
       if (settings.app_name) {
         document.title = settings.app_name;
       }
-
-      // Favicon agora é gerenciado diretamente no index.html
-      // const favicon = document.querySelector("link[rel='icon']") || document.createElement('link');
-      // favicon.setAttribute('rel', 'icon');
-      // favicon.setAttribute('href', settings.favicon_url || '/favicon.ico');
-      // document.head.appendChild(favicon);
 
       // Aplicar cores
       const root = document.documentElement;
