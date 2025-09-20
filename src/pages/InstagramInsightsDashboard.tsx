@@ -41,6 +41,7 @@ interface InstagramInsightData {
   impressions: number;
   profile_views: number;
   posts_count: number;
+  interactions?: number; // Adicionado
   raw_data: any;
 }
 
@@ -74,6 +75,7 @@ const InstagramInsightsDashboard = () => {
   const [impressions, setImpressions] = useState<number | string>("");
   const [profileViews, setProfileViews] = useState<number | string>("");
   const [postsCount, setPostsCount] = useState<number | string>("");
+  const [interactions, setInteractions] = useState<number | string>(""); // Novo estado
 
   const [reportStartDate, setReportStartDate] = useState<Date | undefined>(new Date());
   const [reportEndDate, setReportEndDate] = useState<Date | undefined>(new Date());
@@ -88,14 +90,12 @@ const InstagramInsightsDashboard = () => {
     enabled: !!workspaceId,
   });
 
-  // A mutação saveReportMutation e a lógica de PDF foram removidas.
-
   const handleGenerateInsights = async () => {
     if (!workspaceId) {
       showError("ID do workspace não encontrado.");
       return;
     }
-    if (!insightDate || followers === "" || engagementRate === "" || reach === "" || impressions === "" || profileViews === "" || postsCount === "") {
+    if (!insightDate || followers === "" || engagementRate === "" || reach === "" || impressions === "" || profileViews === "" || postsCount === "" || interactions === "") {
       showError("Por favor, preencha todos os campos de métricas e a data.");
       return;
     }
@@ -116,13 +116,19 @@ const InstagramInsightsDashboard = () => {
         impressions: Number(impressions),
         profile_views: Number(profileViews),
         posts_count: Number(postsCount),
+        interactions: Number(interactions), // Incluído
       };
       
       const insights = await generateInstagramInsights(instagramData, aiPrompt);
       
-      // Garantir que posts_count esteja nas key_metrics se a IA não o incluiu
-      if (insights && insights.key_metrics && !insights.key_metrics.some(m => m.name === "Número de Posts")) {
-        insights.key_metrics.push({ name: "Número de Posts", value: String(instagramData.posts_count) });
+      // Garantir que posts_count e interactions estejam nas key_metrics se a IA não os incluiu
+      if (insights && insights.key_metrics) {
+        if (!insights.key_metrics.some(m => m.name === "Número de Posts")) {
+          insights.key_metrics.push({ name: "Número de Posts", value: String(instagramData.posts_count) });
+        }
+        if (!insights.key_metrics.some(m => m.name === "Interações")) {
+          insights.key_metrics.push({ name: "Interações", value: String(instagramData.interactions) });
+        }
       }
       setGeminiOutput(insights);
       
@@ -137,7 +143,7 @@ const InstagramInsightsDashboard = () => {
   };
 
   const chartData = useMemo(() => {
-    if (!geminiOutput || !insightDate || followers === "" || engagementRate === "" || reach === "" || impressions === "" || profileViews === "" || postsCount === "") return [];
+    if (!geminiOutput || !insightDate || followers === "" || engagementRate === "" || reach === "" || impressions === "" || profileViews === "" || postsCount === "" || interactions === "") return [];
     
     return [{
       name: format(insightDate, "dd/MM"),
@@ -147,8 +153,9 @@ const InstagramInsightsDashboard = () => {
       Impressões: Number(impressions),
       Visualizações: Number(profileViews),
       Posts: Number(postsCount),
+      Interações: Number(interactions), // Incluído
     }];
-  }, [geminiOutput, insightDate, followers, engagementRate, reach, impressions, profileViews, postsCount]);
+  }, [geminiOutput, insightDate, followers, engagementRate, reach, impressions, profileViews, postsCount, interactions]);
 
 
   const reportPeriodDisplay = useMemo(() => {
@@ -185,7 +192,7 @@ const InstagramInsightsDashboard = () => {
           <CardDescription>Preencha as métricas mais recentes do Instagram para gerar insights.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"> {/* Ajustado para 3 colunas */}
             <div className="space-y-2">
               <Label htmlFor="insight-date">Data do Insight</Label>
               <Popover>
@@ -240,6 +247,10 @@ const InstagramInsightsDashboard = () => {
               <Label htmlFor="posts-count">Número de Posts</Label>
               <Input id="posts-count" type="number" value={postsCount} onChange={(e) => setPostsCount(e.target.value)} placeholder="Ex: 15" />
             </div>
+            <div className="space-y-2"> {/* Novo campo para Interações */}
+              <Label htmlFor="interactions">Interações</Label>
+              <Input id="interactions" type="number" value={interactions} onChange={(e) => setInteractions(e.target.value)} placeholder="Ex: 800" />
+            </div>
           </div>
           
           <Label htmlFor="ai-prompt">Instruções para a IA (Opcional)</Label>
@@ -250,13 +261,11 @@ const InstagramInsightsDashboard = () => {
             placeholder="Ex: Foco em crescimento de seguidores e engajamento."
             rows={3}
           />
-          <Button onClick={handleGenerateInsights} disabled={isGenerating || !insightDate || followers === "" || engagementRate === "" || reach === "" || impressions === "" || profileViews === "" || postsCount === ""}>
+          <Button onClick={handleGenerateInsights} disabled={isGenerating || !insightDate || followers === "" || engagementRate === "" || reach === "" || impressions === "" || profileViews === "" || postsCount === "" || interactions === ""}>
             {isGenerating ? "Gerando..." : <><Sparkles className="h-4 w-4 mr-2" /> Gerar Dashboard com IA</>}
           </Button>
         </CardContent>
       </Card>
-
-      {/* O card de Período do Relatório PDF foi removido */}
 
       <div id="instagram-dashboard-content" className="space-y-6 p-4 bg-background rounded-lg shadow-md">
         <header className="text-center mb-8">
@@ -362,6 +371,7 @@ const InstagramInsightsDashboard = () => {
                   <Bar dataKey="Impressões" fill="#ff7300" />
                   <Bar dataKey="Visualizações" fill="#0088FE" />
                   <Bar dataKey="Posts" fill="#FF0054" />
+                  <Bar dataKey="Interações" fill="#6a0dad" /> {/* Nova barra para Interações */}
                 </RechartsBarChart>
               </ResponsiveContainer>
             </CardContent>

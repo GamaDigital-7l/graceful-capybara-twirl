@@ -105,6 +105,7 @@ const WorkspacePage = ({ initialWorkspaceId }: WorkspacePageProps) => {
         { title: "Aprovado", position: 2, group_id: newGroup.id },
         { title: "Editar", position: 3, group_id: newGroup.id },
         { title: "Solicitações", position: 4, group_id: newGroup.id },
+        { title: "Postado", position: 5, group_id: newGroup.id }, // Nova coluna "Postado"
       ];
       const { error: columnsError } = await supabase.from("columns").insert(defaultColumns);
       if (columnsError) throw columnsError;

@@ -43,13 +43,13 @@ serve(async (req) => {
     const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`;
     console.log("EF: Chave da API do Gemini obtida. URL da API:", GEMINI_API_URL);
 
-    // PROMPT REFINADO
+    // PROMPT REFINADO para incluir novas métricas e aspectos qualitativos
     const fullPrompt = `Você é um especialista em marketing digital e está criando um relatório de insights do Instagram para um cliente. Analise os seguintes dados e gere um resumo profissional, destacando as métricas chave, tendências e recomendações acionáveis. O relatório deve ser conciso, claro e focado em resultados para o cliente.
 
 Formate a saída como um objeto JSON com as seguintes chaves:
 "summary": (string) Um resumo executivo profissional.
-"key_metrics": (array de objetos {name: string, value: string}) As 3-5 métricas mais importantes, incluindo "Seguidores", "Taxa de Engajamento", "Alcance", "Impressões", "Visualizações de Perfil" e "Número de Posts". Formate os valores de forma amigável (ex: "1.500", "2.5%", "10K").
-"trends": (array de strings) 2-3 tendências observadas nos dados.
+"key_metrics": (array de objetos {name: string, value: string}) As 3-5 métricas mais importantes, incluindo "Seguidores", "Taxa de Engajamento", "Alcance", "Impressões", "Visualizações de Perfil", "Número de Posts" e "Interações". Formate os valores de forma amigável (ex: "1.500", "2.5%", "10K").
+"trends": (array de strings) 2-3 tendências observadas nos dados, incluindo observações sobre "conteúdo que compartilhou", "público", "faixa etárias" e "atividades do perfil" se os dados permitirem.
 "recommendations": (array de strings) 2-3 recomendações práticas para o cliente.
 
 Dados do Instagram:
@@ -66,7 +66,7 @@ Instruções adicionais do usuário: ${prompt}`;
       body: JSON.stringify({
         contents: [{ parts: [{ text: fullPrompt }] }],
       }),
-    });
+    );
     console.log("EF: Resposta da API do Gemini recebida. Status:", geminiResponse.status);
 
     if (!geminiResponse.ok) {

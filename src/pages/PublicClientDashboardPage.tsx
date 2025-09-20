@@ -7,12 +7,22 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { BarChart, Users, TrendingUp, CalendarDays, FileText, CheckCircle, ListTodo } from "lucide-react";
+import { BarChart, Users, TrendingUp, CalendarDays, FileText, CheckCircle, ListTodo, Sparkles } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { cn } from "@/lib/utils";
 import { ImagePreviewModal } from "@/components/ImagePreviewModal";
+import {
+  ResponsiveContainer,
+  BarChart as RechartsBarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+} from "recharts";
 
 interface PublicDashboardData {
   workspace: {
@@ -27,6 +37,7 @@ interface PublicDashboardData {
     impressions: number;
     profile_views: number;
     posts_count: number;
+    interactions?: number; // Adicionado
     raw_data: any;
   } | null;
   kanbanTasks: {
@@ -76,6 +87,21 @@ const PublicClientDashboardPage = () => {
     const approved = data.kanbanTasks.filter(task => task.column_title === "Aprovado");
     return { pendingTasks: pending, approvedTasks: approved };
   }, [data?.kanbanTasks]);
+
+  const chartData = useMemo(() => {
+    if (!data?.instagramInsights) return [];
+    const insights = data.instagramInsights;
+    return [{
+      name: format(new Date(insights.insight_date), "dd/MM"),
+      Seguidores: insights.followers,
+      Engajamento: insights.engagement_rate,
+      Alcance: insights.reach,
+      Impressões: insights.impressions,
+      Visualizações: insights.profile_views,
+      Posts: insights.posts_count,
+      Interações: insights.interactions || 0, // Incluído
+    }];
+  }, [data?.instagramInsights]);
 
   if (isLoading) {
     return (
@@ -127,38 +153,76 @@ const PublicClientDashboardPage = () => {
         {instagramInsights && (
           <section>
             <h2 className="text-2xl font-bold mb-4 flex items-center gap-2"><BarChart className="h-6 w-6" /> Insights do Instagram</h2>
-            <Card>
+            <Card className="mb-6">
               <CardHeader>
                 <CardTitle>Métricas Recentes ({format(new Date(instagramInsights.insight_date), 'dd/MM/yyyy', { locale: ptBR })})</CardTitle>
                 <CardDescription>Visão geral do desempenho do Instagram.</CardDescription>
               </CardHeader>
-              <CardContent className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div className="p-4 border rounded-lg bg-muted/20">
+              <CardContent className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"> {/* Ajustado para 4 colunas */}
+                <div className="p-4 border rounded-lg bg-muted/20 flex flex-col items-center justify-center text-center">
+                  <Users className="h-8 w-8 text-primary mb-2" />
                   <p className="text-sm font-medium text-muted-foreground">Seguidores</p>
                   <p className="text-2xl font-bold">{instagramInsights.followers.toLocaleString('pt-BR')}</p>
                 </div>
-                <div className="p-4 border rounded-lg bg-muted/20">
-                  <p className="text-sm font-medium text-muted-foreground">Taxa de Engajamento</p>
+                <div className="p-4 border rounded-lg bg-muted/20 flex flex-col items-center justify-center text-center">
+                  <TrendingUp className="h-8 w-8 text-green-500 mb-2" />
+                  <p className="text-sm font-medium text-muted-foreground">Engajamento</p>
                   <p className="text-2xl font-bold">{instagramInsights.engagement_rate.toFixed(2)}%</p>
                 </div>
-                <div className="p-4 border rounded-lg bg-muted/20">
+                <div className="p-4 border rounded-lg bg-muted/20 flex flex-col items-center justify-center text-center">
+                  <Sparkles className="h-8 w-8 text-purple-500 mb-2" /> {/* Ícone para Interações */}
+                  <p className="text-sm font-medium text-muted-foreground">Interações</p>
+                  <p className="text-2xl font-bold">{(instagramInsights.interactions || 0).toLocaleString('pt-BR')}</p>
+                </div>
+                <div className="p-4 border rounded-lg bg-muted/20 flex flex-col items-center justify-center text-center">
+                  <BarChart className="h-8 w-8 text-blue-500 mb-2" />
                   <p className="text-sm font-medium text-muted-foreground">Alcance</p>
                   <p className="text-2xl font-bold">{instagramInsights.reach.toLocaleString('pt-BR')}</p>
                 </div>
-                <div className="p-4 border rounded-lg bg-muted/20">
+                <div className="p-4 border rounded-lg bg-muted/20 flex flex-col items-center justify-center text-center">
+                  <BarChart className="h-8 w-8 text-orange-500 mb-2" />
                   <p className="text-sm font-medium text-muted-foreground">Impressões</p>
                   <p className="text-2xl font-bold">{instagramInsights.impressions.toLocaleString('pt-BR')}</p>
                 </div>
-                <div className="p-4 border rounded-lg bg-muted/20">
+                <div className="p-4 border rounded-lg bg-muted/20 flex flex-col items-center justify-center text-center">
+                  <FileText className="h-8 w-8 text-yellow-500 mb-2" />
                   <p className="text-sm font-medium text-muted-foreground">Visualizações de Perfil</p>
                   <p className="text-2xl font-bold">{instagramInsights.profile_views.toLocaleString('pt-BR')}</p>
                 </div>
-                <div className="p-4 border rounded-lg bg-muted/20">
+                <div className="p-4 border rounded-lg bg-muted/20 flex flex-col items-center justify-center text-center">
+                  <ListTodo className="h-8 w-8 text-gray-500 mb-2" />
                   <p className="text-sm font-medium text-muted-foreground">Posts no Mês</p>
                   <p className="text-2xl font-bold">{instagramInsights.posts_count}</p>
                 </div>
               </CardContent>
             </Card>
+
+            {chartData.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2"><BarChart className="h-5 w-5" /> Gráfico de Métricas</CardTitle>
+                  <CardDescription>Visão geral das métricas inseridas.</CardDescription>
+                </CardHeader>
+                <CardContent className="h-[400px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <RechartsBarChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="name" />
+                      <YAxis />
+                      <Tooltip />
+                      <Legend />
+                      <Bar dataKey="Seguidores" fill="#8884d8" />
+                      <Bar dataKey="Engajamento" fill="#82ca9d" />
+                      <Bar dataKey="Interações" fill="#6a0dad" /> {/* Nova barra para Interações */}
+                      <Bar dataKey="Alcance" fill="#ffc658" />
+                      <Bar dataKey="Impressões" fill="#ff7300" />
+                      <Bar dataKey="Visualizações" fill="#0088FE" />
+                      <Bar dataKey="Posts" fill="#FF0054" />
+                    </RechartsBarChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+            )}
           </section>
         )}
 
