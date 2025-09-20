@@ -58,7 +58,7 @@ Instruções adicionais do usuário: ${prompt}`;
       },
       body: JSON.stringify({
         contents: [{ parts: [{ text: fullPrompt }] }],
-      });
+      }), // <-- Ponto e vírgula corrigido aqui
     });
 
     if (!geminiResponse.ok) {

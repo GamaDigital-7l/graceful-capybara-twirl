@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, Sparkles, Download, BarChart, LineChart, Users, TrendingUp, Calendar as CalendarIcon, FileText } from "lucide-react";
+import { ArrowLeft, Sparkles, Download, BarChart, Users, TrendingUp, Calendar as CalendarIcon, FileText } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { generateInstagramInsights } from "@/utils/gemini";
 import { useSettings } from "@/contexts/SettingsContext";
@@ -23,9 +23,7 @@ import {
   CartesianGrid,
   Tooltip,
   Legend,
-  LineChart as RechartsLineChart,
-  Line,
-} from "recharts";
+} from "recharts"; // Removido LineChart e Line
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import { format } from "date-fns";
@@ -33,7 +31,7 @@ import { ptBR } from "date-fns/locale";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"; // Importar Avatar
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface InstagramInsightData {
   id?: string;
@@ -66,16 +64,6 @@ const fetchWorkspaceDetails = async (workspaceId: string): Promise<{ name: strin
   return data;
 };
 
-const fetchInstagramInsights = async (workspaceId: string): Promise<InstagramInsightData[]> => {
-  const { data, error } = await supabase
-    .from("instagram_insights")
-    .select("*")
-    .eq("workspace_id", workspaceId)
-    .order("insight_date", { ascending: true });
-  if (error) throw new Error(error.message);
-  return data || [];
-};
-
 const InstagramInsightsDashboard = () => {
   const { workspaceId } = useParams<{ workspaceId: string }>();
   const queryClient = useQueryClient();
@@ -89,6 +77,9 @@ const InstagramInsightsDashboard = () => {
   const [profileViews, setProfileViews] = useState<number | string>("");
   const [postsCount, setPostsCount] = useState<number | string>("");
 
+  const [reportStartDate, setReportStartDate] = useState<Date | undefined>(new Date());
+  const [reportEndDate, setReportEndDate] = useState<Date | undefined>(new Date());
+
   const [geminiOutput, setGeminiOutput] = useState<GeminiInsightResponse | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [aiPrompt, setAiPrompt] = useState("Gere um resumo profissional, destacando métricas chave, tendências e recomendações para o cliente.");
@@ -99,23 +90,12 @@ const InstagramInsightsDashboard = () => {
     enabled: !!workspaceId,
   });
 
-  const { data: historicalInsights, isLoading: isLoadingHistoricalInsights } = useQuery<InstagramInsightData[]>({
-    queryKey: ["instagramInsights", workspaceId],
-    queryFn: () => fetchInstagramInsights(workspaceId!),
-    enabled: !!workspaceId,
-  });
-
-  const saveInsightMutation = useMutation({
-    mutationFn: async (insight: InstagramInsightData) => {
-      const { error } = await supabase.from("instagram_insights").insert(insight);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["instagramInsights", workspaceId] });
-      showSuccess("Insight salvo com sucesso!");
-    },
-    onError: (e: Error) => showError(e.message),
-  });
+  // Removido o fetch de insights históricos, pois o relatório será pontual.
+  // const { data: historicalInsights, isLoading: isLoadingHistoricalInsights } = useQuery<InstagramInsightData[]>({
+  //   queryKey: ["instagramInsights", workspaceId],
+  //   queryFn: () => fetchInstagramInsights(workspaceId!),
+  //   enabled: !!workspaceId,
+  // });
 
   const saveReportMutation = useMutation({
     mutationFn: async (report: { workspace_id: string; report_url: string; ai_summary?: string; period_start?: string; period_end?: string; created_by: string }) => {
@@ -164,18 +144,19 @@ const InstagramInsightsDashboard = () => {
       }
       setGeminiOutput(insights);
 
-      const newInsight: InstagramInsightData = {
-        workspace_id: workspaceId,
-        insight_date: instagramData.date,
-        followers: instagramData.followers,
-        engagement_rate: instagramData.engagement_rate,
-        reach: instagramData.reach,
-        impressions: instagramData.impressions,
-        profile_views: instagramData.profile_views,
-        posts_count: instagramData.posts_count,
-        raw_data: instagramData,
-      };
-      await saveInsightMutation.mutateAsync(newInsight);
+      // Removido o salvamento automático de insights históricos
+      // const newInsight: InstagramInsightData = {
+      //   workspace_id: workspaceId,
+      //   insight_date: instagramData.date,
+      //   followers: instagramData.followers,
+      //   engagement_rate: instagramData.engagement_rate,
+      //   reach: instagramData.reach,
+      //   impressions: instagramData.impressions,
+      //   profile_views: instagramData.profile_views,
+      //   posts_count: instagramData.posts_count,
+      //   raw_data: instagramData,
+      // };
+      // await saveInsightMutation.mutateAsync(newInsight);
       
       showSuccess("Insights gerados com sucesso!");
     } catch (error: any) {
@@ -190,6 +171,10 @@ const InstagramInsightsDashboard = () => {
   const handleExportPdf = async () => {
     if (!geminiOutput) {
       showError("Gere os insights primeiro para exportar o PDF.");
+      return;
+    }
+    if (!reportStartDate || !reportEndDate) {
+      showError("Por favor, selecione o período inicial e final do relatório.");
       return;
     }
 
@@ -218,7 +203,7 @@ const InstagramInsightsDashboard = () => {
       dashboardElement.style.backgroundColor = '';
 
       const pdfBlob = pdf.output('blob');
-      const fileName = `relatorio_instagram_${workspaceDetails?.name || 'cliente'}_${format(new Date(), 'yyyyMMdd_HHmmss')}.pdf`;
+      const fileName = `relatorio_instagram_${workspaceDetails?.name || 'cliente'}_${format(reportStartDate, 'yyyyMMdd')}_${format(reportEndDate, 'yyyyMMdd')}.pdf`;
       const filePath = `instagram-reports/${workspaceId}/${fileName}`;
 
       const { data: uploadData, error: uploadError } = await supabase.storage
@@ -243,8 +228,8 @@ const InstagramInsightsDashboard = () => {
         workspace_id: workspaceId!,
         report_url: publicUrlData.publicUrl,
         ai_summary: geminiOutput.summary,
-        period_start: historicalInsights?.[0]?.insight_date,
-        period_end: historicalInsights?.[historicalInsights.length - 1]?.insight_date,
+        period_start: format(reportStartDate, 'yyyy-MM-dd'),
+        period_end: format(reportEndDate, 'yyyy-MM-dd'),
         created_by: user.id,
       });
 
@@ -257,26 +242,28 @@ const InstagramInsightsDashboard = () => {
     }
   };
 
+  // O gráfico agora será um BarChart simples com os dados do insight atual
   const chartData = useMemo(() => {
-    if (!historicalInsights) return [];
-    return historicalInsights.map(insight => ({
-      date: format(new Date(insight.insight_date), "dd/MM"),
-      Followers: insight.followers,
-      Engagement: insight.engagement_rate,
-      Reach: insight.reach,
-      Impressions: insight.impressions,
-      ProfileViews: insight.profile_views,
-    }));
-  }, [historicalInsights]);
+    if (!geminiOutput || !insightDate || followers === "" || engagementRate === "" || reach === "" || impressions === "" || profileViews === "" || postsCount === "") return [];
+    
+    return [{
+      name: format(insightDate, "dd/MM"),
+      Seguidores: Number(followers),
+      Engajamento: Number(engagementRate),
+      Alcance: Number(reach),
+      Impressões: Number(impressions),
+      Visualizações: Number(profileViews),
+      Posts: Number(postsCount),
+    }];
+  }, [geminiOutput, insightDate, followers, engagementRate, reach, impressions, profileViews, postsCount]);
 
-  const reportPeriod = useMemo(() => {
-    if (historicalInsights && historicalInsights.length > 0) {
-      const startDate = new Date(historicalInsights[0].insight_date);
-      const endDate = new Date(historicalInsights[historicalInsights.length - 1].insight_date);
-      return `${format(startDate, 'dd/MM/yyyy', { locale: ptBR })} - ${format(endDate, 'dd/MM/yyyy', { locale: ptBR })}`;
+
+  const reportPeriodDisplay = useMemo(() => {
+    if (reportStartDate && reportEndDate) {
+      return `${format(reportStartDate, 'dd/MM/yyyy', { locale: ptBR })} - ${format(reportEndDate, 'dd/MM/yyyy', { locale: ptBR })}`;
     }
-    return format(insightDate || new Date(), 'MMMM yyyy', { locale: ptBR });
-  }, [historicalInsights, insightDate]);
+    return "Selecione o período";
+  }, [reportStartDate, reportEndDate]);
 
   if (!workspaceId) {
     return <div className="p-8 text-center">Workspace não encontrado.</div>;
@@ -296,7 +283,7 @@ const InstagramInsightsDashboard = () => {
             <p className="text-sm text-muted-foreground">{isLoadingDetails ? <Skeleton className="h-4 w-32 mt-1" /> : workspaceDetails?.name}</p>
           </div>
         </div>
-        <Button onClick={handleExportPdf} disabled={!geminiOutput || isGenerating}>
+        <Button onClick={handleExportPdf} disabled={!geminiOutput || isGenerating || !reportStartDate || !reportEndDate}>
           <Download className="h-4 w-4 mr-2" />
           Exportar PDF
         </Button>
@@ -379,6 +366,75 @@ const InstagramInsightsDashboard = () => {
         </CardContent>
       </Card>
 
+      <Card>
+        <CardHeader>
+          <CardTitle>Período do Relatório PDF</CardTitle>
+          <CardDescription>Selecione o período que este relatório de insights abrange.</CardDescription>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="report-start-date">Data Inicial</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant={"outline"}
+                  className={cn(
+                    "w-full justify-start text-left font-normal",
+                    !reportStartDate && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {reportStartDate ? (
+                    format(reportStartDate, "PPP", { locale: ptBR })
+                  ) : (
+                    <span>Selecione a data inicial</span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <Calendar
+                  mode="single"
+                  selected={reportStartDate}
+                  onSelect={setReportStartDate}
+                  initialFocus
+                  locale={ptBR}
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="report-end-date">Data Final</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant={"outline"}
+                  className={cn(
+                    "w-full justify-start text-left font-normal",
+                    !reportEndDate && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {reportEndDate ? (
+                    format(reportEndDate, "PPP", { locale: ptBR })
+                  ) : (
+                    <span>Selecione a data final</span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <Calendar
+                  mode="single"
+                  selected={reportEndDate}
+                  onSelect={setReportEndDate}
+                  initialFocus
+                  locale={ptBR}
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+        </CardContent>
+      </Card>
+
       <div id="instagram-dashboard-content" className="space-y-6 p-4 bg-background rounded-lg shadow-md">
         <header className="text-center mb-8">
           {workspaceDetails?.logo_url && (
@@ -389,7 +445,7 @@ const InstagramInsightsDashboard = () => {
           )}
           <h1 className="text-3xl font-bold">{workspaceDetails?.name || "Cliente"}</h1>
           <p className="text-lg text-muted-foreground">Relatório de Insights do Instagram</p>
-          <p className="text-sm text-muted-foreground mt-2">Período: {reportPeriod}</p>
+          <p className="text-sm text-muted-foreground mt-2">Período: {reportPeriodDisplay}</p>
         </header>
 
         {isGenerating && <Skeleton className="h-64 w-full" />}
@@ -463,28 +519,27 @@ const InstagramInsightsDashboard = () => {
           </div>
         )}
 
-        {isLoadingHistoricalInsights ? (
-          <Skeleton className="h-96 w-full" />
-        ) : chartData.length > 0 && (
+        {chartData.length > 0 && (
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2"><LineChart className="h-5 w-5" /> Histórico de Métricas</CardTitle>
-              <CardDescription>Evolução das métricas ao longo do tempo.</CardDescription>
+              <CardTitle className="flex items-center gap-2"><BarChart className="h-5 w-5" /> Gráfico de Métricas</CardTitle>
+              <CardDescription>Visão geral das métricas inseridas.</CardDescription>
             </CardHeader>
             <CardContent className="h-[400px]">
               <ResponsiveContainer width="100%" height="100%">
-                <RechartsLineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                <RechartsBarChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" />
+                  <XAxis dataKey="name" />
                   <YAxis />
                   <Tooltip />
                   <Legend />
-                  <Line type="monotone" dataKey="Followers" stroke="#8884d8" activeDot={{ r: 8 }} />
-                  <Line type="monotone" dataKey="Engagement" stroke="#82ca9d" />
-                  <Line type="monotone" dataKey="Reach" stroke="#ffc658" />
-                  <Line type="monotone" dataKey="Impressions" stroke="#ff7300" />
-                  <Line type="monotone" dataKey="ProfileViews" stroke="#0088FE" />
-                </RechartsLineChart>
+                  <Bar dataKey="Seguidores" fill="#8884d8" />
+                  <Bar dataKey="Engajamento" fill="#82ca9d" />
+                  <Bar dataKey="Alcance" fill="#ffc658" />
+                  <Bar dataKey="Impressões" fill="#ff7300" />
+                  <Bar dataKey="Visualizações" fill="#0088FE" />
+                  <Bar dataKey="Posts" fill="#FF0054" />
+                </RechartsBarChart>
               </ResponsiveContainer>
             </CardContent>
           </Card>
