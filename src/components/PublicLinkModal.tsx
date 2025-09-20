@@ -11,19 +11,16 @@ import { Label } from "@/components/ui/label";
 import { Copy, Loader2, MessageSquare } from "lucide-react";
 import { showSuccess } from "@/utils/toast";
 
-interface PublicLinkModalProps {
+interface ApprovalLinkModalProps {
   isOpen: boolean;
   onClose: () => void;
   link: string;
   isGenerating: boolean;
-  messageTemplate?: string; // Tornar mais genérico
-  title: string; // Novo prop para o título do modal
-  description: string; // Novo prop para a descrição do modal
-  buttonText: string; // Novo prop para o texto do botão
+  whatsappMessageTemplate?: string;
 }
 
-export function PublicLinkModal({ isOpen, onClose, link, isGenerating, messageTemplate, title, description, buttonText }: PublicLinkModalProps) {
-  const fullMessage = `${messageTemplate || 'Acesse o link:'}\n\n${link}`;
+export function ApprovalLinkModal({ isOpen, onClose, link, isGenerating, whatsappMessageTemplate }: ApprovalLinkModalProps) {
+  const fullMessage = `${whatsappMessageTemplate || 'Olá! Seus posts estão prontos para aprovação. Por favor, acesse o link a seguir para revisar e aprovar:'}\n\n${link}`;
 
   const handleCopyMessage = () => {
     navigator.clipboard.writeText(fullMessage);
@@ -34,9 +31,9 @@ export function PublicLinkModal({ isOpen, onClose, link, isGenerating, messageTe
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
+          <DialogTitle>Link de Aprovação Gerado</DialogTitle>
           <DialogDescription>
-            {description}
+            Copie a mensagem abaixo e envie para o seu cliente via WhatsApp.
           </DialogDescription>
         </DialogHeader>
         <div className="py-4 space-y-4">
@@ -47,12 +44,12 @@ export function PublicLinkModal({ isOpen, onClose, link, isGenerating, messageTe
           ) : (
             <>
               <div>
-                <Label htmlFor="public-message">Mensagem para Compartilhar</Label>
-                <Textarea id="public-message" value={fullMessage} readOnly rows={6} className="resize-none mt-1" />
+                <Label htmlFor="approval-message">Mensagem para o Cliente</Label>
+                <Textarea id="approval-message" value={fullMessage} readOnly rows={6} className="resize-none mt-1" />
               </div>
               <Button onClick={handleCopyMessage} className="w-full">
                 <MessageSquare className="h-4 w-4 mr-2" />
-                {buttonText}
+                Copiar Mensagem para WhatsApp
               </Button>
             </>
           )}

@@ -6,10 +6,10 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { showError, showSuccess, showLoading, dismissToast } from "@/utils/toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, CalendarCheck, Send, BookOpen, BarChart } from "lucide-react"; // Adicionado BarChart
+import { ArrowLeft, CalendarCheck, Send, BookOpen, BarChart, Share2 } from "lucide-react"; // Adicionado Share2
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { ApprovalLinkModal } from "@/components/ApprovalLinkModal";
+import { PublicLinkModal } from "@/components/PublicLinkModal"; // Importar o componente renomeado
 
 const fetchGroups = async (workspaceId: string) => {
   if (!workspaceId) return [];
@@ -44,9 +44,14 @@ const WorkspacePage = ({ initialWorkspaceId }: WorkspacePageProps) => {
   const queryClient = useQueryClient();
   const [userRole, setUserRole] = useState<string | null>(null);
   const [isProfileLoading, setProfileLoading] = useState(true);
+  
   const [isApprovalModalOpen, setIsApprovalModalOpen] = useState(false);
-  const [generatedLink, setGeneratedLink] = useState("");
-  const [whatsappTemplate, setWhatsappTemplate] = useState("");
+  const [generatedApprovalLink, setGeneratedApprovalLink] = useState("");
+  const [whatsappApprovalTemplate, setWhatsappApprovalTemplate] = useState("");
+
+  const [isDashboardLinkModalOpen, setIsDashboardLinkModalOpen] = useState(false); // Novo estado
+  const [generatedDashboardLink, setGeneratedDashboardLink] = useState(""); // Novo estado
+  const [dashboardMessageTemplate, setDashboardMessageTemplate] = useState(""); // Novo estado
 
   const { data: groups, isLoading: isLoadingGroups } = useQuery<Group[]>({
     queryKey: ["groups", workspaceId],
@@ -161,7 +166,7 @@ const WorkspacePage = ({ initialWorkspaceId }: WorkspacePageProps) => {
       const { data: settings, error: settingsError } = await supabase.from("app_settings").select("site_url, whatsapp_message_template").eq("id", 1).single();
       if (settingsError || !settings?.site_url) throw new Error("URL do site não configurada. Por favor, adicione em Configurações.");
 
-      setWhatsappTemplate(settings.whatsapp_message_template || 'Olá! Seus posts estão prontos para aprovação. Por favor, acesse o link a seguir para revisar e aprovar:');
+      setWhatsappApprovalTemplate(settings.whatsapp_message_template || 'Olá! Seus posts estão prontos para aprovação. Por favor, acesse o link a seguir para revisar e aprovar:');
 
       const { data: { user }, error: getUserError } = await supabase.auth.getUser();
       if (getUserError || !user) {
@@ -179,7 +184,7 @@ const WorkspacePage = ({ initialWorkspaceId }: WorkspacePageProps) => {
     },
     onSuccess: (link) => {
       dismissToast();
-      setGeneratedLink(link);
+      setGeneratedApprovalLink(link);
     },
     onError: (e: Error) => {
       dismissToast();
@@ -188,6 +193,41 @@ const WorkspacePage = ({ initialWorkspaceId }: WorkspacePageProps) => {
     },
     onMutate: () => {
       showLoading("Gerando link...");
+    },
+  });
+
+  const generateDashboardLinkMutation = useMutation({
+    mutationFn: async (groupId: string) => {
+      const { data: settings, error: settingsError } = await supabase.from("app_settings").select("site_url").eq("id", 1).single();
+      if (settingsError || !settings?.site_url) throw new Error("URL do site não configurada. Por favor, adicione em Configurações.");
+
+      setDashboardMessageTemplate(`Olá! Aqui está o dashboard de acompanhamento do seu projeto com a ${workspaceName || 'Gama Creative'}. Acesse para ver os insights do Instagram e o status das tarefas do Kanban:\n\n`);
+
+      const { data: { user }, error: getUserError } = await supabase.auth.getUser();
+      if (getUserError || !user) {
+        throw new Error("Usuário não autenticado.");
+      }
+
+      const { data: tokenData, error: tokenError } = await supabase.from("public_client_dashboards").insert({ group_id: groupId, workspace_id: workspaceId, created_by: user.id }).select("token").single();
+      if (tokenError) {
+        console.error("Supabase insert error:", tokenError);
+        throw new Error(`Falha ao criar o link do dashboard: ${tokenError.message}`);
+      }
+      
+      const dashboardUrl = `${settings.site_url}/client-dashboard/${tokenData.token}`;
+      return dashboardUrl;
+    },
+    onSuccess: (link) => {
+      dismissToast();
+      setGeneratedDashboardLink(link);
+    },
+    onError: (e: Error) => {
+      dismissToast();
+      showError(`Erro ao gerar link do dashboard: ${e.message}`);
+      setIsDashboardLinkModalOpen(false);
+    },
+    onMutate: () => {
+      showLoading("Gerando link do dashboard...");
     },
   });
 
@@ -200,9 +240,15 @@ const WorkspacePage = ({ initialWorkspaceId }: WorkspacePageProps) => {
   }, [groups, activeGroupId]);
 
   const handleOpenApprovalModal = (groupId: string) => {
-    setGeneratedLink("");
+    setGeneratedApprovalLink("");
     setIsApprovalModalOpen(true);
     generateApprovalLinkMutation.mutate(groupId);
+  };
+
+  const handleOpenDashboardLinkModal = (groupId: string) => {
+    setGeneratedDashboardLink("");
+    setIsDashboardLinkModalOpen(true);
+    generateDashboardLinkMutation.mutate(groupId);
   };
 
   if (!workspaceId) {
@@ -221,11 +267,23 @@ const WorkspacePage = ({ initialWorkspaceId }: WorkspacePageProps) => {
       </Button>
     );
 
+    const generateDashboardLinkButton = userRole === 'admin' && activeGroupId && (
+      <Button
+        variant="outline"
+        onClick={() => handleOpenDashboardLinkModal(activeGroupId)}
+        disabled={generateDashboardLinkMutation.isPending}
+      >
+        <Share2 className="h-4 w-4 mr-2" />
+        Link do Dashboard
+      </Button>
+    );
+
     return (
       <div className="flex items-center gap-2">
         {sendApprovalButton}
+        {generateDashboardLinkButton}
         <Button asChild variant="outline"><Link to={`/workspace/${workspaceId}/playbook`}><BookOpen className="h-4 w-4 mr-2" /> Ver Playbook</Link></Button>
-        {(userRole === 'admin' || userRole === 'equipe') && ( // Apenas admin/equipe pode ver insights
+        {(userRole === 'admin' || userRole === 'equipe') && (
           <Button asChild variant="outline">
             <Link to={`/workspace/${workspaceId}/instagram-insights`}>
               <BarChart className="h-4 w-4 mr-2" /> Insights
@@ -273,12 +331,25 @@ const WorkspacePage = ({ initialWorkspaceId }: WorkspacePageProps) => {
           />
         )
       }
-      <ApprovalLinkModal
+      <PublicLinkModal
         isOpen={isApprovalModalOpen}
         onClose={() => setIsApprovalModalOpen(false)}
-        link={generatedLink}
+        link={generatedApprovalLink}
         isGenerating={generateApprovalLinkMutation.isPending}
-        whatsappMessageTemplate={whatsappTemplate}
+        messageTemplate={whatsappApprovalTemplate}
+        title="Link de Aprovação Gerado"
+        description="Copie a mensagem abaixo e envie para o seu cliente via WhatsApp."
+        buttonText="Copiar Mensagem para WhatsApp"
+      />
+      <PublicLinkModal
+        isOpen={isDashboardLinkModalOpen}
+        onClose={() => setIsDashboardLinkModalOpen(false)}
+        link={generatedDashboardLink}
+        isGenerating={generateDashboardLinkMutation.isPending}
+        messageTemplate={dashboardMessageTemplate}
+        title="Link do Dashboard do Cliente Gerado"
+        description="Copie a mensagem abaixo e envie para o seu cliente."
+        buttonText="Copiar Mensagem"
       />
     </div>
   );

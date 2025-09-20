@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, Sparkles, Download, BarChart, Users, TrendingUp, Calendar as CalendarIcon, FileText } from "lucide-react";
+import { ArrowLeft, Sparkles, BarChart, Users, TrendingUp, Calendar as CalendarIcon, FileText } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { generateInstagramInsights } from "@/utils/gemini";
 import { useSettings } from "@/contexts/SettingsContext";
@@ -24,8 +24,6 @@ import {
   Tooltip,
   Legend,
 } from "recharts";
-import html2canvas from "html2canvas";
-import jsPDF from "jspdf";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Calendar } from "@/components/ui/calendar";
@@ -90,16 +88,7 @@ const InstagramInsightsDashboard = () => {
     enabled: !!workspaceId,
   });
 
-  const saveReportMutation = useMutation({
-    mutationFn: async (report: { workspace_id: string; report_url: string; ai_summary?: string; period_start?: string; period_end?: string; created_by: string }) => {
-      const { error } = await supabase.from("instagram_reports").insert(report);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      // showSuccess("Relatório PDF salvo e registrado!"); // Removido para evitar duplicidade com o final do handleExportPdf
-    },
-    onError: (e: Error) => showError(e.message),
-  });
+  // A mutação saveReportMutation e a lógica de PDF foram removidas.
 
   const handleGenerateInsights = async () => {
     if (!workspaceId) {
@@ -147,114 +136,6 @@ const InstagramInsightsDashboard = () => {
     }
   };
 
-  const handleExportPdf = async () => {
-    if (!geminiOutput) {
-      showError("Gere os insights primeiro para exportar o PDF.");
-      return;
-    }
-    if (!reportStartDate || !reportEndDate) {
-      showError("Por favor, selecione o período inicial e final do relatório.");
-      return;
-    }
-
-    const loadingToastId = showLoading("Gerando PDF...");
-    try {
-      const dashboardElement = document.getElementById("instagram-dashboard-content");
-      if (!dashboardElement) {
-        throw new Error("Elemento do dashboard não encontrado.");
-      }
-
-      console.log("Iniciando captura do dashboard para PDF...");
-      // Temporariamente ajustar o estilo para o PDF
-      const originalPadding = dashboardElement.style.padding;
-      const originalBg = dashboardElement.style.backgroundColor;
-      dashboardElement.style.padding = '20px'; // Adicionar padding para o PDF
-      dashboardElement.style.backgroundColor = 'white'; // Fundo branco para o PDF
-
-      const canvas = await html2canvas(dashboardElement, { scale: 2, useCORS: true });
-      const imgData = canvas.toDataURL("image/png");
-
-      // Restaurar estilos após a captura
-      dashboardElement.style.padding = originalPadding;
-      dashboardElement.style.backgroundColor = originalBg;
-
-      if (!imgData || imgData.length < 100) { // Basic check for empty/small image data
-        throw new Error("Falha ao capturar o conteúdo do dashboard. A imagem está vazia ou muito pequena.");
-      }
-      console.log("Conteúdo do dashboard capturado com sucesso.");
-
-      const pdf = new jsPDF("p", "mm", "a4");
-      const imgProps = pdf.getImageProperties(imgData);
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-
-      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-      console.log("Imagem adicionada ao PDF.");
-
-      const pdfBlob = pdf.output('blob');
-      const fileName = `relatorio_instagram_${workspaceDetails?.name || 'cliente'}_${format(reportStartDate, 'yyyyMMdd')}_${format(reportEndDate, 'yyyyMMdd')}.pdf`;
-      const filePath = `instagram-reports/${workspaceId}/${fileName}`;
-
-      console.log("Iniciando upload do PDF para o Supabase Storage...");
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from("instagram-reports")
-        .upload(filePath, pdfBlob, {
-          contentType: "application/pdf",
-          upsert: true,
-        });
-
-      if (uploadError) {
-        throw new Error(`Erro ao fazer upload do PDF: ${uploadError.message}`);
-      }
-      console.log("PDF enviado para o Supabase Storage:", uploadData.path);
-
-      const { data: publicUrlData } = supabase.storage
-        .from("instagram-reports")
-        .getPublicUrl(uploadData.path);
-
-      if (!publicUrlData.publicUrl) {
-        throw new Error("URL pública do PDF não gerada.");
-      }
-      console.log("URL pública do PDF:", publicUrlData.publicUrl);
-
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Usuário não autenticado para salvar relatório.");
-
-      console.log("Registrando relatório no banco de dados...");
-      await saveReportMutation.mutateAsync({
-        workspace_id: workspaceId!,
-        report_url: publicUrlData.publicUrl,
-        ai_summary: geminiOutput.summary,
-        period_start: format(reportStartDate, 'yyyy-MM-dd'),
-        period_end: format(reportEndDate, 'yyyy-MM-dd'),
-        created_by: user.id,
-      });
-      console.log("Relatório registrado com sucesso.");
-
-      // Tentar abrir em nova aba E oferecer download direto
-      const newWindow = window.open(publicUrlData.publicUrl, "_blank");
-      if (!newWindow || newWindow.closed || typeof newWindow.focus !== 'function') {
-        showError("O navegador bloqueou o pop-up. Por favor, verifique seus downloads ou permita pop-ups para este site. O PDF também foi salvo no armazenamento.");
-        // Criar um link temporário para download direto
-        const downloadLink = document.createElement('a');
-        downloadLink.href = publicUrlData.publicUrl;
-        downloadLink.download = fileName;
-        document.body.appendChild(downloadLink);
-        downloadLink.click();
-        document.body.removeChild(downloadLink);
-        showSuccess("PDF gerado e salvo! Verifique seus downloads.");
-      } else {
-        newWindow.focus();
-        showSuccess("PDF gerado e salvo com sucesso! Verifique a nova aba.");
-      }
-    } catch (error: any) {
-      console.error("Erro detalhado ao gerar PDF:", error);
-      showError(`Erro ao gerar PDF: ${error.message}. Verifique o console para mais detalhes.`);
-    } finally {
-      dismissToast(loadingToastId);
-    }
-  };
-
   const chartData = useMemo(() => {
     if (!geminiOutput || !insightDate || followers === "" || engagementRate === "" || reach === "" || impressions === "" || profileViews === "" || postsCount === "") return [];
     
@@ -295,10 +176,7 @@ const InstagramInsightsDashboard = () => {
             <p className="text-sm text-muted-foreground">{isLoadingDetails ? <Skeleton className="h-4 w-32 mt-1" /> : workspaceDetails?.name}</p>
           </div>
         </div>
-        <Button onClick={handleExportPdf} disabled={!geminiOutput || isGenerating || !reportStartDate || !reportEndDate}>
-          <Download className="h-4 w-4 mr-2" />
-          Exportar PDF
-        </Button>
+        {/* O botão de Exportar PDF foi removido */}
       </div>
 
       <Card>
@@ -378,74 +256,7 @@ const InstagramInsightsDashboard = () => {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Período do Relatório PDF</CardTitle>
-          <CardDescription>Selecione o período que este relatório de insights abrange.</CardDescription>
-        </CardHeader>
-        <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="report-start-date">Data Inicial</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant={"outline"}
-                  className={cn(
-                    "w-full justify-start text-left font-normal",
-                    !reportStartDate && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {reportStartDate ? (
-                    format(reportStartDate, "PPP", { locale: ptBR })
-                  ) : (
-                    <span>Selecione a data inicial</span>
-                  )}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
-                <Calendar
-                  mode="single"
-                  selected={reportStartDate}
-                  onSelect={setReportStartDate}
-                  initialFocus
-                  locale={ptBR}
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="report-end-date">Data Final</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant={"outline"}
-                  className={cn(
-                    "w-full justify-start text-left font-normal",
-                    !reportEndDate && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {reportEndDate ? (
-                    format(reportEndDate, "PPP", { locale: ptBR })
-                  ) : (
-                    <span>Selecione a data final</span>
-                  )}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
-                <Calendar
-                  mode="single"
-                  selected={reportEndDate}
-                  onSelect={setReportEndDate}
-                  initialFocus
-                  locale={ptBR}
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
-        </CardContent>
-      </Card>
+      {/* O card de Período do Relatório PDF foi removido */}
 
       <div id="instagram-dashboard-content" className="space-y-6 p-4 bg-background rounded-lg shadow-md">
         <header className="text-center mb-8">

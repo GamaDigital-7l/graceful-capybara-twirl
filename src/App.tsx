@@ -16,7 +16,8 @@ import ClientPromptsPage from "./pages/ClientPromptsPage";
 import PublicApprovalPage from "./pages/PublicApprovalPage";
 import EmployeeDashboardPage from "./pages/EmployeeDashboardPage";
 import EmployeeDetailsPage from "./pages/EmployeeDetailsPage";
-import InstagramInsightsDashboard from "./pages/InstagramInsightsDashboard"; // Novo import
+import InstagramInsightsDashboard from "./pages/InstagramInsightsDashboard";
+import PublicClientDashboardPage from "./pages/PublicClientDashboardPage"; // Novo import
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import { Layout } from "./components/Layout";
@@ -34,6 +35,7 @@ const App = () => (
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/approve/:token" element={<PublicApprovalPage />} />
+            <Route path="/client-dashboard/:token" element={<PublicClientDashboardPage />} /> {/* Nova rota */}
             {/* Wrap all protected routes with the new Layout component */}
             <Route
               path="/"
@@ -54,13 +56,13 @@ const App = () => (
             <Route
               path="/workspace/:workspaceId/playbook"
               element={
-                <Layout pageTitle="Playbook do Cliente"> {/* Custom title for Playbook */}
+                <Layout pageTitle="Playbook do Cliente">
                   <PlaybookPage />
                 </Layout>
               }
             />
             <Route
-              path="/workspace/:workspaceId/instagram-insights" // Nova rota
+              path="/workspace/:workspaceId/instagram-insights"
               element={
                 <Layout pageTitle="Insights do Instagram">
                   <InstagramInsightsDashboard />
@@ -102,7 +104,7 @@ const App = () => (
             <Route
               path="/second-brain/:clientId"
               element={
-                <Layout pageTitle="Prompts do Cliente"> {/* Custom title for Client Prompts */}
+                <Layout pageTitle="Prompts do Cliente">
                   <ClientPromptsPage />
                 </Layout>
               }
@@ -118,7 +120,7 @@ const App = () => (
             <Route
               path="/employees/:employeeId"
               element={
-                <Layout pageTitle="Detalhes do Funcionário"> {/* Custom title for Employee Details */}
+                <Layout pageTitle="Detalhes do Funcionário">
                   <EmployeeDetailsPage />
                 </Layout>
               }
