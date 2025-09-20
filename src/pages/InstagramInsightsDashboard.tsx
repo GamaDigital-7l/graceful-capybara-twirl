@@ -8,8 +8,9 @@ import { showError, showSuccess, showLoading, dismissToast } from "@/utils/toast
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input"; // Importar Input
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, Sparkles, Download, BarChart, LineChart, Users, TrendingUp, Eye, MessageSquare, FileText } from "lucide-react";
+import { ArrowLeft, Sparkles, Download, BarChart, LineChart, Users, TrendingUp, Calendar as CalendarIcon, FileText } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { generateInstagramInsights } from "@/utils/gemini";
 import { useSettings } from "@/contexts/SettingsContext";
@@ -29,6 +30,9 @@ import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { Calendar } from "@/components/ui/calendar"; // Importar Calendar
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"; // Importar Popover
+import { cn } from "@/lib/utils"; // Importar cn
 
 interface InstagramInsightData {
   id?: string;
@@ -76,7 +80,15 @@ const InstagramInsightsDashboard = () => {
   const queryClient = useQueryClient();
   const settings = useSettings();
 
-  const [rawInstagramData, setRawInstagramData] = useState("");
+  // Novos estados para entrada manual
+  const [insightDate, setInsightDate] = useState<Date | undefined>(new Date());
+  const [followers, setFollowers] = useState<number | string>("");
+  const [engagementRate, setEngagementRate] = useState<number | string>("");
+  const [reach, setReach] = useState<number | string>("");
+  const [impressions, setImpressions] = useState<number | string>("");
+  const [profileViews, setProfileViews] = useState<number | string>("");
+  const [postsCount, setPostsCount] = useState<number | string>("");
+
   const [geminiOutput, setGeminiOutput] = useState<GeminiInsightResponse | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [aiPrompt, setAiPrompt] = useState("Gere um resumo profissional, destacando métricas chave, tendências e recomendações para o cliente.");
@@ -121,8 +133,8 @@ const InstagramInsightsDashboard = () => {
       showError("ID do workspace não encontrado.");
       return;
     }
-    if (!rawInstagramData.trim()) {
-      showError("Por favor, insira os dados brutos do Instagram.");
+    if (!insightDate || !followers || !engagementRate || !reach || !impressions || !profileViews || !postsCount) {
+      showError("Por favor, preencha todos os campos de métricas e a data.");
       return;
     }
     if (!settings?.gemini_api_key) {
@@ -134,26 +146,33 @@ const InstagramInsightsDashboard = () => {
     const loadingToastId = showLoading("Gerando insights com IA...");
 
     try {
-      const parsedData = JSON.parse(rawInstagramData);
-      const insights = await generateInstagramInsights(parsedData, aiPrompt);
+      const instagramData = {
+        date: format(insightDate, 'yyyy-MM-dd'),
+        followers: Number(followers),
+        engagement_rate: Number(engagementRate),
+        reach: Number(reach),
+        impressions: Number(impressions),
+        profile_views: Number(profileViews),
+        posts_count: Number(postsCount),
+      };
+      
+      const insights = await generateInstagramInsights(instagramData, aiPrompt);
       setGeminiOutput(insights);
 
-      // Tentar salvar o insight histórico
-      if (parsedData.date && parsedData.followers) { // Exemplo básico de validação
-        const newInsight: InstagramInsightData = {
-          workspace_id: workspaceId,
-          insight_date: parsedData.date, // Assumindo que 'date' está no raw_data
-          followers: parsedData.followers,
-          engagement_rate: parsedData.engagement_rate || 0,
-          reach: parsedData.reach || 0,
-          impressions: parsedData.impressions || 0,
-          profile_views: parsedData.profile_views || 0,
-          posts_count: parsedData.posts_count || 0,
-          raw_data: parsedData,
-        };
-        await saveInsightMutation.mutateAsync(newInsight);
-      }
-
+      // Salvar o insight histórico
+      const newInsight: InstagramInsightData = {
+        workspace_id: workspaceId,
+        insight_date: instagramData.date,
+        followers: instagramData.followers,
+        engagement_rate: instagramData.engagement_rate,
+        reach: instagramData.reach,
+        impressions: instagramData.impressions,
+        profile_views: instagramData.profile_views,
+        posts_count: instagramData.posts_count,
+        raw_data: instagramData, // Armazenar os dados inseridos manualmente como raw_data
+      };
+      await saveInsightMutation.mutateAsync(newInsight);
+      
       showSuccess("Insights gerados com sucesso!");
     } catch (error: any) {
       showError(`Erro ao processar dados: ${error.message}`);
@@ -264,19 +283,67 @@ const InstagramInsightsDashboard = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Dados Brutos do Instagram</CardTitle>
-          <CardDescription>Cole os dados JSON dos insights do Instagram aqui.</CardDescription>
+          <CardTitle>Inserir Dados do Instagram</CardTitle>
+          <CardDescription>Preencha as métricas mais recentes do Instagram para gerar insights.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <Label htmlFor="raw-data">Dados JSON</Label>
-          <Textarea
-            id="raw-data"
-            value={rawInstagramData}
-            onChange={(e) => setRawInstagramData(e.target.value)}
-            placeholder='Ex: {"date": "2023-10-26", "followers": 1500, "engagement_rate": 2.5, ...}'
-            rows={8}
-            className="font-mono text-xs"
-          />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="insight-date">Data do Insight</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant={"outline"}
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !insightDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {insightDate ? (
+                      format(insightDate, "PPP", { locale: ptBR })
+                    ) : (
+                      <span>Selecione uma data</span>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                  <Calendar
+                    mode="single"
+                    selected={insightDate}
+                    onSelect={setInsightDate}
+                    initialFocus
+                    locale={ptBR}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="followers">Seguidores</Label>
+              <Input id="followers" type="number" value={followers} onChange={(e) => setFollowers(e.target.value)} placeholder="Ex: 1500" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="engagement-rate">Taxa de Engajamento (%)</Label>
+              <Input id="engagement-rate" type="number" step="0.01" value={engagementRate} onChange={(e) => setEngagementRate(e.target.value)} placeholder="Ex: 2.5" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="reach">Alcance</Label>
+              <Input id="reach" type="number" value={reach} onChange={(e) => setReach(e.target.value)} placeholder="Ex: 10000" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="impressions">Impressões</Label>
+              <Input id="impressions" type="number" value={impressions} onChange={(e) => setImpressions(e.target.value)} placeholder="Ex: 12000" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="profile-views">Visualizações de Perfil</Label>
+              <Input id="profile-views" type="number" value={profileViews} onChange={(e) => setProfileViews(e.target.value)} placeholder="Ex: 500" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="posts-count">Número de Posts</Label>
+              <Input id="posts-count" type="number" value={postsCount} onChange={(e) => setPostsCount(e.target.value)} placeholder="Ex: 15" />
+            </div>
+          </div>
+          
           <Label htmlFor="ai-prompt">Instruções para a IA (Opcional)</Label>
           <Textarea
             id="ai-prompt"
@@ -285,7 +352,7 @@ const InstagramInsightsDashboard = () => {
             placeholder="Ex: Foco em crescimento de seguidores e engajamento."
             rows={3}
           />
-          <Button onClick={handleGenerateInsights} disabled={isGenerating || !rawInstagramData.trim()}>
+          <Button onClick={handleGenerateInsights} disabled={isGenerating || !insightDate || !followers || !engagementRate || !reach || !impressions || !profileViews || !postsCount}>
             {isGenerating ? "Gerando..." : <><Sparkles className="h-4 w-4 mr-2" /> Gerar Dashboard com IA</>}
           </Button>
         </CardContent>
