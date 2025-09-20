@@ -8,7 +8,7 @@ import { showError, showSuccess, showLoading, dismissToast } from "@/utils/toast
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input"; // Importar Input
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft, Sparkles, Download, BarChart, LineChart, Users, TrendingUp, Calendar as CalendarIcon, FileText } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -30,9 +30,10 @@ import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Calendar } from "@/components/ui/calendar"; // Importar Calendar
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"; // Importar Popover
-import { cn } from "@/lib/utils"; // Importar cn
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"; // Importar Avatar
 
 interface InstagramInsightData {
   id?: string;
@@ -55,14 +56,14 @@ interface GeminiInsightResponse {
   raw_output?: string;
 }
 
-const fetchWorkspaceName = async (workspaceId: string): Promise<string> => {
+const fetchWorkspaceDetails = async (workspaceId: string): Promise<{ name: string; logo_url: string | null }> => {
   const { data, error } = await supabase
     .from("workspaces")
-    .select("name")
+    .select("name, logo_url")
     .eq("id", workspaceId)
     .single();
   if (error) throw new Error(error.message);
-  return data.name;
+  return data;
 };
 
 const fetchInstagramInsights = async (workspaceId: string): Promise<InstagramInsightData[]> => {
@@ -80,7 +81,6 @@ const InstagramInsightsDashboard = () => {
   const queryClient = useQueryClient();
   const settings = useSettings();
 
-  // Novos estados para entrada manual
   const [insightDate, setInsightDate] = useState<Date | undefined>(new Date());
   const [followers, setFollowers] = useState<number | string>("");
   const [engagementRate, setEngagementRate] = useState<number | string>("");
@@ -93,9 +93,9 @@ const InstagramInsightsDashboard = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [aiPrompt, setAiPrompt] = useState("Gere um resumo profissional, destacando métricas chave, tendências e recomendações para o cliente.");
 
-  const { data: workspaceName, isLoading: isLoadingName } = useQuery({
-    queryKey: ["workspaceName", workspaceId],
-    queryFn: () => fetchWorkspaceName(workspaceId!),
+  const { data: workspaceDetails, isLoading: isLoadingDetails } = useQuery({
+    queryKey: ["workspaceDetails", workspaceId],
+    queryFn: () => fetchWorkspaceDetails(workspaceId!),
     enabled: !!workspaceId,
   });
 
@@ -133,7 +133,7 @@ const InstagramInsightsDashboard = () => {
       showError("ID do workspace não encontrado.");
       return;
     }
-    if (!insightDate || !followers || !engagementRate || !reach || !impressions || !profileViews || !postsCount) {
+    if (!insightDate || followers === "" || engagementRate === "" || reach === "" || impressions === "" || profileViews === "" || postsCount === "") {
       showError("Por favor, preencha todos os campos de métricas e a data.");
       return;
     }
@@ -157,9 +157,13 @@ const InstagramInsightsDashboard = () => {
       };
       
       const insights = await generateInstagramInsights(instagramData, aiPrompt);
+      
+      // Garantir que posts_count esteja nas key_metrics se a IA não o incluiu
+      if (insights && insights.key_metrics && !insights.key_metrics.some(m => m.name === "Número de Posts")) {
+        insights.key_metrics.push({ name: "Número de Posts", value: String(instagramData.posts_count) });
+      }
       setGeminiOutput(insights);
 
-      // Salvar o insight histórico
       const newInsight: InstagramInsightData = {
         workspace_id: workspaceId,
         insight_date: instagramData.date,
@@ -169,7 +173,7 @@ const InstagramInsightsDashboard = () => {
         impressions: instagramData.impressions,
         profile_views: instagramData.profile_views,
         posts_count: instagramData.posts_count,
-        raw_data: instagramData, // Armazenar os dados inseridos manualmente como raw_data
+        raw_data: instagramData,
       };
       await saveInsightMutation.mutateAsync(newInsight);
       
@@ -196,7 +200,11 @@ const InstagramInsightsDashboard = () => {
         throw new Error("Elemento do dashboard não encontrado.");
       }
 
-      const canvas = await html2canvas(dashboardElement, { scale: 2 });
+      // Temporariamente ajustar o estilo para o PDF
+      dashboardElement.style.padding = '20px'; // Adicionar padding para o PDF
+      dashboardElement.style.backgroundColor = 'white'; // Fundo branco para o PDF
+
+      const canvas = await html2canvas(dashboardElement, { scale: 2, useCORS: true });
       const imgData = canvas.toDataURL("image/png");
       const pdf = new jsPDF("p", "mm", "a4");
       const imgProps = pdf.getImageProperties(imgData);
@@ -205,8 +213,12 @@ const InstagramInsightsDashboard = () => {
 
       pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
 
+      // Restaurar estilos após a captura
+      dashboardElement.style.padding = '';
+      dashboardElement.style.backgroundColor = '';
+
       const pdfBlob = pdf.output('blob');
-      const fileName = `relatorio_instagram_${workspaceName}_${format(new Date(), 'yyyyMMdd_HHmmss')}.pdf`;
+      const fileName = `relatorio_instagram_${workspaceDetails?.name || 'cliente'}_${format(new Date(), 'yyyyMMdd_HHmmss')}.pdf`;
       const filePath = `instagram-reports/${workspaceId}/${fileName}`;
 
       const { data: uploadData, error: uploadError } = await supabase.storage
@@ -257,6 +269,15 @@ const InstagramInsightsDashboard = () => {
     }));
   }, [historicalInsights]);
 
+  const reportPeriod = useMemo(() => {
+    if (historicalInsights && historicalInsights.length > 0) {
+      const startDate = new Date(historicalInsights[0].insight_date);
+      const endDate = new Date(historicalInsights[historicalInsights.length - 1].insight_date);
+      return `${format(startDate, 'dd/MM/yyyy', { locale: ptBR })} - ${format(endDate, 'dd/MM/yyyy', { locale: ptBR })}`;
+    }
+    return format(insightDate || new Date(), 'MMMM yyyy', { locale: ptBR });
+  }, [historicalInsights, insightDate]);
+
   if (!workspaceId) {
     return <div className="p-8 text-center">Workspace não encontrado.</div>;
   }
@@ -272,7 +293,7 @@ const InstagramInsightsDashboard = () => {
           </Button>
           <div>
             <h1 className="text-xl sm:text-2xl font-bold whitespace-nowrap">Insights do Instagram</h1>
-            <p className="text-sm text-muted-foreground">{isLoadingName ? <Skeleton className="h-4 w-32 mt-1" /> : workspaceName}</p>
+            <p className="text-sm text-muted-foreground">{isLoadingDetails ? <Skeleton className="h-4 w-32 mt-1" /> : workspaceDetails?.name}</p>
           </div>
         </div>
         <Button onClick={handleExportPdf} disabled={!geminiOutput || isGenerating}>
@@ -352,14 +373,25 @@ const InstagramInsightsDashboard = () => {
             placeholder="Ex: Foco em crescimento de seguidores e engajamento."
             rows={3}
           />
-          <Button onClick={handleGenerateInsights} disabled={isGenerating || !insightDate || !followers || !engagementRate || !reach || !impressions || !profileViews || !postsCount}>
+          <Button onClick={handleGenerateInsights} disabled={isGenerating || !insightDate || followers === "" || engagementRate === "" || reach === "" || impressions === "" || profileViews === "" || postsCount === ""}>
             {isGenerating ? "Gerando..." : <><Sparkles className="h-4 w-4 mr-2" /> Gerar Dashboard com IA</>}
           </Button>
         </CardContent>
       </Card>
 
       <div id="instagram-dashboard-content" className="space-y-6 p-4 bg-background rounded-lg shadow-md">
-        <h2 className="text-2xl font-bold">Dashboard de Insights</h2>
+        <header className="text-center mb-8">
+          {workspaceDetails?.logo_url && (
+            <Avatar className="h-24 w-24 mx-auto mb-4">
+              <AvatarImage src={workspaceDetails.logo_url} alt={workspaceDetails.name} />
+              <AvatarFallback className="text-4xl">{workspaceDetails.name.charAt(0)}</AvatarFallback>
+            </Avatar>
+          )}
+          <h1 className="text-3xl font-bold">{workspaceDetails?.name || "Cliente"}</h1>
+          <p className="text-lg text-muted-foreground">Relatório de Insights do Instagram</p>
+          <p className="text-sm text-muted-foreground mt-2">Período: {reportPeriod}</p>
+        </header>
+
         {isGenerating && <Skeleton className="h-64 w-full" />}
         {geminiOutput && (
           <div className="space-y-6">
@@ -457,6 +489,9 @@ const InstagramInsightsDashboard = () => {
             </CardContent>
           </Card>
         )}
+        <footer className="text-center text-xs text-muted-foreground mt-8 pt-4 border-t">
+          Gerado por Gama Creative Flow
+        </footer>
       </div>
     </div>
   );

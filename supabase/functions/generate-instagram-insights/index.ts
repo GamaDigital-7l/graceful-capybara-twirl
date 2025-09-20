@@ -37,12 +37,19 @@ serve(async (req) => {
     const GEMINI_API_KEY = settings.gemini_api_key;
     const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`;
 
-    const fullPrompt = `Analise os seguintes dados de insights do Instagram e gere um resumo profissional, destacando métricas chave, tendências e recomendações. Formate a saída como um objeto JSON com as seguintes chaves: "summary" (string), "key_metrics" (array de objetos {name: string, value: string}), "trends" (array de strings), "recommendations" (array de strings).
+    // PROMPT REFINADO
+    const fullPrompt = `Você é um especialista em marketing digital e está criando um relatório de insights do Instagram para um cliente. Analise os seguintes dados e gere um resumo profissional, destacando as métricas chave, tendências e recomendações acionáveis. O relatório deve ser conciso, claro e focado em resultados para o cliente.
+
+Formate a saída como um objeto JSON com as seguintes chaves:
+"summary": (string) Um resumo executivo profissional.
+"key_metrics": (array de objetos {name: string, value: string}) As 3-5 métricas mais importantes, incluindo "Seguidores", "Taxa de Engajamento", "Alcance", "Impressões", "Visualizações de Perfil" e "Número de Posts". Formate os valores de forma amigável (ex: "1.500", "2.5%", "10K").
+"trends": (array de strings) 2-3 tendências observadas nos dados.
+"recommendations": (array de strings) 2-3 recomendações práticas para o cliente.
 
 Dados do Instagram:
 ${JSON.stringify(instagramData, null, 2)}
 
-Instruções adicionais: ${prompt}`;
+Instruções adicionais do usuário: ${prompt}`;
 
     const geminiResponse = await fetch(GEMINI_API_URL, {
       method: "POST",
@@ -51,7 +58,7 @@ Instruções adicionais: ${prompt}`;
       },
       body: JSON.stringify({
         contents: [{ parts: [{ text: fullPrompt }] }],
-      }),
+      });
     });
 
     if (!geminiResponse.ok) {
