@@ -12,7 +12,7 @@ export const showLoading = (message: string) => {
   return toast.loading(message);
 };
 
-export const dismissToast = (toastId?: string) => {
+export const dismissToast = (toastId?: string | number) => { // Alterado para aceitar string | number
   if (toastId) {
     toast.dismiss(toastId);
   } else {
