@@ -1,5 +1,5 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { serve } from "https://deno.land/std@0.224.0/http/server.ts"; // Versão atualizada
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0' // Versão atualizada
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -49,7 +49,7 @@ serve(async (req) => {
 Formate a saída como um objeto JSON com as seguintes chaves:
 "summary": (string) Um resumo executivo profissional.
 "key_metrics": (array de objetos {name: string, value: string}) As 3-5 métricas mais importantes, incluindo "Seguidores", "Taxa de Engajamento", "Alcance", "Impressões", "Visualizações de Perfil", "Número de Posts" e "Interações". Formate os valores de forma amigável (ex: "1.500", "2.5%", "10K").
-"trends": (array de strings) 2-3 tendências observadas nos dados, incluindo observações sobre "conteúdo que compartilhou", "público", "faixa etárias" e "atividades do perfil" se os dados permitirem.
+"trends": (array de strings) 2-3 tendências observadas nos dados, incluindo observações sobre "conteúdo que compartilhou", "público", "faixa etarias" e "atividades do perfil" se os dados permitirem.
 "recommendations": (array de strings) 2-3 recomendações práticas para o cliente.
 
 Dados do Instagram:
@@ -58,15 +58,18 @@ ${JSON.stringify(instagramData, null, 2)}
 Instruções adicionais do usuário: ${prompt}`;
     console.log("EF: Prompt completo preparado.");
 
+    // Construção explícita do corpo da requisição para o Gemini
+    const geminiRequestBody = {
+      contents: [{ parts: [{ text: fullPrompt }] }],
+    };
+
     const geminiResponse = await fetch(GEMINI_API_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: fullPrompt }] }],
-      }),
-    );
+      body: JSON.stringify(geminiRequestBody),
+    });
     console.log("EF: Resposta da API do Gemini recebida. Status:", geminiResponse.status);
 
     if (!geminiResponse.ok) {
