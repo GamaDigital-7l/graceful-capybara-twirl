@@ -303,94 +303,96 @@ export function BriefingFormEditor() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div className="flex items-center gap-4">
-          <Button asChild variant="outline" size="icon">
-            <Link to="/briefings">
-              <ArrowLeft className="h-4 w-4" />
-            </Link>
+    <React.Fragment>
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <div className="flex items-center gap-4">
+            <Button asChild variant="outline" size="icon">
+              <Link to="/briefings">
+                <ArrowLeft className="h-4 w-4" />
+              </Link>
+            </Button>
+            <h1 className="text-2xl font-bold">{isEditing ? "Editar Formulário de Briefing" : "Criar Novo Formulário de Briefing"}</h1>
+          </div>
+          <Button onClick={handleSave} disabled={isSaving}>
+            {isSaving ? "Salvando..." : "Salvar Formulário"}
           </Button>
-          <h1 className="text-2xl font-bold">{isEditing ? "Editar Formulário de Briefing" : "Criar Novo Formulário de Briefing"}</h1>
         </div>
-        <Button onClick={handleSave} disabled={isSaving}>
-          {isSaving ? "Salvando..." : "Salvar Formulário"}
-        </Button>
-      </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Detalhes do Formulário</CardTitle>
-          <CardDescription>Informações básicas e cliente associado.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="form-title">Título do Formulário</Label>
-            <Input
-              id="form-title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Ex: Briefing de Novo Projeto de Social Media"
-              required
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="form-description">Descrição (Opcional)</Label>
-            <Textarea
-              id="form-description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Uma breve descrição sobre o propósito deste formulário."
-              rows={3}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="workspace-select">Associar ao Cliente (Workspace - Opcional)</Label>
-            <Select
-              value={workspaceId || ""}
-              onValueChange={(value) => setWorkspaceId(value === "global" ? null : value)}
-            >
-              <SelectTrigger id="workspace-select">
-                <SelectValue placeholder="Selecione um cliente ou 'Agência (Global)'" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="global">Agência (Global)</SelectItem>
-                {workspaces?.map((ws) => (
-                  <SelectItem key={ws.id} value={ws.id}>
-                    {ws.name}
-                  </SelectItem>
+        <Card>
+          <CardHeader>
+            <CardTitle>Detalhes do Formulário</CardTitle>
+            <CardDescription>Informações básicas e cliente associado.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="form-title">Título do Formulário</Label>
+              <Input
+                id="form-title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Ex: Briefing de Novo Projeto de Social Media"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="form-description">Descrição (Opcional)</Label>
+              <Textarea
+                id="form-description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Uma breve descrição sobre o propósito deste formulário."
+                rows={3}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="workspace-select">Associar ao Cliente (Workspace - Opcional)</Label>
+              <Select
+                value={workspaceId || ""}
+                onValueChange={(value) => setWorkspaceId(value === "global" ? null : value)}
+              >
+                <SelectTrigger id="workspace-select">
+                  <SelectValue placeholder="Selecione um cliente ou 'Agência (Global)'" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="global">Agência (Global)</SelectItem>
+                  {workspaces?.map((ws) => (
+                    <SelectItem key={ws.id} value={ws.id}>
+                      {ws.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">Formulários globais não são vinculados a um cliente específico.</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Estrutura do Formulário</CardTitle>
+            <CardDescription>Arraste e solte para reordenar os campos.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
+              <SortableContext items={formStructure.map(f => f.id)} strategy={verticalListSortingStrategy}>
+                {formStructure.map((field, index) => (
+                  <SortableField
+                    key={field.id}
+                    field={field}
+                    index={index}
+                    onUpdateField={handleUpdateField}
+                    onRemoveField={handleRemoveField}
+                  />
                 ))}
-              </SelectContent>
-            </Select>
-            <p className="text-xs text-muted-foreground">Formulários globais não são vinculados a um cliente específico.</p>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Estrutura do Formulário</CardTitle>
-          <CardDescription>Arraste e solte para reordenar os campos.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
-            <SortableContext items={formStructure.map(f => f.id)} strategy={verticalListSortingStrategy}>
-              {formStructure.map((field, index) => (
-                <SortableField
-                  key={field.id}
-                  field={field}
-                  index={index}
-                  onUpdateField={handleUpdateField}
-                  onRemoveField={handleRemoveField}
-                />
-              ))}
+              </SortableContext>
             </DndContext>
-          </DndContext>
-          <Button variant="outline" onClick={handleAddField} className="w-full">
-            <Plus className="h-4 w-4 mr-2" /> Adicionar Campo
-          </Button>
-        </CardContent>
-      </Card>
-    </div>
+            <Button variant="outline" onClick={handleAddField} className="w-full">
+              <Plus className="h-4 w-4 mr-2" /> Adicionar Campo
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    </React.Fragment>
   );
 }
