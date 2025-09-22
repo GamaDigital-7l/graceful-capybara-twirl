@@ -26,7 +26,7 @@ const fetchClientWorkspaces = async (userId: string): Promise<Workspace[]> => {
   if (error) throw new Error(error.message);
 
   // Flatten the data structure
-  return data.map(member => member.workspaces).filter(Boolean) as Workspace[];
+  return data.flatMap(member => member.workspaces).filter(Boolean) as Workspace[];
 };
 
 const ClientDashboard = () => {
