@@ -19,8 +19,9 @@ import EmployeeDetailsPage from "./pages/EmployeeDetailsPage";
 import InstagramInsightsDashboard from "./pages/InstagramInsightsDashboard";
 import PublicClientDashboardPage from "./pages/PublicClientDashboardPage";
 import ClientDashboard from "./pages/ClientDashboard";
-import BriefingsPage from "./pages/BriefingsPage"; // Novo import
-import PublicBriefingPage from "./pages/PublicBriefingPage"; // Novo import
+import BriefingsPage from "./pages/BriefingsPage";
+import PublicBriefingPage from "./pages/PublicBriefingPage";
+import BriefingFormEditor from "./components/BriefingFormEditor"; // Novo import
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import { Layout } from "./components/Layout";
@@ -39,8 +40,7 @@ const App = () => (
             <Route path="/login" element={<Login />} />
             <Route path="/approve/:token" element={<PublicApprovalPage />} />
             <Route path="/client-dashboard/:token" element={<PublicClientDashboardPage />} />
-            <Route path="/briefings/public/:formId" element={<PublicBriefingPage />} /> {/* Rota pública para preencher formulários */}
-            {/* Wrap all protected routes with the new Layout component */}
+            <Route path="/briefings/public/:formId" element={<PublicBriefingPage />} />
             <Route
               path="/"
               element={
@@ -146,7 +146,7 @@ const App = () => (
               }
             />
             <Route
-              path="/briefings" // Rota principal para gerenciar briefings
+              path="/briefings"
               element={
                 <Layout pageTitle="Gerenciar Briefings">
                   <BriefingsPage />
@@ -154,25 +154,23 @@ const App = () => (
               }
             />
             <Route
-              path="/briefings/new" // Rota para criar novo formulário
+              path="/briefings/new"
               element={
                 <Layout pageTitle="Novo Formulário de Briefing">
-                  {/* Componente para criar formulário será adicionado aqui */}
-                  <div className="p-8 text-center text-muted-foreground">Em breve: Construtor de Formulários</div>
+                  <BriefingFormEditor />
                 </Layout>
               }
             />
             <Route
-              path="/briefings/:formId/edit" // Rota para editar formulário
+              path="/briefings/:formId/edit"
               element={
                 <Layout pageTitle="Editar Formulário de Briefing">
-                  {/* Componente para editar formulário será adicionado aqui */}
-                  <div className="p-8 text-center text-muted-foreground">Em breve: Editor de Formulários</div>
+                  <BriefingFormEditor />
                 </Layout>
               }
             />
             <Route
-              path="/briefings/:formId/responses" // Rota para ver respostas
+              path="/briefings/:formId/responses"
               element={
                 <Layout pageTitle="Respostas do Briefing">
                   {/* Componente para visualizar respostas será adicionado aqui */}
