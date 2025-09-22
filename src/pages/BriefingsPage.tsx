@@ -8,7 +8,7 @@ import { showError, showSuccess } from "@/utils/toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { PlusCircle, Edit, Trash2, Eye, Share2, Briefcase, MessageSquare } from "lucide-react"; // Adicionado MessageSquare
+import { PlusCircle, Edit, Trash2, Eye, Share2, Briefcase, MessageSquare, MoreVertical } from "lucide-react"; // Adicionado MoreVertical
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { BriefingForm } from "@/types/briefing";

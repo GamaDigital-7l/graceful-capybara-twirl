@@ -24,6 +24,7 @@ export interface BriefingForm {
   created_at: string;
   is_active: boolean;
   response_count?: number; // Novo campo para a contagem de respostas
+  workspace_name?: string; // Adicionado para exibir o nome do workspace
 }
 
 export interface BriefingResponse {
