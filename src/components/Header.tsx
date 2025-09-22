@@ -66,7 +66,10 @@ export function Header({ pageTitle }: HeaderProps) {
     if (path.startsWith("/employees") && !path.includes("/employees/")) return "Equipe";
     if (path.startsWith("/employees/")) return "Detalhes do Funcionário";
     if (path.startsWith("/agency-playbook")) return "Playbook da Agência";
-    if (path.startsWith("/briefings")) return "Gerenciar Briefings"; // Novo
+    if (path.startsWith("/briefings/new")) return "Novo Formulário de Briefing";
+    if (path.startsWith("/briefings/") && path.includes("/edit")) return "Editar Formulário de Briefing";
+    if (path.startsWith("/briefings/") && path.includes("/responses")) return "Respostas do Briefing"; // Novo
+    if (path.startsWith("/briefings")) return "Gerenciar Briefings";
     return "Gama Creative Flow";
   };
 

@@ -21,7 +21,8 @@ import PublicClientDashboardPage from "./pages/PublicClientDashboardPage";
 import ClientDashboard from "./pages/ClientDashboard";
 import BriefingsPage from "./pages/BriefingsPage";
 import PublicBriefingPage from "./pages/PublicBriefingPage";
-import { BriefingFormEditor } from "./components/BriefingFormEditor"; // Importação corrigida
+import { BriefingFormEditor } from "./components/BriefingFormEditor";
+import BriefingResponsesPage from "./pages/BriefingResponsesPage"; // Novo import
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import { Layout } from "./components/Layout";
@@ -173,8 +174,7 @@ const App = () => (
               path="/briefings/:formId/responses"
               element={
                 <Layout pageTitle="Respostas do Briefing">
-                  {/* Componente para visualizar respostas será adicionado aqui */}
-                  <div className="p-8 text-center text-muted-foreground">Em breve: Visualizador de Respostas</div>
+                  <BriefingResponsesPage />
                 </Layout>
               }
             />
