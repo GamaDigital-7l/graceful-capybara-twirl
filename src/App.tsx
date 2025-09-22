@@ -21,7 +21,7 @@ import PublicClientDashboardPage from "./pages/PublicClientDashboardPage";
 import ClientDashboard from "./pages/ClientDashboard";
 import BriefingsPage from "./pages/BriefingsPage";
 import PublicBriefingPage from "./pages/PublicBriefingPage";
-import BriefingFormEditor from "./components/BriefingFormEditor"; // Novo import
+import { BriefingFormEditor } from "./components/BriefingFormEditor"; // Importação corrigida
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import { Layout } from "./components/Layout";
