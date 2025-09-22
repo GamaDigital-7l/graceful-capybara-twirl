@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useMemo } from "react"; // Adicionado useMemo
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,7 +16,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { BriefingForm, BriefingFormField, BriefingFieldType } from "@/types/briefing";
 import { AppLogo } from "@/components/AppLogo";
-import { ArrowLeft, ArrowRight } from "lucide-react"; // Importar ícones de seta
+import { ArrowLeft, ArrowRight } from "lucide-react";
 
 const fetchBriefingForm = async (formId: string): Promise<BriefingForm> => {
   const { data, error } = await supabase
@@ -34,7 +34,7 @@ const PublicBriefingPage = () => {
   const [clientName, setClientName] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [currentStep, setCurrentStep] = useState(0); // Para o modo Typeform
+  const [currentStep, setCurrentStep] = useState(0);
 
   const { data: form, isLoading, error } = useQuery<BriefingForm, Error>({
     queryKey: ["publicBriefingForm", formId],
@@ -45,7 +45,6 @@ const PublicBriefingPage = () => {
 
   const allFields = useMemo(() => {
     if (!form) return [];
-    // Adiciona o campo de nome do cliente como o primeiro "campo" para o Typeform
     return [{ id: "client-name", type: "text", label: "Seu Nome Completo", required: true, placeholder: "Ex: João da Silva" } as BriefingFormField, ...form.form_structure];
   }, [form]);
 
@@ -60,7 +59,7 @@ const PublicBriefingPage = () => {
         }
       });
       setFormData(initialData);
-      setCurrentStep(0); // Resetar passo ao carregar novo formulário
+      setCurrentStep(0);
     }
   }, [form, allFields]);
 
@@ -112,7 +111,7 @@ const PublicBriefingPage = () => {
       if (currentStep < allFields.length - 1) {
         setCurrentStep(prev => prev + 1);
       } else {
-        handleSubmit(); // Se for o último passo, submete
+        handleSubmit();
       }
     }
   };
@@ -127,7 +126,7 @@ const PublicBriefingPage = () => {
     e?.preventDefault();
     if (!form) return;
 
-    if (!validateCurrentStep()) { // Valida o último passo antes de submeter
+    if (!validateCurrentStep()) {
       return;
     }
 
@@ -135,10 +134,9 @@ const PublicBriefingPage = () => {
     const loadingToastId = showLoading("Enviando sua resposta...");
 
     try {
-      const { data: { user } } = await supabase.auth.getUser(); // Try to get logged-in user
+      const { data: { user } } = await supabase.auth.getUser();
       const submittedByUserId = user?.id || null;
 
-      // Remove 'client-name' from formData before sending to DB, as it's a separate field
       const finalFormData = { ...formData };
       delete finalFormData["client-name"];
 
@@ -184,6 +182,7 @@ const PublicBriefingPage = () => {
             onChange={onChange}
             placeholder={field.placeholder}
             required={field.required}
+            className="w-full"
           />
         );
       case "textarea":
@@ -195,6 +194,7 @@ const PublicBriefingPage = () => {
             placeholder={field.placeholder}
             required={field.required}
             rows={5}
+            className="w-full"
           />
         );
       case "select":
@@ -204,7 +204,7 @@ const PublicBriefingPage = () => {
             onValueChange={onChange}
             required={field.required}
           >
-            <SelectTrigger id={field.id}>
+            <SelectTrigger id={field.id} className="w-full">
               <SelectValue placeholder={field.placeholder || "Selecione uma opção"} />
             </SelectTrigger>
             <SelectContent>
@@ -220,6 +220,7 @@ const PublicBriefingPage = () => {
             value={value || ""}
             onValueChange={onChange}
             required={field.required}
+            className="flex flex-col space-y-2"
           >
             {field.options?.map(option => (
               <div key={option.value} className="flex items-center space-x-2">
@@ -237,7 +238,7 @@ const PublicBriefingPage = () => {
                 <Checkbox
                   id={`${field.id}-${option.value}`}
                   checked={(value || []).includes(option.value)}
-                  onCheckedChange={(checked) => handleFieldChange(field.id, option.value, field.type)}
+                  onCheckedChange={() => handleFieldChange(field.id, option.value, field.type)}
                 />
                 <Label htmlFor={`${field.id}-${option.value}`}>{option.label}</Label>
               </div>
@@ -299,18 +300,18 @@ const PublicBriefingPage = () => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 sm:p-8 flex justify-center items-center">
       <Card className="w-full max-w-2xl">
-        <CardHeader className="text-center">
+        <CardHeader className="text-center pb-4">
           <AppLogo className="h-12 w-auto mx-auto mb-4" />
-          <CardTitle>{form.title}</CardTitle>
-          {form.description && <CardDescription>{form.description}</CardDescription>}
+          <CardTitle className="text-3xl font-bold mb-2">{form.title}</CardTitle>
+          {form.description && <CardDescription className="text-lg text-muted-foreground">{form.description}</CardDescription>}
           {isTypeformMode && (
-            <p className="text-sm text-muted-foreground mt-2">
+            <p className="text-sm text-muted-foreground mt-4">
               Pergunta {currentStep + 1} de {allFields.length}
             </p>
           )}
         </CardHeader>
         <form onSubmit={isTypeformMode ? (e) => e.preventDefault() : handleSubmit}>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-6 pt-4">
             {isTypeformMode ? (
               <div className="min-h-[200px] flex flex-col justify-center items-center text-center">
                 {currentField && (
@@ -325,18 +326,19 @@ const PublicBriefingPage = () => {
             ) : (
               <>
                 <div className="space-y-2">
-                  <Label htmlFor="client-name">Seu Nome Completo <span className="text-destructive">*</span></Label>
+                  <Label htmlFor="client-name" className="text-base font-medium">Seu Nome Completo <span className="text-destructive">*</span></Label>
                   <Input
                     id="client-name"
                     value={clientName}
                     onChange={(e) => setClientName(e.target.value)}
                     placeholder="Ex: João da Silva"
                     required
+                    className="w-full"
                   />
                 </div>
                 {form.form_structure.map((field: BriefingFormField) => (
                   <div key={field.id} className="space-y-2">
-                    <Label htmlFor={field.id}>
+                    <Label htmlFor={field.id} className="text-base font-medium">
                       {field.label} {field.required && <span className="text-destructive">*</span>}
                     </Label>
                     {renderField(field)}
@@ -347,7 +349,7 @@ const PublicBriefingPage = () => {
           </CardContent>
           <CardContent className="pt-0">
             {isTypeformMode ? (
-              <div className="flex justify-between gap-4">
+              <div className="flex justify-between gap-4 mt-6">
                 <Button
                   type="button"
                   variant="outline"
@@ -367,7 +369,7 @@ const PublicBriefingPage = () => {
                 </Button>
               </div>
             ) : (
-              <Button type="submit" className="w-full" disabled={isSubmitting}>
+              <Button type="submit" className="w-full mt-6" disabled={isSubmitting}>
                 {isSubmitting ? "Enviando..." : "Enviar Resposta"}
               </Button>
             )}

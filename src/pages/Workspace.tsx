@@ -1,15 +1,15 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { GroupTabs, Group } from "@/components/GroupTabs";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, shortenUrl } from "@/integrations/supabase/client"; // Importar shortenUrl
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { showError, showSuccess, showLoading, dismissToast } from "@/utils/toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, CalendarCheck, Send, BookOpen, BarChart, Share2 } from "lucide-react"; // Adicionado Share2
+import { ArrowLeft, CalendarCheck, Send, BookOpen, BarChart, Share2 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { PublicLinkModal } from "@/components/PublicLinkModal"; // Importar o componente renomeado
+import { PublicLinkModal } from "@/components/PublicLinkModal";
 
 const fetchGroups = async (workspaceId: string) => {
   if (!workspaceId) return [];
@@ -49,9 +49,9 @@ const WorkspacePage = ({ initialWorkspaceId }: WorkspacePageProps) => {
   const [generatedApprovalLink, setGeneratedApprovalLink] = useState("");
   const [whatsappApprovalTemplate, setWhatsappApprovalTemplate] = useState("");
 
-  const [isDashboardLinkModalOpen, setIsDashboardLinkModalOpen] = useState(false); // Novo estado
-  const [generatedDashboardLink, setGeneratedDashboardLink] = useState(""); // Novo estado
-  const [dashboardMessageTemplate, setDashboardMessageTemplate] = useState(""); // Novo estado
+  const [isDashboardLinkModalOpen, setIsDashboardLinkModalOpen] = useState(false);
+  const [generatedDashboardLink, setGeneratedDashboardLink] = useState("");
+  const [dashboardMessageTemplate, setDashboardMessageTemplate] = useState("");
 
   const { data: groups, isLoading: isLoadingGroups } = useQuery<Group[]>({
     queryKey: ["groups", workspaceId],
@@ -105,7 +105,7 @@ const WorkspacePage = ({ initialWorkspaceId }: WorkspacePageProps) => {
         { title: "Aprovado", position: 2, group_id: newGroup.id },
         { title: "Editar", position: 3, group_id: newGroup.id },
         { title: "Solicitações", position: 4, group_id: newGroup.id },
-        { title: "Postado", position: 5, group_id: newGroup.id }, // Nova coluna "Postado"
+        { title: "Postado", position: 5, group_id: newGroup.id },
       ];
       const { error: columnsError } = await supabase.from("columns").insert(defaultColumns);
       if (columnsError) throw columnsError;
@@ -181,7 +181,8 @@ const WorkspacePage = ({ initialWorkspaceId }: WorkspacePageProps) => {
       }
       
       const approvalUrl = `${settings.site_url}/approve/${tokenData.token}`;
-      return approvalUrl;
+      const shortenedUrl = await shortenUrl(approvalUrl); // Encurtar a URL
+      return shortenedUrl;
     },
     onSuccess: (link) => {
       dismissToast();
@@ -216,7 +217,8 @@ const WorkspacePage = ({ initialWorkspaceId }: WorkspacePageProps) => {
       }
       
       const dashboardUrl = `${settings.site_url}/client-dashboard/${tokenData.token}`;
-      return dashboardUrl;
+      const shortenedUrl = await shortenUrl(dashboardUrl); // Encurtar a URL
+      return shortenedUrl;
     },
     onSuccess: (link) => {
       dismissToast();
@@ -311,7 +313,7 @@ const WorkspacePage = ({ initialWorkspaceId }: WorkspacePageProps) => {
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-4">
             <Button asChild variant="outline" size="icon">
-                <Link to={backLinkPath}> {/* Link de volta condicional */}
+                <Link to={backLinkPath}>
                     <ArrowLeft className="h-4 w-4" />
                 </Link>
             </Button>

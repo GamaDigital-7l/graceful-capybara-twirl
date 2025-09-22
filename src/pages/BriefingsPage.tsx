@@ -3,26 +3,26 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, shortenUrl } from "@/integrations/supabase/client"; // Importar shortenUrl
 import { showError, showSuccess } from "@/utils/toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { PlusCircle, Edit, Trash2, Eye, Share2, Briefcase, MessageSquare, MoreVertical } from "lucide-react"; // Adicionado MoreVertical
+import { PlusCircle, Edit, Trash2, Eye, Share2, Briefcase, MessageSquare, MoreVertical } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { BriefingForm } from "@/types/briefing";
 import { PublicLinkModal } from "@/components/PublicLinkModal";
 import { useSettings } from "@/contexts/SettingsContext";
-import { Badge } from "@/components/ui/badge"; // Importar Badge
+import { Badge } from "@/components/ui/badge";
 
 const fetchBriefingForms = async (): Promise<BriefingForm[]> => {
   const { data, error } = await supabase
-    .rpc("get_briefing_forms_with_response_count"); // Usando a nova função RPC
+    .rpc("get_briefing_forms_with_response_count");
   if (error) throw new Error(error.message);
   return data.map(form => ({
     ...form,
-    workspace_name: form.workspace_name || 'Agência (Global)' // Adicionar workspace_name para exibição
+    workspace_name: form.workspace_name || 'Agência (Global)'
   })) as BriefingForm[];
 };
 
@@ -70,7 +70,7 @@ const BriefingsPage = () => {
 
   useEffect(() => {
     if (!isProfileLoading && userRole !== 'admin' && userRole !== 'equipe') {
-      navigate("/"); // Redirect non-staff users
+      navigate("/");
     }
   }, [isProfileLoading, userRole, navigate]);
 
@@ -86,16 +86,23 @@ const BriefingsPage = () => {
     onError: (e: Error) => showError(e.message),
   });
 
-  const handleGeneratePublicLink = (formId: string, formTitle: string) => {
+  const handleGeneratePublicLink = async (formId: string, formTitle: string) => {
     if (!settings?.site_url) {
       showError("URL do site não configurada. Por favor, adicione em Configurações.");
       return;
     }
     setIsGeneratingLink(true);
-    setGeneratedPublicLink(`${settings.site_url}/briefings/public/${formId}`);
-    setSelectedFormTitle(formTitle);
-    setIsPublicLinkModalOpen(true);
-    setIsGeneratingLink(false);
+    try {
+      const longUrl = `${settings.site_url}/briefings/public/${formId}`;
+      const shortenedUrl = await shortenUrl(longUrl); // Encurtar a URL
+      setGeneratedPublicLink(shortenedUrl);
+      setSelectedFormTitle(formTitle);
+      setIsPublicLinkModalOpen(true);
+    } catch (error: any) {
+      showError(`Erro ao gerar link público: ${error.message}`);
+    } finally {
+      setIsGeneratingLink(false);
+    }
   };
 
   if (isProfileLoading || userRole === undefined) {

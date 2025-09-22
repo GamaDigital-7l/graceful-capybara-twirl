@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom"; // Importado Link
+import React, { useState, useEffect, useCallback } from "react"; // Adicionado useCallback
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { showError, showSuccess } from "@/utils/toast";
@@ -29,7 +29,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Skeleton } from "@/components/ui/skeleton"; // Importado Skeleton
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Workspace {
   id: string;
@@ -58,34 +58,35 @@ interface SortableFieldProps {
 const SortableField = ({ field, index, onUpdateField, onRemoveField }: SortableFieldProps) => {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: field.id });
 
-  const style: React.CSSProperties = { // Adicionado cast para React.CSSProperties
+  const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
     transition,
     zIndex: isDragging ? 10 : 0,
     position: 'relative',
   };
 
-  const handleOptionChange = (optionIndex: number, value: string) => {
+  const handleOptionChange = useCallback((optionIndex: number, newLabel: string) => {
     const newOptions = [...(field.options || [])];
-    newOptions[optionIndex] = { ...newOptions[optionIndex], label: value, value: value }; // Value also changes
+    newOptions[optionIndex] = { ...newOptions[optionIndex], label: newLabel, value: newLabel }; // Value also changes
     onUpdateField(index, { options: newOptions });
-  };
+  }, [field.options, index, onUpdateField]);
 
-  const handleAddOption = () => {
+  const handleAddOption = useCallback(() => {
     onUpdateField(index, { options: [...(field.options || []), { value: "", label: "" }] });
-  };
+  }, [field.options, index, onUpdateField]);
 
-  const handleRemoveOption = (optionIndex: number) => {
+  const handleRemoveOption = useCallback((optionIndex: number) => {
     const newOptions = (field.options || []).filter((_, i) => i !== optionIndex);
     onUpdateField(index, { options: newOptions });
-  };
+  }, [field.options, index, onUpdateField]);
 
   return (
     <div ref={setNodeRef} style={style} className="bg-card border rounded-md p-4 shadow-sm flex flex-col gap-3">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2 cursor-grab" {...attributes} {...listeners}>
           <GripVertical className="h-4 w-4 text-muted-foreground" />
-          <span className="font-semibold text-sm">Campo #{index + 1} - {field.label || "Sem Título"}</span>
+          <span className="font-bold text-base">Campo #{index + 1} - {field.label || "Sem Título"}</span>
+          {field.required && <span className="text-destructive text-sm ml-1">(Obrigatório)</span>}
         </div>
         <Button variant="destructive" size="icon" onClick={() => onRemoveField(index)}>
           <Trash2 className="h-4 w-4" />
@@ -99,7 +100,7 @@ const SortableField = ({ field, index, onUpdateField, onRemoveField }: SortableF
             value={field.type}
             onValueChange={(value) => onUpdateField(index, { type: value as BriefingFieldType, options: [] })}
           >
-            <SelectTrigger>
+            <SelectTrigger className="w-full">
               <SelectValue placeholder="Selecione o tipo" />
             </SelectTrigger>
             <SelectContent>
@@ -118,6 +119,7 @@ const SortableField = ({ field, index, onUpdateField, onRemoveField }: SortableF
             value={field.label}
             onChange={(e) => onUpdateField(index, { label: e.target.value })}
             placeholder="Ex: Qual o nome do seu projeto?"
+            className="w-full"
           />
         </div>
       </div>
@@ -130,6 +132,7 @@ const SortableField = ({ field, index, onUpdateField, onRemoveField }: SortableF
             value={field.placeholder || ""}
             onChange={(e) => onUpdateField(index, { placeholder: e.target.value })}
             placeholder="Ex: Digite aqui..."
+            className="w-full"
           />
         </div>
         <div className="flex items-center space-x-2 pt-6">
@@ -144,20 +147,21 @@ const SortableField = ({ field, index, onUpdateField, onRemoveField }: SortableF
 
       {(field.type === "select" || field.type === "radio" || field.type === "checkbox") && (
         <div className="space-y-2 border-t pt-4 mt-4">
-          <Label>Opções de Seleção</Label>
+          <Label className="font-medium">Opções de Seleção</Label>
           {field.options?.map((option, optionIndex) => (
             <div key={optionIndex} className="flex items-center gap-2">
               <Input
                 value={option.label}
                 onChange={(e) => handleOptionChange(optionIndex, e.target.value)}
                 placeholder={`Opção ${optionIndex + 1}`}
+                className="w-full"
               />
               <Button variant="ghost" size="icon" onClick={() => handleRemoveOption(optionIndex)}>
                 <Trash2 className="h-4 w-4" />
               </Button>
             </div>
           ))}
-          <Button variant="outline" size="sm" onClick={handleAddOption}>
+          <Button variant="outline" size="sm" onClick={handleAddOption} className="w-full">
             <Plus className="h-4 w-4 mr-2" /> Adicionar Opção
           </Button>
         </div>
@@ -175,7 +179,7 @@ export function BriefingFormEditor() {
   const [description, setDescription] = useState("");
   const [workspaceId, setWorkspaceId] = useState<string | null>(null);
   const [formStructure, setFormStructure] = useState<BriefingFormField[]>([]);
-  const [displayMode, setDisplayMode] = useState<'all_questions' | 'typeform'>('all_questions'); // Novo estado
+  const [displayMode, setDisplayMode] = useState<'all_questions' | 'typeform'>('all_questions');
   const [isSaving, setIsSaving] = useState(false);
 
   const isEditing = !!formId;
@@ -197,13 +201,13 @@ export function BriefingFormEditor() {
       setDescription(existingForm.description || "");
       setWorkspaceId(existingForm.workspace_id);
       setFormStructure(existingForm.form_structure);
-      setDisplayMode(existingForm.display_mode || 'all_questions'); // Carregar display_mode
+      setDisplayMode(existingForm.display_mode || 'all_questions');
     } else {
       setTitle("");
       setDescription("");
       setWorkspaceId(null);
       setFormStructure([]);
-      setDisplayMode('all_questions'); // Resetar para o padrão
+      setDisplayMode('all_questions');
     }
   }, [isEditing, existingForm]);
 
@@ -215,31 +219,31 @@ export function BriefingFormEditor() {
     })
   );
 
-  const handleAddField = () => {
+  const handleAddField = useCallback(() => {
     setFormStructure([
       ...formStructure,
       { id: `field-${Date.now()}`, type: "text", label: "", required: false },
     ]);
-  };
+  }, [formStructure]);
 
-  const handleUpdateField = (index: number, updatedField: Partial<BriefingFormField>) => {
+  const handleUpdateField = useCallback((index: number, updatedField: Partial<BriefingFormField>) => {
     const newStructure = [...formStructure];
     newStructure[index] = { ...newStructure[index], ...updatedField };
     setFormStructure(newStructure);
-  };
+  }, [formStructure]);
 
-  const handleRemoveField = (index: number) => {
+  const handleRemoveField = useCallback((index: number) => {
     setFormStructure(formStructure.filter((_, i) => i !== index));
-  };
+  }, [formStructure]);
 
-  const handleDragEnd = (event: DragEndEvent) => {
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event;
     if (over && active.id !== over.id) {
       const oldIndex = formStructure.findIndex((field) => field.id === active.id);
       const newIndex = formStructure.findIndex((field) => field.id === over.id);
       setFormStructure((items) => arrayMove(items, oldIndex, newIndex));
     }
-  };
+  }, [formStructure]);
 
   const saveFormMutation = useMutation({
     mutationFn: async (form: Partial<BriefingForm>) => {
@@ -254,7 +258,7 @@ export function BriefingFormEditor() {
             description: form.description,
             workspace_id: form.workspace_id,
             form_structure: form.form_structure,
-            display_mode: form.display_mode, // Salvar display_mode
+            display_mode: form.display_mode,
           })
           .eq("id", formId);
         if (error) throw error;
@@ -267,7 +271,7 @@ export function BriefingFormEditor() {
             workspace_id: form.workspace_id,
             form_structure: form.form_structure,
             created_by: user.id,
-            display_mode: form.display_mode, // Salvar display_mode
+            display_mode: form.display_mode,
           });
         if (error) throw error;
       }
@@ -281,7 +285,7 @@ export function BriefingFormEditor() {
     onSettled: () => setIsSaving(false),
   });
 
-  const handleSave = () => {
+  const handleSave = useCallback(() => {
     if (!title.trim()) {
       showError("O título do formulário é obrigatório.");
       return;
@@ -291,7 +295,7 @@ export function BriefingFormEditor() {
       return;
     }
     if (formStructure.some(field => (field.type === "select" || field.type === "radio" || field.type === "checkbox") && (!field.options || field.options.length === 0 || field.options.some(opt => !opt.label.trim())))) {
-      showError("Campos de seleção, rádio ou checkbox devem ter pelo menos uma opção válida.");
+      showError("Campos de seleção, rádio ou checkbox devem ter pelo menos uma opção válida e com rótulo.");
       return;
     }
 
@@ -301,9 +305,9 @@ export function BriefingFormEditor() {
       description: description.trim() || null,
       workspace_id: workspaceId,
       form_structure: formStructure,
-      display_mode: displayMode, // Incluir display_mode
+      display_mode: displayMode,
     });
-  };
+  }, [title, description, workspaceId, formStructure, displayMode, saveFormMutation]);
 
   if (isLoadingForm || isLoadingWorkspaces) {
     return <div className="p-8 text-center"><Skeleton className="h-96 w-full max-w-4xl" /></div>;
@@ -328,7 +332,7 @@ export function BriefingFormEditor() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Detalhes do Formulário</CardTitle>
+            <CardTitle className="mb-2">Detalhes do Formulário</CardTitle>
             <CardDescription>Informações básicas e cliente associado.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -340,6 +344,7 @@ export function BriefingFormEditor() {
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Ex: Briefing de Novo Projeto de Social Media"
                 required
+                className="w-full"
               />
             </div>
             <div className="space-y-2">
@@ -350,6 +355,7 @@ export function BriefingFormEditor() {
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Uma breve descrição sobre o propósito deste formulário."
                 rows={3}
+                className="w-full"
               />
             </div>
             <div className="space-y-2">
@@ -358,7 +364,7 @@ export function BriefingFormEditor() {
                 value={workspaceId || ""}
                 onValueChange={(value) => setWorkspaceId(value === "global" ? null : value)}
               >
-                <SelectTrigger id="workspace-select">
+                <SelectTrigger id="workspace-select" className="w-full">
                   <SelectValue placeholder="Selecione um cliente ou 'Agência (Global)'" />
                 </SelectTrigger>
                 <SelectContent>
@@ -372,13 +378,13 @@ export function BriefingFormEditor() {
               </Select>
               <p className="text-xs text-muted-foreground">Formulários globais não são vinculados a um cliente específico.</p>
             </div>
-            <div className="space-y-2"> {/* Novo campo para display_mode */}
+            <div className="space-y-2">
               <Label htmlFor="display-mode-select">Modo de Exibição do Formulário Público</Label>
               <Select
                 value={displayMode}
                 onValueChange={(value) => setDisplayMode(value as 'all_questions' | 'typeform')}
               >
-                <SelectTrigger id="display-mode-select">
+                <SelectTrigger id="display-mode-select" className="w-full">
                   <SelectValue placeholder="Selecione o modo de exibição" />
                 </SelectTrigger>
                 <SelectContent>
@@ -393,8 +399,8 @@ export function BriefingFormEditor() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Estrutura do Formulário</CardTitle>
-            <CardDescription>Arraste e solte para reordenar os campos.</CardDescription>
+            <CardTitle className="mb-2">Estrutura do Formulário</CardTitle>
+            <CardDescription>Arraste e solte para reordenar os campos.</p>
           </CardHeader>
           <CardContent className="space-y-4">
             <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
