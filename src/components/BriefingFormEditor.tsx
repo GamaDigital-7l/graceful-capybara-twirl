@@ -175,6 +175,7 @@ export function BriefingFormEditor() {
   const [description, setDescription] = useState("");
   const [workspaceId, setWorkspaceId] = useState<string | null>(null);
   const [formStructure, setFormStructure] = useState<BriefingFormField[]>([]);
+  const [displayMode, setDisplayMode] = useState<'all_questions' | 'typeform'>('all_questions'); // Novo estado
   const [isSaving, setIsSaving] = useState(false);
 
   const isEditing = !!formId;
@@ -196,11 +197,13 @@ export function BriefingFormEditor() {
       setDescription(existingForm.description || "");
       setWorkspaceId(existingForm.workspace_id);
       setFormStructure(existingForm.form_structure);
+      setDisplayMode(existingForm.display_mode || 'all_questions'); // Carregar display_mode
     } else {
       setTitle("");
       setDescription("");
       setWorkspaceId(null);
       setFormStructure([]);
+      setDisplayMode('all_questions'); // Resetar para o padrão
     }
   }, [isEditing, existingForm]);
 
@@ -251,6 +254,7 @@ export function BriefingFormEditor() {
             description: form.description,
             workspace_id: form.workspace_id,
             form_structure: form.form_structure,
+            display_mode: form.display_mode, // Salvar display_mode
           })
           .eq("id", formId);
         if (error) throw error;
@@ -263,6 +267,7 @@ export function BriefingFormEditor() {
             workspace_id: form.workspace_id,
             form_structure: form.form_structure,
             created_by: user.id,
+            display_mode: form.display_mode, // Salvar display_mode
           });
         if (error) throw error;
       }
@@ -296,6 +301,7 @@ export function BriefingFormEditor() {
       description: description.trim() || null,
       workspace_id: workspaceId,
       form_structure: formStructure,
+      display_mode: displayMode, // Incluir display_mode
     });
   };
 
@@ -365,6 +371,22 @@ export function BriefingFormEditor() {
                 </SelectContent>
               </Select>
               <p className="text-xs text-muted-foreground">Formulários globais não são vinculados a um cliente específico.</p>
+            </div>
+            <div className="space-y-2"> {/* Novo campo para display_mode */}
+              <Label htmlFor="display-mode-select">Modo de Exibição do Formulário Público</Label>
+              <Select
+                value={displayMode}
+                onValueChange={(value) => setDisplayMode(value as 'all_questions' | 'typeform')}
+              >
+                <SelectTrigger id="display-mode-select">
+                  <SelectValue placeholder="Selecione o modo de exibição" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all_questions">Todas as Perguntas na Página</SelectItem>
+                  <SelectItem value="typeform">Estilo Typeform (Uma Pergunta por Vez)</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">Define como o cliente verá o formulário ao preenchê-lo.</p>
             </div>
           </CardContent>
         </Card>
