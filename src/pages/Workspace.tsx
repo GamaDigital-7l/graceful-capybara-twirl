@@ -304,12 +304,14 @@ const WorkspacePage = ({ initialWorkspaceId }: WorkspacePageProps) => {
     );
   };
 
+  const backLinkPath = userRole === 'user' ? '/client-dashboard' : '/';
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-4">
             <Button asChild variant="outline" size="icon">
-                <Link to={`/`}>
+                <Link to={backLinkPath}> {/* Link de volta condicional */}
                     <ArrowLeft className="h-4 w-4" />
                 </Link>
             </Button>

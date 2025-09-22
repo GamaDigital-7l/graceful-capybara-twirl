@@ -31,9 +31,9 @@ const fetchWorkspaces = async (userRole: string | null, userId: string | undefin
 
   let query;
   if (userRole === 'user') {
-    query = supabase
-      .from("workspaces")
-      .select("id, name, logo_url");
+    // Clientes não precisam de todos os workspaces aqui, eles serão redirecionados
+    // para o ClientDashboard que fará a busca específica.
+    return []; 
   } else {
     query = supabase.from("workspaces").select("id, name, logo_url");
   }
@@ -92,7 +92,7 @@ const Dashboard = () => {
   const { data: workspaces, isLoading: isLoadingWorkspaces, error: workspacesError } = useQuery<Workspace[]>({
     queryKey: ["workspaces", userRole, currentUserId],
     queryFn: () => fetchWorkspaces(userRole, currentUserId),
-    enabled: !!userRole && !!currentUserId,
+    enabled: !!userRole && !!currentUserId && (userRole !== 'user'), // Desabilitar para 'user' aqui
   });
 
   if (workspacesError) {
@@ -257,26 +257,16 @@ const Dashboard = () => {
   };
 
   const renderContent = () => {
-    if (isProfileLoading || isLoadingWorkspaces) {
+    if (isProfileLoading) {
       return <Skeleton className="h-64 w-full" />;
     }
     if (userRole === 'admin' || userRole === 'equipe') {
       return renderStaffDashboard();
     }
     if (userRole === 'user') {
-      if (workspaces && workspaces.length > 0) {
-        navigate(`/workspace/${workspaces[0].id}`);
-        return null;
-      } else {
-        return (
-          <div className="text-center p-8">
-            <Card className="w-full max-w-md mx-auto text-center">
-              <CardHeader><CardTitle>Nenhum Projeto Encontrado</CardTitle></CardHeader>
-              <CardContent><p>Você ainda não foi convidado para nenhum projeto. Por favor, entre em contato com a agência.</p></CardContent>
-            </Card>
-          </div>
-        );
-      }
+      // Redirecionar para o ClientDashboard
+      navigate("/client-dashboard");
+      return null; // Retorna null para não renderizar nada enquanto redireciona
     }
     return <div className="text-center p-8">Carregando seus projetos...</div>;
   };
