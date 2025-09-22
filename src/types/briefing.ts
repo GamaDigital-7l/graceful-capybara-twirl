@@ -23,6 +23,7 @@ export interface BriefingForm {
   created_by: string;
   created_at: string;
   is_active: boolean;
+  response_count?: number; // Novo campo para a contagem de respostas
 }
 
 export interface BriefingResponse {

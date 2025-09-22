@@ -8,22 +8,21 @@ import { showError, showSuccess } from "@/utils/toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { PlusCircle, Edit, Trash2, Eye, Share2, Briefcase } from "lucide-react";
+import { PlusCircle, Edit, Trash2, Eye, Share2, Briefcase, MessageSquare } from "lucide-react"; // Adicionado MessageSquare
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { BriefingForm } from "@/types/briefing";
 import { PublicLinkModal } from "@/components/PublicLinkModal";
 import { useSettings } from "@/contexts/SettingsContext";
+import { Badge } from "@/components/ui/badge"; // Importar Badge
 
 const fetchBriefingForms = async (): Promise<BriefingForm[]> => {
   const { data, error } = await supabase
-    .from("briefing_forms")
-    .select("*, workspaces(name)")
-    .order("created_at", { ascending: false });
+    .rpc("get_briefing_forms_with_response_count"); // Usando a nova função RPC
   if (error) throw new Error(error.message);
   return data.map(form => ({
     ...form,
-    workspace_name: form.workspaces?.name || 'Agência (Global)' // Add workspace_name for display
+    workspace_name: form.workspace_name || 'Agência (Global)' // Adicionar workspace_name para exibição
   })) as BriefingForm[];
 };
 
@@ -163,6 +162,9 @@ const BriefingsPage = () => {
                           <Link to={`/briefings/${form.id}/responses`}>
                             <Eye className="h-4 w-4 mr-2" />
                             Ver Respostas
+                            {form.response_count !== undefined && form.response_count > 0 && (
+                              <Badge variant="secondary" className="ml-2">{form.response_count}</Badge>
+                            )}
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleGeneratePublicLink(form.id, form.title)}>
@@ -196,6 +198,11 @@ const BriefingsPage = () => {
                   </CardHeader>
                   <CardContent className="flex-grow">
                     <p className="text-sm text-muted-foreground line-clamp-3">{form.description || "Nenhuma descrição."}</p>
+                    {form.response_count !== undefined && (
+                      <div className="flex items-center gap-1 text-sm text-muted-foreground mt-2">
+                        <MessageSquare className="h-3 w-3" /> {form.response_count} Respostas
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               ))}
