@@ -1,5 +1,6 @@
 import { format, parseISO, isValid, parse } from 'date-fns';
-import { toZonedTime, formatInTimeZone, zonedTimeToUtc } from 'date-fns-tz'; // Revertendo para importação padrão
+import { toZonedTime, formatInTimeZone } from 'date-fns-tz';
+import zonedTimeToUtc from 'date-fns-tz/zonedTimeToUtc'; // Importação explícita para resolver problemas de bundler
 import { ptBR } from 'date-fns/locale';
 
 const SAO_PAULO_TIMEZONE = 'America/Sao_Paulo';
