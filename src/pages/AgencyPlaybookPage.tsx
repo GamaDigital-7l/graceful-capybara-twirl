@@ -231,68 +231,6 @@ const AgencyPlaybookPage = () => {
                     </div>
                   </CardContent>
                 </Card>
-
-                {/* Nova seção de Onboarding do Cliente */}
-                <Card className="lg:col-span-2">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2"><Users /> Onboarding do Cliente</CardTitle>
-                    <CardDescription>Recursos para integrar novos clientes.</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div>
-                      <h4 className="font-semibold text-sm mb-2">Mensagem de Boas-Vindas</h4>
-                      {playbook.onboarding_welcome_message ? (
-                        <div className="relative p-3 border rounded-md bg-muted/50">
-                          <p className="whitespace-pre-wrap text-sm text-muted-foreground">{playbook.onboarding_welcome_message}</p>
-                          <Button variant="ghost" size="icon" className="absolute top-1 right-1 h-7 w-7" onClick={() => handleCopyText(playbook.onboarding_welcome_message!)}>
-                            <Copy className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      ) : <p className="text-sm text-muted-foreground">Nenhuma mensagem de boas-vindas configurada.</p>}
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-sm mb-2">Links de Briefings para Onboarding</h4>
-                      {playbook.onboarding_briefing_links?.length > 0 ? (
-                        <ul className="space-y-1 list-disc list-inside">
-                          {playbook.onboarding_briefing_links.map((link, index) => (
-                            <li key={index} className="flex items-center justify-between">
-                              <a href={link.url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">{link.name}</a>
-                              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleCopyText(link.url)}>
-                                <Copy className="h-4 w-4" />
-                              </Button>
-                            </li>
-                          ))}
-                        </ul>
-                      ) : <p className="text-sm text-muted-foreground">Nenhum link de briefing para onboarding.</p>}
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-sm mb-2">Informações de Acesso aos Apps</h4>
-                      {playbook.onboarding_apps_access_info ? (
-                        <div className="relative p-3 border rounded-md bg-muted/50">
-                          <p className="whitespace-pre-wrap text-sm text-muted-foreground">{playbook.onboarding_apps_access_info}</p>
-                          <Button variant="ghost" size="icon" className="absolute top-1 right-1 h-7 w-7" onClick={() => handleCopyText(playbook.onboarding_apps_access_info!)}>
-                            <Copy className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      ) : <p className="text-sm text-muted-foreground">Nenhuma informação de acesso aos apps configurada.</p>}
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-sm mb-2 flex items-center gap-2"><Video className="h-4 w-4" /> Vídeos Tutoriais</h4>
-                      {playbook.onboarding_tutorial_videos?.length > 0 ? (
-                        <ul className="space-y-1 list-disc list-inside">
-                          {playbook.onboarding_tutorial_videos.map((video, index) => (
-                            <li key={index} className="flex items-center justify-between">
-                              <a href={video.url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">{video.name}</a>
-                              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleCopyText(video.url)}>
-                                <Copy className="h-4 w-4" />
-                              </Button>
-                            </li>
-                          ))}
-                        </ul>
-                      ) : <p className="text-sm text-muted-foreground">Nenhum vídeo tutorial configurado.</p>}
-                    </div>
-                  </CardContent>
-                </Card>
               </div>
             ) : <p className="text-center text-muted-foreground">Nenhum playbook da agência encontrado. Por favor, edite para adicionar conteúdo.</p>
           )}
