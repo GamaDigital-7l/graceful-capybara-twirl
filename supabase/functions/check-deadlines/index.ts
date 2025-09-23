@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
-import { addHours, addMinutes, isBefore, parseISO } from "https://esm.sh/date-fns@2.30.0"; // Importar funções do date-fns diretamente
-import { utcToZonedTime } from "https://esm.sh/date-fns-tz@2.0.0"; // Importar funções do date-fns-tz diretamente
+import { addHours, addMinutes, isBefore, parseISO } from "https://esm.sh/date-fns@3.6.0"; // Versão atualizada
+import { utcToZonedTime } from "https://esm.sh/date-fns-tz@3.1.3"; // Versão atualizada
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
