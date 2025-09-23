@@ -15,6 +15,13 @@ export default defineConfig(() => ({
     },
   },
   optimizeDeps: {
-    exclude: ['date-fns-tz'], // Excluir date-fns-tz da otimização de dependências do Vite
+    // Incluir date-fns-tz para garantir que seja pré-empacotado e processado corretamente
+    include: ['date-fns-tz'],
+  },
+  build: {
+    commonjsOptions: {
+      // Incluir node_modules para garantir que módulos CommonJS sejam transformados
+      include: [/node_modules/],
+    },
   },
 }));
