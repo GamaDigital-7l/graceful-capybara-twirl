@@ -12,18 +12,6 @@ export default defineConfig(() => ({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
-      'date-fns-tz': 'date-fns-tz/dist/esm/index.js', // Mantém o alias explícito para a versão ESM
-    },
-  },
-  optimizeDeps: {
-    // Incluir explicitamente date-fns-tz e date-fns para garantir o pré-empacotamento correto
-    include: ['date-fns-tz', 'date-fns'], 
-    exclude: [], // Remove qualquer exclusão para evitar conflitos
-  },
-  build: {
-    commonjsOptions: {
-      // Incluir node_modules para garantir que módulos CommonJS sejam transformados
-      include: [/node_modules/],
     },
   },
 }));

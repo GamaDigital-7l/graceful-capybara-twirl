@@ -56,7 +56,7 @@ export function PersonalTasksWidget() {
       const dataToSave = {
         ...rest,
         user_id: currentUserId,
-        due_date: await formatSaoPauloTime(due_date, 'yyyy-MM-dd'), // Format Date to string for Supabase
+        due_date: formatSaoPauloTime(due_date, 'yyyy-MM-dd'), // Format Date to string for Supabase
         reminder_preferences: reminder_preferences || [], // Save reminder preferences
         priority: priority || 'Medium', // Save priority
       };

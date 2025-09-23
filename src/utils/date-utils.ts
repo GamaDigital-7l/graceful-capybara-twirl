@@ -1,6 +1,5 @@
-import { format, parseISO, isValid, parse } from 'date-fns';
-import { toZonedTime, formatInTimeZone } from 'date-fns-tz';
-import zonedTimeToUtc from 'date-fns-tz/zonedTimeToUtc'; // Importação explícita para resolver problemas de bundler
+import { format, parseISO, isValid } from 'date-fns'; // Importar isValid
+import * as dateFnsTz from 'date-fns-tz';
 import { ptBR } from 'date-fns/locale';
 
 const SAO_PAULO_TIMEZONE = 'America/Sao_Paulo';
@@ -14,9 +13,9 @@ export const toSaoPauloTime = (date: Date | string): Date => {
   const utcDate = typeof date === 'string' ? parseISO(date) : date;
   if (!isValid(utcDate)) {
     console.warn("Invalid date provided to toSaoPauloTime:", date);
-    return new Date('Invalid Date');
+    return new Date('Invalid Date'); // Retorna um objeto Date inválido para propagar o problema de forma clara
   }
-  return toZonedTime(utcDate, SAO_PAULO_TIMEZONE);
+  return dateFnsTz.toZonedTime(utcDate, SAO_PAULO_TIMEZONE); // Corrigido para toZonedTime
 };
 
 /**
@@ -27,30 +26,11 @@ export const toSaoPauloTime = (date: Date | string): Date => {
  */
 export const formatSaoPauloTime = (date: Date | string, formatStr: string): string => {
   const utcDate = typeof date === 'string' ? parseISO(date) : date;
-  if (!isValid(utcDate)) {
+  if (!isValid(utcDate)) { // Verifica se a data é válida após o parse
     console.warn("Invalid date provided to formatSaoPauloTime:", date);
-    return 'Data Inválida';
+    return 'Data Inválida'; // Retorna uma string de fallback amigável
   }
-  return formatInTimeZone(utcDate, SAO_PAULO_TIMEZONE, formatStr, { locale: ptBR });
-};
-
-/**
- * Parses a 'YYYY-MM-DD' string as a date in the São Paulo timezone,
- * returning a Date object that represents midnight of that day in São Paulo.
- * This is crucial for correctly initializing date pickers.
- * @param dateString The date string in 'YYYY-MM-DD' format.
- * @returns A Date object representing the start of the day in São Paulo timezone.
- */
-export const parseSaoPauloDateString = (dateString: string): Date => {
-  if (!dateString) {
-    return new Date('Invalid Date');
-  }
-  const parsedDate = parse(dateString, 'yyyy-MM-dd', new Date());
-  if (!isValid(parsedDate)) {
-    console.warn("Invalid date string provided to parseSaoPauloDateString:", dateString);
-    return new Date('Invalid Date');
-  }
-  return zonedTimeToUtc(parsedDate, SAO_PAULO_TIMEZONE);
+  return dateFnsTz.formatInTimeZone(utcDate, SAO_PAULO_TIMEZONE, formatStr, { locale: ptBR });
 };
 
 /**

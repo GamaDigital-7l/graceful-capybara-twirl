@@ -9,7 +9,7 @@ import { ptBR } from "date-fns/locale";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
-import { formatSaoPauloDate, parseSaoPauloDateString, formatSaoPauloTime } from "@/utils/date-utils"; // Importar utilitário de data
+import { formatSaoPauloDate } from "@/utils/date-utils"; // Importar utilitário de data
 
 export interface ExpenseData {
   id?: string;
@@ -30,37 +30,24 @@ export function ExpenseModal({ isOpen, onClose, onSave, existingData }: ExpenseM
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState<number | string>("");
   const [category, setCategory] = useState("");
-  const [expenseDate, setExpenseDate] = useState<Date | undefined>(undefined); // Alterado para undefined
-  const [formattedExpenseDate, setFormattedExpenseDate] = useState<string | null>(null); // Novo estado
+  const [expenseDate, setExpenseDate] = useState<Date | undefined>(new Date());
 
   useEffect(() => {
     if (existingData) {
       setDescription(existingData.description || "");
       setAmount(existingData.amount || "");
       setCategory(existingData.category || "");
-      // existingData.expense_date já deve ser um objeto Date no fuso horário de SP
-      setExpenseDate(existingData.expense_date || undefined);
+      // Ao carregar, trate a string YYYY-MM-DD como data local de São Paulo
+      setExpenseDate(existingData.expense_date ? new Date(existingData.expense_date.toISOString().split('T')[0] + 'T00:00:00') : new Date());
     } else {
       setDescription("");
       setAmount("");
       setCategory("");
-      const todayInSaoPaulo = new Date(); // Cria uma data no fuso horário local do navegador
-      setExpenseDate(todayInSaoPaulo); // Define a data de hoje como padrão
+      setExpenseDate(new Date());
     }
   }, [existingData, isOpen]);
 
-  useEffect(() => {
-    const updateFormattedDate = async () => {
-      if (expenseDate) {
-        setFormattedExpenseDate(await formatSaoPauloDate(expenseDate));
-      } else {
-        setFormattedExpenseDate(null);
-      }
-    };
-    updateFormattedDate();
-  }, [expenseDate]);
-
-  const handleSave = async () => { // Tornar assíncrona
+  const handleSave = () => {
     if (!description.trim() || !amount || !expenseDate) {
       // Optionally show an error toast
       return;
@@ -124,8 +111,8 @@ export function ExpenseModal({ isOpen, onClose, onSave, existingData }: ExpenseM
                   )}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {formattedExpenseDate ? (
-                    formattedExpenseDate
+                  {expenseDate ? (
+                    formatSaoPauloDate(expenseDate)
                   ) : (
                     <span>Selecione uma data</span>
                   )}

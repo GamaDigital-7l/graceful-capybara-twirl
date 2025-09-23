@@ -18,7 +18,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; // Import Select
-import { formatSaoPauloDate, parseSaoPauloDateString, formatSaoPauloTime } from "@/utils/date-utils"; // Importar utilitário de data
+import { formatSaoPauloDate } from "@/utils/date-utils"; // Importar utilitário de data
 
 export interface PersonalTask {
   id?: string;
@@ -51,38 +51,24 @@ export function PersonalTaskModal({
   const [dueTime, setDueTime] = useState(""); // HH:mm format
   const [reminderPreferences, setReminderPreferences] = useState<string[]>([]); // State for reminder preferences
   const [priority, setPriority] = useState<'Highest' | 'High' | 'Medium' | 'Low'>('Medium'); // State for priority
-  const [formattedDueDateDisplay, setFormattedDueDateDisplay] = useState<string | null>(null); // Novo estado para exibição da data
 
   useEffect(() => {
-    const updateFormattedDate = async () => {
-      if (dueDate) {
-        setFormattedDueDateDisplay(await formatSaoPauloDate(dueDate));
-      } else {
-        setFormattedDueDateDisplay(null);
-      }
-    };
-    updateFormattedDate();
-  }, [dueDate]);
-
-  useEffect(() => {
-    const initializeState = async () => {
-      if (existingTask) {
-        setTitle(existingTask.title);
-        setDescription(existingTask.description || "");
-        setDueDate(existingTask.due_date || undefined);
-        setDueTime(existingTask.due_time || "");
-        setReminderPreferences(existingTask.reminder_preferences || []);
-        setPriority(existingTask.priority || 'Medium');
-      } else {
-        setTitle("");
-        setDescription("");
-        setDueDate(await parseSaoPauloDateString(await formatSaoPauloTime(new Date(), 'yyyy-MM-dd'))); // Default to today in SP timezone
-        setDueTime("");
-        setReminderPreferences([]);
-        setPriority('Medium');
-      }
-    };
-    initializeState();
+    if (existingTask) {
+      setTitle(existingTask.title);
+      setDescription(existingTask.description || "");
+      // Ao carregar, trate a string YYYY-MM-DD como data local de São Paulo
+      setDueDate(existingTask.due_date ? new Date(existingTask.due_date.toISOString().split('T')[0] + 'T00:00:00') : undefined);
+      setDueTime(existingTask.due_time || "");
+      setReminderPreferences(existingTask.reminder_preferences || []);
+      setPriority(existingTask.priority || 'Medium');
+    } else {
+      setTitle("");
+      setDescription("");
+      setDueDate(new Date()); // Default to today
+      setDueTime("");
+      setReminderPreferences([]);
+      setPriority('Medium');
+    }
   }, [existingTask, isOpen]);
 
   const handleReminderChange = (reminderType: string, checked: boolean | 'indeterminate') => {
@@ -156,8 +142,8 @@ export function PersonalTaskModal({
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {formattedDueDateDisplay ? (
-                      formattedDueDateDisplay
+                    {dueDate ? (
+                      formatSaoPauloDate(dueDate)
                     ) : (
                       <span>Selecione uma data</span>
                     )}

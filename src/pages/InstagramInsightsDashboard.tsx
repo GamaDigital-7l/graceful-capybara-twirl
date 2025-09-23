@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -109,7 +109,7 @@ const InstagramInsightsDashboard = () => {
 
     try {
       const instagramData = {
-        date: await formatSaoPauloTime(insightDate, 'yyyy-MM-dd'),
+        date: formatSaoPauloTime(insightDate, 'yyyy-MM-dd'),
         followers: Number(followers),
         engagement_rate: Number(engagementRate),
         reach: Number(reach),
@@ -146,7 +146,7 @@ const InstagramInsightsDashboard = () => {
     if (!geminiOutput || !insightDate || followers === "" || engagementRate === "" || reach === "" || impressions === "" || profileViews === "" || postsCount === "" || interactions === "") return [];
     
     return [{
-      name: formatSaoPauloTime(insightDate, "dd/MM"), // Isso ainda precisa ser await
+      name: formatSaoPauloTime(insightDate, "dd/MM"),
       Seguidores: Number(followers),
       Engajamento: Number(engagementRate),
       Alcance: Number(reach),
@@ -157,38 +157,13 @@ const InstagramInsightsDashboard = () => {
     }];
   }, [geminiOutput, insightDate, followers, engagementRate, reach, impressions, profileViews, postsCount, interactions]);
 
-  const [formattedChartData, setFormattedChartData] = useState<any[]>([]);
-  const [formattedReportPeriod, setFormattedReportPeriod] = useState<string | null>(null);
-  const [formattedInsightDateDisplay, setFormattedInsightDateDisplay] = useState<string | null>(null);
 
-  useEffect(() => {
-    const updateFormattedData = async () => {
-      if (insightDate) {
-        setFormattedChartData([{
-          name: await formatSaoPauloTime(insightDate, "dd/MM"),
-          Seguidores: Number(followers),
-          Engajamento: Number(engagementRate),
-          Alcance: Number(reach),
-          Impressões: Number(impressions),
-          Visualizações: Number(profileViews),
-          Posts: Number(postsCount),
-          Interações: Number(interactions),
-        }]);
-        setFormattedInsightDateDisplay(await formatSaoPauloDate(insightDate));
-      } else {
-        setFormattedChartData([]);
-        setFormattedInsightDateDisplay(null);
-      }
-
-      if (reportStartDate && reportEndDate) {
-        setFormattedReportPeriod(`${await formatSaoPauloDate(reportStartDate)} - ${await formatSaoPauloDate(reportEndDate)}`);
-      } else {
-        setFormattedReportPeriod("Selecione o período");
-      }
-    };
-    updateFormattedData();
-  }, [insightDate, followers, engagementRate, reach, impressions, profileViews, postsCount, interactions, reportStartDate, reportEndDate]);
-
+  const reportPeriodDisplay = useMemo(() => {
+    if (reportStartDate && reportEndDate) {
+      return `${formatSaoPauloDate(reportStartDate)} - ${formatSaoPauloDate(reportEndDate)}`;
+    }
+    return "Selecione o período";
+  }, [reportStartDate, reportEndDate]);
 
   if (!workspaceId) {
     return <div className="p-8 text-center">Workspace não encontrado.</div>;
@@ -230,8 +205,8 @@ const InstagramInsightsDashboard = () => {
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {formattedInsightDateDisplay ? (
-                      formattedInsightDateDisplay
+                    {insightDate ? (
+                      formatSaoPauloDate(insightDate)
                     ) : (
                       <span>Selecione uma data</span>
                     )}
@@ -302,7 +277,7 @@ const InstagramInsightsDashboard = () => {
           )}
           <h1 className="text-3xl font-bold">{workspaceDetails?.name || "Cliente"}</h1>
           <p className="text-lg text-muted-foreground">Relatório de Insights do Instagram</p>
-          <p className="text-sm text-muted-foreground mt-2">Período: {formattedReportPeriod}</p>
+          <p className="text-sm text-muted-foreground mt-2">Período: {reportPeriodDisplay}</p>
         </header>
 
         {isGenerating && <Skeleton className="h-64 w-full" />}
@@ -376,7 +351,7 @@ const InstagramInsightsDashboard = () => {
           </div>
         )}
 
-        {formattedChartData.length > 0 && (
+        {chartData.length > 0 && (
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2"><BarChart className="h-5 w-5" /> Gráfico de Métricas</CardTitle>
@@ -384,7 +359,7 @@ const InstagramInsightsDashboard = () => {
             </CardHeader>
             <CardContent className="h-[400px] p-4 sm:p-6"> {/* Ajustado padding */}
               <ResponsiveContainer width="100%" height="100%">
-                <RechartsBarChart data={formattedChartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                <RechartsBarChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="name" />
                   <YAxis />

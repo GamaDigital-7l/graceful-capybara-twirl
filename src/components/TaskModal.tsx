@@ -34,7 +34,7 @@ import { AspectRatio } from "./ui/aspect-ratio";
 import { ScrollArea } from "./ui/scroll-area";
 import { ImagePreviewModal } from "./ImagePreviewModal";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { formatSaoPauloDate, formatSaoPauloTime, formatSaoPauloHour, formatSaoPauloDateTime, parseSaoPauloDateString } from "@/utils/date-utils"; // Importar utilitário de data e parseSaoPauloDateString
+import { formatSaoPauloDate, formatSaoPauloTime, formatSaoPauloHour, formatSaoPauloDateTime } from "@/utils/date-utils"; // Importar utilitário de data
 
 interface UserProfile {
   id: string;
@@ -76,25 +76,6 @@ export function TaskModal({
   const [newComment, setNewComment] = useState("");
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
   const [assignedTo, setAssignedTo] = useState<string | null>(null); // Novo estado para assignedTo
-  const [formattedDueDateDisplay, setFormattedDueDateDisplay] = useState<string | null>(null); // Novo estado para exibição da data
-  const [formattedCommentsDates, setFormattedCommentsDates] = useState<Record<string, string>>({}); // Novo estado para datas de comentários
-
-  useEffect(() => {
-    const updateFormattedDates = async () => {
-      if (dueDate) {
-        setFormattedDueDateDisplay(await formatSaoPauloDate(dueDate));
-      } else {
-        setFormattedDueDateDisplay(null);
-      }
-
-      const newFormattedDates: Record<string, string> = {};
-      for (const comment of comments) {
-        newFormattedDates[comment.id] = await formatSaoPauloDateTime(comment.createdAt);
-      }
-      setFormattedCommentsDates(newFormattedDates);
-    };
-    updateFormattedDates();
-  }, [dueDate, comments]);
 
   useEffect(() => {
     if (task) {
@@ -103,10 +84,7 @@ export function TaskModal({
       setAttachmentUrl(task.attachments?.[0]?.url || "");
       setActionType(task.actionType || "none");
       // Ao carregar, trate a string YYYY-MM-DD como data local de São Paulo
-      const loadDueDate = async () => {
-        setDueDate(task.dueDate ? await parseSaoPauloDateString(task.dueDate) : undefined);
-      };
-      loadDueDate();
+      setDueDate(task.dueDate ? new Date(task.dueDate + 'T00:00:00') : undefined);
       setDueTime(task.due_time || ""); // Carregar due_time
       setComments(task.comments || []);
       setAssignedTo(task.assignedTo || null); // Carregar assignedTo
@@ -189,7 +167,7 @@ export function TaskModal({
         ? [{ id: "1", url: finalAttachmentUrl, isCover: true }]
         : [],
       // Ao salvar, formate a data para YYYY-MM-DD no fuso horário de São Paulo
-      dueDate: dueDate ? await formatSaoPauloTime(dueDate, 'yyyy-MM-dd') : undefined,
+      dueDate: dueDate ? formatSaoPauloTime(dueDate, 'yyyy-MM-dd') : undefined,
       due_time: dueTime || null, // Salvar due_time
       comments: comments,
       assignedTo: assignedTo, // Salvar assignedTo
@@ -250,8 +228,8 @@ export function TaskModal({
                           )}
                         >
                           <CalendarIcon className="mr-2 h-4 w-4" />
-                          {formattedDueDateDisplay ? (
-                            formattedDueDateDisplay
+                          {dueDate ? (
+                            formatSaoPauloDate(dueDate)
                           ) : (
                             <span>Escolha uma data</span>
                           )}
@@ -382,7 +360,7 @@ export function TaskModal({
                           <p className="font-semibold text-primary">{comment.author}</p>
                           <p className="text-foreground">{comment.text}</p>
                           <p className="text-xs text-muted-foreground pt-1">
-                            {formattedCommentsDates[comment.id]}
+                            {formatSaoPauloDateTime(comment.createdAt)}
                           </p>
                         </div>
                       ))

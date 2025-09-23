@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react"; // Adicionado useEffect
+import React from "react";
 import {
   Dialog,
   DialogContent,
@@ -24,19 +24,6 @@ interface BriefingResponseViewModalProps {
 }
 
 export function BriefingResponseViewModal({ isOpen, onClose, response, form }: BriefingResponseViewModalProps) {
-  const [formattedSubmittedAt, setFormattedSubmittedAt] = useState<string | null>(null); // Novo estado
-
-  useEffect(() => {
-    const updateFormattedDate = async () => {
-      if (response?.submitted_at) {
-        setFormattedSubmittedAt(await formatSaoPauloDateTime(response.submitted_at));
-      } else {
-        setFormattedSubmittedAt(null);
-      }
-    };
-    updateFormattedDate();
-  }, [response?.submitted_at]);
-
   if (!response || !form) return null;
 
   const renderFieldValue = (field: BriefingFormField, value: any) => {
@@ -83,10 +70,10 @@ export function BriefingResponseViewModal({ isOpen, onClose, response, form }: B
     }
   };
 
-  const handleCopyResponse = async () => { // Tornar assíncrona
+  const handleCopyResponse = () => {
     let responseText = `Resposta do Briefing: ${form.title}\n\n`;
     responseText += `Enviado por: ${response.client_name || "Usuário Autenticado"}\n`;
-    responseText += `Data de Envio: ${formattedSubmittedAt}\n\n`; // Usar o estado formatado
+    responseText += `Data de Envio: ${formatSaoPauloDateTime(response.submitted_at)}\n\n`;
 
     form.form_structure?.forEach((field) => {
       responseText += `${field.label}:\n`;
@@ -111,7 +98,7 @@ export function BriefingResponseViewModal({ isOpen, onClose, response, form }: B
             </div>
             <div className="space-y-2">
               <p className="text-sm font-medium text-muted-foreground">Data de Envio:</p>
-              <p className="text-lg font-semibold">{formattedSubmittedAt}</p>
+              <p className="text-lg font-semibold">{formatSaoPauloDateTime(response.submitted_at)}</p>
             </div>
             {form.form_structure?.map((field) => (
               <div key={field.id} className="space-y-2 border-t pt-4">

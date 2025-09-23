@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import { addDays, subDays, addHours, subHours, addMinutes, isBefore, isAfter, parseISO } from "https://esm.sh/date-fns@3.6.0"; // Versão atualizada
-import { utcToZonedTime, zonedTimeToUtc } from "https://esm.sh/date-fns-tz@3.1.3"; // Versão atualizada, importado zonedTimeToUtc
+import { utcToZonedTime } from "https://esm.sh/date-fns-tz@3.1.3"; // Versão atualizada
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -74,18 +74,18 @@ serve(async (req) => {
     for (const task of tasks) {
       const reminderPreferences = task.reminder_preferences || [];
 
-      // Combine due_date and due_time into a São Paulo zoned date
-      const [year, month, day] = task.due_date.split('-').map(Number);
-      const [hours, minutes] = task.due_time ? task.due_time.split(':').map(Number) : [23, 59]; // Default to end of day if no time
+      // Parse task.due_date as a date in São Paulo timezone
+      const taskDueDateSaoPaulo = utcToZonedTime(parseISO(task.due_date), SAO_PAULO_TIMEZONE);
+      let fullDueDateTimeSaoPaulo: Date;
 
-      // Create a Date object representing that specific time in São Paulo
-      const dateInSaoPaulo = new Date(year, month - 1, day, hours, minutes, 0); // Month is 0-indexed
-
-      // Convert this São Paulo local time to its UTC equivalent
-      const fullDueDateTimeUtc = zonedTimeToUtc(dateInSaoPaulo, SAO_PAULO_TIMEZONE);
-
-      // Convert this UTC date back to São Paulo timezone for consistent comparisons
-      const fullDueDateTimeSaoPaulo = utcToZonedTime(fullDueDateTimeUtc, SAO_PAULO_TIMEZONE);
+      if (task.due_time) {
+        const [hours, minutes] = task.due_time.split(':').map(Number);
+        // Create a date object in São Paulo timezone for the due date and time
+        fullDueDateTimeSaoPaulo = utcToZonedTime(new Date(taskDueDateSaoPaulo.getFullYear(), taskDueDateSaoPaulo.getMonth(), taskDueDateSaoPaulo.getDate(), hours, minutes, 0), SAO_PAULO_TIMEZONE);
+      } else {
+        // If no specific time, consider it due at the end of the day in São Paulo for reminders
+        fullDueDateTimeSaoPaulo = utcToZonedTime(new Date(taskDueDateSaoPaulo.getFullYear(), taskDueDateSaoPaulo.getMonth(), taskDueDateSaoPaulo.getDate(), 23, 59, 59), SAO_PAULO_TIMEZONE);
+      }
 
       const taskId = task.id;
       const taskTitle = task.title;
