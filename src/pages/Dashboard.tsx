@@ -32,7 +32,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatSaoPauloDate } from "@/utils/date-utils";
-import { TaskCard } from "@/components/TaskCard";
+import { TaskSummaryCard } from "@/components/TaskSummaryCard"; // Corrigido: Importação do componente TaskSummaryCard
 import { Task } from "@/components/KanbanCard"; // Importar a interface Task
 import {
   DropdownMenu,
@@ -386,12 +386,9 @@ const Dashboard = () => {
               filteredUserTasks
                 .filter((task) => task.assigned_to === userId)
                 .map((task) => (
-                  <TaskCard
+                  <TaskSummaryCard // Corrigido: Usando TaskSummaryCard
                     key={task.id}
-                    task={task as unknown as Task} // Cast para Task
-                    workspaceName={task.workspace_name}
-                    workspaceLogoUrl={task.workspace_logo_url}
-                    columnTitle={task.column_title}
+                    task={task}
                   />
                 ))
             ) : (
@@ -411,12 +408,9 @@ const Dashboard = () => {
                 filteredUserTasks
                   .filter((task) => task.workspace_id === internalWorkspaceId)
                   .map((task) => (
-                    <TaskCard
+                    <TaskSummaryCard // Corrigido: Usando TaskSummaryCard
                       key={task.id}
-                      task={task as unknown as Task} // Cast para Task
-                      workspaceName={task.workspace_name}
-                      workspaceLogoUrl={task.workspace_logo_url}
-                      columnTitle={task.column_title}
+                      task={task}
                     />
                   ))
               ) : (
