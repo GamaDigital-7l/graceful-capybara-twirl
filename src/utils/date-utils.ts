@@ -1,5 +1,5 @@
-import { format, parseISO } from 'date-fns';
-import * as dateFnsTz from 'date-fns-tz'; // Importar como namespace
+import { format, parseISO, isValid } from 'date-fns'; // Importar isValid
+import * as dateFnsTz from 'date-fns-tz';
 import { ptBR } from 'date-fns/locale';
 
 const SAO_PAULO_TIMEZONE = 'America/Sao_Paulo';
@@ -11,6 +11,10 @@ const SAO_PAULO_TIMEZONE = 'America/Sao_Paulo';
  */
 export const toSaoPauloTime = (date: Date | string): Date => {
   const utcDate = typeof date === 'string' ? parseISO(date) : date;
+  if (!isValid(utcDate)) {
+    console.warn("Invalid date provided to toSaoPauloTime:", date);
+    return new Date('Invalid Date'); // Retorna um objeto Date inválido para propagar o problema de forma clara
+  }
   return dateFnsTz.utcToZonedTime(utcDate, SAO_PAULO_TIMEZONE);
 };
 
@@ -22,6 +26,10 @@ export const toSaoPauloTime = (date: Date | string): Date => {
  */
 export const formatSaoPauloTime = (date: Date | string, formatStr: string): string => {
   const utcDate = typeof date === 'string' ? parseISO(date) : date;
+  if (!isValid(utcDate)) { // Verifica se a data é válida após o parse
+    console.warn("Invalid date provided to formatSaoPauloTime:", date);
+    return 'Data Inválida'; // Retorna uma string de fallback amigável
+  }
   return dateFnsTz.formatInTimeZone(utcDate, SAO_PAULO_TIMEZONE, formatStr, { locale: ptBR });
 };
 
