@@ -25,7 +25,7 @@ const fetchApprovalData = async (token: string) => {
 
 const PublicApprovalPage = () => {
   const { token } = useParams<{ token: string }>();
-  const [processedTasks, setProcessedTasks] = new Set();
+  const [processedTasks, setProcessedTasks] = useState<Set<string>>(new Set()); // Corrected type
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<any>(null);
   const [editComment, setEditComment] = useState("");
@@ -100,7 +100,7 @@ const PublicApprovalPage = () => {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 sm:p-8">
       <header className="text-center mb-8">
         <div className="mb-4">
-          <AppLogo className="h-12 w-auto mx-auto" loading="lazy" /> {/* Adicionado loading="lazy" */}
+          <AppLogo className="h-12 w-auto mx-auto" /> {/* Removed loading="lazy" */}
         </div>
         <div className="flex justify-center items-center gap-4 mb-2">
           {data.workspace.logo_url && <Avatar><AvatarImage src={data.workspace.logo_url} loading="lazy" /><AvatarFallback>{data.workspace.name.charAt(0)}</AvatarFallback></Avatar>} {/* Adicionado loading="lazy" */}

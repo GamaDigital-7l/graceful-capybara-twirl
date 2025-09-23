@@ -111,7 +111,7 @@ export function Header({ pageTitle }: HeaderProps) {
             <MobileSidebar userRole={userRole} onClose={() => setIsMobileMenuOpen(false)} />
           </Sheet>
         )}
-        <AppLogo className="h-8 w-auto" loading="lazy" />
+        <AppLogo className="h-8 w-auto" /> {/* Removed loading="lazy" */}
         <h1 className="text-xl sm:text-2xl font-bold whitespace-nowrap">{getPageTitle()}</h1>
       </div>
       {!isMobile && (

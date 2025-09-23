@@ -273,7 +273,7 @@ const PublicClientOnboardingPage = () => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 sm:p-8">
       <header className="text-center mb-8">
-        <AppLogo className="h-12 w-auto mx-auto mb-4" loading="lazy" /> {/* Adicionado loading="lazy" */}
+        <AppLogo className="h-12 w-auto mx-auto mb-4" /> {/* Removed loading="lazy" */}
         <h1 className="text-3xl font-bold">Bem-vindo(a), {client_name}!</h1>
         {company_name && <p className="text-lg text-muted-foreground">da {company_name}</p>}
         <p className="text-lg text-muted-foreground mt-2">À Gama Creative</p>

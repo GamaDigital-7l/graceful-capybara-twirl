@@ -173,7 +173,7 @@ const SortableField = ({ field, index, onUpdateField, onRemoveField }: SortableF
   );
 };
 
-export function BriefingFormEditor() {
+export default function BriefingFormEditor() { // Changed to default export
   const { formId } = useParams<{ formId: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();

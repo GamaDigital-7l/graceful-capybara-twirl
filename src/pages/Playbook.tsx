@@ -45,7 +45,7 @@ const fetchWorkspaceName = async (workspaceId: string): Promise<string> => {
 const PlaybookPage = () => {
   const { workspaceId } = useParams<{ workspaceId: string }>();
   const [isEditorOpen, setIsEditorOpen] = useState(false);
-  const [visiblePasswords, setVisiblePasswords] = useState<Set<string>>(new Set());
+  const [visiblePasswords, setVisiblePasswords] = new useState<Set<string>>(new Set());
   const queryClient = useQueryClient();
 
   const { data: playbook, isLoading: isLoadingPlaybook } = useQuery({
@@ -207,7 +207,7 @@ const PlaybookPage = () => {
       {playbook && (
         <PlaybookEditor
           isOpen={isEditorOpen}
-          onClose={() => setIsEditorEditor(false)}
+          onClose={() => setIsEditorOpen(false)} {/* Corrected typo here */}
           playbook={playbook}
           onSave={(data) => updatePlaybookMutation.mutate(data)}
         />

@@ -286,7 +286,7 @@ const PublicBriefingPage = () => {
       <div className="flex justify-center items-center min-h-screen p-4 bg-gray-50 dark:bg-gray-900">
         <Card className="w-full max-w-md text-center">
           <CardHeader>
-            <AppLogo className="h-12 w-auto mx-auto mb-4" loading="lazy" /> {/* Adicionado loading="lazy" */}
+            <AppLogo className="h-12 w-auto mx-auto mb-4" /> {/* Removed loading="lazy" */}
             <CardTitle className="text-green-600">Obrigado!</CardTitle>
             <CardDescription>Sua resposta para "{form.title}" foi enviada com sucesso.</CardDescription>
           </CardHeader>
@@ -306,7 +306,7 @@ const PublicBriefingPage = () => {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 sm:p-8 flex justify-center items-center">
       <Card className="w-full max-w-2xl">
         <CardHeader className="text-center pb-4">
-          <AppLogo className="h-12 w-auto mx-auto mb-4" loading="lazy" /> {/* Adicionado loading="lazy" */}
+          <AppLogo className="h-12 w-auto mx-auto mb-4" /> {/* Removed loading="lazy" */}
           <CardTitle className="text-3xl font-bold mb-2">{form.title}</CardTitle>
           {form.description && <CardDescription className="text-lg text-muted-foreground">{form.description}</CardDescription>}
           {isTypeformMode && (

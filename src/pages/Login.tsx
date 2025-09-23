@@ -39,7 +39,7 @@ const Login = () => {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <AppLogo className="h-16 w-auto" loading="lazy" /> {/* Usando AppLogo aqui */}
+            <AppLogo className="h-16 w-auto" /> {/* Usando AppLogo aqui */}
           </div>
           <CardTitle>Acesse sua Conta</CardTitle>
           <CardDescription>Entre com seu e-mail e senha para continuar.</CardDescription>

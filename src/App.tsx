@@ -27,7 +27,7 @@ const PublicClientDashboardPage = lazy(() => import("./pages/PublicClientDashboa
 const ClientDashboard = lazy(() => import("./pages/ClientDashboard"));
 const BriefingsPage = lazy(() => import("./pages/BriefingsPage"));
 const PublicBriefingPage = lazy(() => import("./pages/PublicBriefingPage"));
-const BriefingFormEditor = lazy(() => import("./components/BriefingFormEditor"));
+const BriefingFormEditor = lazy(() => import("./components/BriefingFormEditor")); // Changed to default import
 const BriefingResponsesPage = lazy(() => import("./pages/BriefingResponsesPage"));
 const PublicClientOnboardingPage = lazy(() => import("./pages/PublicClientOnboardingPage"));
 const OnboardingTemplatesPage = lazy(() => import("./pages/OnboardingTemplatesPage"));
@@ -41,163 +41,165 @@ const App = () => (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
       <SettingsProvider>
         <TooltipProvider>
-          <Toaster />
-          <Sonner position="top-center" duration={7000} />
-          <Suspense fallback={<div className="flex justify-center items-center min-h-screen">Carregando...</div>}> {/* Fallback global */}
-            <Routes>
-              <Route path="/login" element={<Login />} />
-              <Route path="/approve/:token" element={<PublicApprovalPage />} />
-              <Route path="/client-dashboard/:token" element={<PublicClientDashboardPage />} />
-              <Route path="/briefings/public/:formId" element={<PublicBriefingPage />} />
-              <Route path="/onboarding/:publicToken" element={<PublicClientOnboardingPage />} />
-              <Route path="/onboarding/preview" element={<PublicClientOnboardingPage />} />
-              <Route
-                path="/"
-                element={
-                  <Layout>
-                    <Dashboard />
-                  </Layout>
-                }
-              />
-              <Route
-                path="/client-dashboard"
-                element={
-                  <Layout pageTitle="Meus Projetos">
-                    <ClientDashboard />
-                  </Layout>
-                }
-              />
-              <Route
-                path="/workspace/:workspaceId"
-                element={
-                  <Layout>
-                    <WorkspacePage />
-                  </Layout>
-                }
-              />
-              <Route
-                path="/workspace/:workspaceId/playbook"
-                element={
-                  <Layout pageTitle="Playbook do Cliente">
-                    <PlaybookPage />
-                  </Layout>
-                }
-              />
-              <Route
-                path="/workspace/:workspaceId/instagram-insights"
-                element={
-                  <Layout pageTitle="Insights do Instagram">
-                    <InstagramInsightsDashboard />
-                  </Layout>
-                }
-              />
-              <Route
-                path="/admin"
-                element={
-                  <Layout>
-                    <AdminPage />
-                  </Layout>
-                }
-              />
-              <Route
-                path="/settings"
-                element={
-                  <Layout>
-                    <SettingsPage />
-                  </Layout>
-                }
-              />
-              <Route
-                path="/financial"
-                element={
-                  <Layout>
-                    <FinancialDashboard />
-                  </Layout>
-                }
-              />
-              <Route
-                path="/second-brain"
-                element={
-                  <Layout>
-                    <SecondBrainDashboard />
-                  </Layout>
-                }
-              />
-              <Route
-                path="/second-brain/:clientId"
-                element={
-                  <Layout pageTitle="Prompts do Cliente">
-                    <ClientPromptsPage />
-                  </Layout>
-                }
-              />
-              <Route
-                path="/employees"
-                element={
-                  <Layout>
-                    <EmployeeDashboardPage />
-                  </Layout>
-                }
-              />
-              <Route
-                path="/employees/:employeeId"
-                element={
-                  <Layout pageTitle="Detalhes do Funcionário">
-                    <EmployeeDetailsPage />
-                  </Layout>
-                }
-              />
-              <Route
-                path="/agency-playbook"
-                element={
-                  <Layout>
-                    <AgencyPlaybookPage />
-                  </Layout>
-                }
-              />
-              <Route
-                path="/briefings"
-                element={
-                  <Layout pageTitle="Gerenciar Briefings">
-                    <BriefingsPage />
-                  </Layout>
-                }
-              />
-              <Route
-                path="/briefings/new"
-                element={
-                  <Layout pageTitle="Novo Formulário de Briefing">
-                    <BriefingFormEditor />
-                  </Layout>
-                }
-              />
-              <Route
-                path="/briefings/:formId/edit"
-                element={
-                  <Layout pageTitle="Editar Formulário de Briefing">
-                    <BriefingFormEditor />
-                  </Layout>
-                }
-              />
-              <Route
-                path="/briefings/:formId/responses"
-                element={
-                  <Layout pageTitle="Respostas do Briefing">
-                    <BriefingResponsesPage />
-                  </Layout>
-                }
-              />
-              <Route
-                path="/onboarding-templates"
-                element={
-                  <Layout pageTitle="Templates de Onboarding">
-                    <OnboardingTemplatesPage />
-                  </Layout>
-                }
-              />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </Suspense>
+          <React.Fragment> {/* Wrapped multiple children in a Fragment */}
+            <Toaster />
+            <Sonner position="top-center" duration={7000} />
+            <Suspense fallback={<div className="flex justify-center items-center min-h-screen">Carregando...</div>}> {/* Fallback global */}
+              <Routes>
+                <Route path="/login" element={<Login />} />
+                <Route path="/approve/:token" element={<PublicApprovalPage />} />
+                <Route path="/client-dashboard/:token" element={<PublicClientDashboardPage />} />
+                <Route path="/briefings/public/:formId" element={<PublicBriefingPage />} />
+                <Route path="/onboarding/:publicToken" element={<PublicClientOnboardingPage />} />
+                <Route path="/onboarding/preview" element={<PublicClientOnboardingPage />} />
+                <Route
+                  path="/"
+                  element={
+                    <Layout>
+                      <Dashboard />
+                    </Layout>
+                  }
+                />
+                <Route
+                  path="/client-dashboard"
+                  element={
+                    <Layout pageTitle="Meus Projetos">
+                      <ClientDashboard />
+                    </Layout>
+                  }
+                />
+                <Route
+                  path="/workspace/:workspaceId"
+                  element={
+                    <Layout>
+                      <WorkspacePage />
+                    </Layout>
+                  }
+                />
+                <Route
+                  path="/workspace/:workspaceId/playbook"
+                  element={
+                    <Layout pageTitle="Playbook do Cliente">
+                      <PlaybookPage />
+                    </Layout>
+                  }
+                />
+                <Route
+                  path="/workspace/:workspaceId/instagram-insights"
+                  element={
+                    <Layout pageTitle="Insights do Instagram">
+                      <InstagramInsightsDashboard />
+                    </Layout>
+                  }
+                />
+                <Route
+                  path="/admin"
+                  element={
+                    <Layout>
+                      <AdminPage />
+                    </Layout>
+                  }
+                />
+                <Route
+                  path="/settings"
+                  element={
+                    <Layout>
+                      <SettingsPage />
+                    </Layout>
+                  }
+                />
+                <Route
+                  path="/financial"
+                  element={
+                    <Layout>
+                      <FinancialDashboard />
+                    </Layout>
+                  }
+                />
+                <Route
+                  path="/second-brain"
+                  element={
+                    <Layout>
+                      <SecondBrainDashboard />
+                    </Layout>
+                  }
+                />
+                <Route
+                  path="/second-brain/:clientId"
+                  element={
+                    <Layout pageTitle="Prompts do Cliente">
+                      <ClientPromptsPage />
+                    </Layout>
+                  }
+                />
+                <Route
+                  path="/employees"
+                  element={
+                    <Layout>
+                      <EmployeeDashboardPage />
+                    </Layout>
+                  }
+                />
+                <Route
+                  path="/employees/:employeeId"
+                  element={
+                    <Layout pageTitle="Detalhes do Funcionário">
+                      <EmployeeDetailsPage />
+                    </Layout>
+                  }
+                />
+                <Route
+                  path="/agency-playbook"
+                  element={
+                    <Layout>
+                      <AgencyPlaybookPage />
+                    </Layout>
+                  }
+                />
+                <Route
+                  path="/briefings"
+                  element={
+                    <Layout pageTitle="Gerenciar Briefings">
+                      <BriefingsPage />
+                    </Layout>
+                  }
+                />
+                <Route
+                  path="/briefings/new"
+                  element={
+                    <Layout pageTitle="Novo Formulário de Briefing">
+                      <BriefingFormEditor />
+                    </Layout>
+                  }
+                />
+                <Route
+                  path="/briefings/:formId/edit"
+                  element={
+                    <Layout pageTitle="Editar Formulário de Briefing">
+                      <BriefingFormEditor />
+                    </Layout>
+                  }
+                />
+                <Route
+                  path="/briefings/:formId/responses"
+                  element={
+                    <Layout pageTitle="Respostas do Briefing">
+                      <BriefingResponsesPage />
+                    </Layout>
+                  }
+                />
+                <Route
+                  path="/onboarding-templates"
+                  element={
+                    <Layout pageTitle="Templates de Onboarding">
+                      <OnboardingTemplatesPage />
+                    </Layout>
+                  }
+                />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </Suspense>
+          </React.Fragment>
         </TooltipProvider>
       </SettingsProvider>
     </ThemeProvider>
