@@ -5,7 +5,7 @@ import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Skeleton }1 from "@/components/ui/skeleton";
+import { Skeleton } from "@/components/ui/skeleton";
 import { AppLogo } from "@/components/AppLogo";
 import { Link as LinkIcon, FileText, Users, Video } from "lucide-react";
 import { OnboardingTemplate } from "./OnboardingTemplatesPage";
