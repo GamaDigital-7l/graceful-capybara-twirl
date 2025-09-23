@@ -6,7 +6,7 @@ import { Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { SettingsProvider } from "@/contexts/SettingsContext";
 import Dashboard from "./pages/Dashboard";
-import WorkspacePage from "./pages/Workspace";
+import WorkspacePage from "./pages/pages/Workspace";
 import PlaybookPage from "./pages/Playbook";
 import AdminPage from "./pages/Admin";
 import SettingsPage from "./pages/Settings";
@@ -22,8 +22,9 @@ import ClientDashboard from "./pages/ClientDashboard";
 import BriefingsPage from "./pages/BriefingsPage";
 import PublicBriefingPage from "./pages/PublicBriefingPage";
 import { BriefingFormEditor } from "./components/BriefingFormEditor";
-import BriefingResponsesPage from "./pages/BriefingResponsesPage"; // Novo import
-import PublicClientOnboardingPage from "./pages/PublicClientOnboardingPage"; // Novo import
+import BriefingResponsesPage from "./pages/BriefingResponsesPage";
+import PublicClientOnboardingPage from "./pages/PublicClientOnboardingPage";
+import OnboardingTemplatesPage from "./pages/OnboardingTemplatesPage"; // Novo import
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import { Layout } from "./components/Layout";
@@ -43,7 +44,7 @@ const App = () => (
             <Route path="/approve/:token" element={<PublicApprovalPage />} />
             <Route path="/client-dashboard/:token" element={<PublicClientDashboardPage />} />
             <Route path="/briefings/public/:formId" element={<PublicBriefingPage />} />
-            <Route path="/onboarding/:publicToken" element={<PublicClientOnboardingPage />} /> {/* Nova rota */}
+            <Route path="/onboarding/:publicToken" element={<PublicClientOnboardingPage />} />
             <Route
               path="/"
               element={
@@ -177,6 +178,14 @@ const App = () => (
               element={
                 <Layout pageTitle="Respostas do Briefing">
                   <BriefingResponsesPage />
+                </Layout>
+              }
+            />
+            <Route
+              path="/onboarding-templates"
+              element={
+                <Layout pageTitle="Templates de Onboarding">
+                  <OnboardingTemplatesPage />
                 </Layout>
               }
             />

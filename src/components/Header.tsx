@@ -2,7 +2,7 @@ import { Link, useLocation } from "react-router-dom";
 import { AppLogo } from "./AppLogo";
 import { ThemeToggle } from "./ThemeToggle";
 import { Button } from "@/components/ui/button";
-import { LogOut, Home, Banknote, Brain, UserCog, Palette, Users, BookOpen, Menu, BarChart, FileText } from "lucide-react"; // Adicionado FileText para Briefings
+import { LogOut, Home, Banknote, Brain, UserCog, Palette, Users, BookOpen, Menu, BarChart, FileText, LayoutTemplate } from "lucide-react"; // Adicionado LayoutTemplate
 import { supabase } from "@/integrations/supabase/client";
 import { useState, useEffect } from "react";
 import { showError } from "@/utils/toast";
@@ -10,6 +10,7 @@ import { MobileSidebar } from "./MobileSidebar";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Skeleton } from "./ui/skeleton";
 import { Sheet, SheetTrigger } from "@/components/ui/sheet";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu"; // Importar DropdownMenu
 
 interface HeaderProps {
   pageTitle?: string; // Optional prop for specific page titles
@@ -70,6 +71,7 @@ export function Header({ pageTitle }: HeaderProps) {
     if (path.startsWith("/briefings/") && path.includes("/edit")) return "Editar Formulário de Briefing";
     if (path.startsWith("/briefings/") && path.includes("/responses")) return "Respostas do Briefing"; // Novo
     if (path.startsWith("/briefings")) return "Gerenciar Briefings";
+    if (path.startsWith("/onboarding-templates")) return "Templates de Onboarding"; // Novo
     return "Gama Creative Flow";
   };
 
@@ -77,10 +79,7 @@ export function Header({ pageTitle }: HeaderProps) {
     { name: "Dashboard", icon: Home, path: "/", roles: ["admin", "equipe", "user"] },
     { name: "Financeiro", icon: Banknote, path: "/financial", roles: ["admin"] },
     { name: "Segundo Cérebro", icon: Brain, path: "/second-brain", roles: ["admin", "equipe"] },
-    { name: "Briefings", icon: FileText, path: "/briefings", roles: ["admin", "equipe"] }, // Novo item
-    { name: "Admin", icon: UserCog, path: "/admin", roles: ["admin"] },
-    { name: "Configurações", icon: Palette, path: "/settings", roles: ["admin"] },
-    { name: "Equipe", icon: Users, path: "/employees", roles: ["admin"] },
+    { name: "Briefings", icon: FileText, path: "/briefings", roles: ["admin", "equipe"] },
     { name: "Playbook da Agência", icon: BookOpen, path: "/agency-playbook", roles: ["admin", "equipe"] },
   ];
 
@@ -130,6 +129,45 @@ export function Header({ pageTitle }: HeaderProps) {
                 </Link>
               </Button>
             ) : null
+          )}
+          {(userRole === 'admin' || userRole === 'equipe') && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost">
+                  <UserCog className="mr-2 h-4 w-4" />
+                  Configurações
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {userRole === 'admin' && (
+                  <>
+                    <DropdownMenuItem asChild>
+                      <Link to="/admin">
+                        <Users className="mr-2 h-4 w-4" /> Gerenciar Usuários
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/employees">
+                        <Users className="mr-2 h-4 w-4" /> Visão Geral da Equipe
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                  </>
+                )}
+                <DropdownMenuItem asChild>
+                  <Link to="/settings">
+                    <Palette className="mr-2 h-4 w-4" /> Configurações do App
+                  </Link>
+                </DropdownMenuItem>
+                {(userRole === 'admin' || userRole === 'equipe') && (
+                  <DropdownMenuItem asChild>
+                    <Link to="/onboarding-templates">
+                      <LayoutTemplate className="mr-2 h-4 w-4" /> Templates de Onboarding
+                    </Link>
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
           )}
           <ThemeToggle />
           <Button onClick={handleLogout} variant="outline">

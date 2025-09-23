@@ -8,31 +8,53 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Skeleton } from "@/components/ui/skeleton";
 import { AppLogo } from "@/components/AppLogo";
 import { Link as LinkIcon, FileText, Users, Video } from "lucide-react";
+import { OnboardingTemplate } from "./OnboardingTemplatesPage"; // Importar OnboardingTemplate
 
 interface OnboardingPageData {
   client_name: string;
   company_name: string | null;
-  agency_welcome_message: string | null;
-  agency_processes_content: string | null;
-  agency_apps_access_info: string | null;
-  agency_tutorial_videos: { name: string; url: string }[];
-  agency_briefing_links: { name: string; url: string }[];
+  onboarding_template_id: string | null; // Agora referencia o ID do template
+  // O conteúdo virá do template
 }
 
-const fetchOnboardingPageData = async (publicToken: string): Promise<OnboardingPageData> => {
-  const { data, error } = await supabase
+interface FullOnboardingData {
+  client_name: string;
+  company_name: string | null;
+  template: OnboardingTemplate | null;
+}
+
+const fetchOnboardingPageData = async (publicToken: string): Promise<FullOnboardingData> => {
+  const { data: clientOnboarding, error: clientOnboardingError } = await supabase
     .from("client_onboarding_pages")
-    .select("*")
+    .select("client_name, company_name, onboarding_template_id")
     .eq("public_token", publicToken)
     .single();
-  if (error) throw new Error(error.message);
-  return data as OnboardingPageData;
+  
+  if (clientOnboardingError) throw new Error(clientOnboardingError.message);
+  if (!clientOnboarding) throw new Error("Página de onboarding do cliente não encontrada.");
+
+  let template: OnboardingTemplate | null = null;
+  if (clientOnboarding.onboarding_template_id) {
+    const { data: templateData, error: templateError } = await supabase
+      .from("onboarding_page_templates")
+      .select("*")
+      .eq("id", clientOnboarding.onboarding_template_id)
+      .single();
+    if (templateError) console.error("Erro ao buscar template de onboarding:", templateError);
+    template = templateData as OnboardingTemplate;
+  }
+
+  return {
+    client_name: clientOnboarding.client_name,
+    company_name: clientOnboarding.company_name,
+    template: template,
+  };
 };
 
 const PublicClientOnboardingPage = () => {
   const { publicToken } = useParams<{ publicToken: string }>();
 
-  const { data, isLoading, error } = useQuery<OnboardingPageData, Error>({
+  const { data, isLoading, error } = useQuery<FullOnboardingData, Error>({
     queryKey: ["publicOnboardingPage", publicToken],
     queryFn: () => fetchOnboardingPageData(publicToken!),
     enabled: !!publicToken,
@@ -58,12 +80,12 @@ const PublicClientOnboardingPage = () => {
     );
   }
 
-  if (!data) {
+  if (!data || !data.template) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900 p-4">
         <Card className="w-full max-w-md text-center">
           <CardHeader><CardTitle>Página Não Encontrada</CardTitle></CardHeader>
-          <CardContent><p>Não foi possível carregar a página de onboarding.</p></CardContent>
+          <CardContent><p>Não foi possível carregar a página de onboarding ou seu template.</p></CardContent>
         </Card>
       </div>
     );
@@ -72,12 +94,16 @@ const PublicClientOnboardingPage = () => {
   const {
     client_name,
     company_name,
-    agency_welcome_message,
-    agency_processes_content,
-    agency_apps_access_info,
-    agency_tutorial_videos,
-    agency_briefing_links,
+    template,
   } = data;
+
+  const {
+    welcome_message,
+    processes_content,
+    apps_access_info,
+    tutorial_videos,
+    briefing_links,
+  } = template;
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 sm:p-8">
@@ -89,21 +115,21 @@ const PublicClientOnboardingPage = () => {
       </header>
 
       <main className="max-w-4xl mx-auto space-y-8">
-        {agency_welcome_message && (
+        {welcome_message && (
           <Card>
             <CardHeader><CardTitle>Mensagem de Boas-Vindas</CardTitle></CardHeader>
             <CardContent>
-              <p className="whitespace-pre-wrap text-muted-foreground">{agency_welcome_message}</p>
+              <p className="whitespace-pre-wrap text-muted-foreground">{welcome_message}</p>
             </CardContent>
           </Card>
         )}
 
-        {agency_briefing_links && agency_briefing_links.length > 0 && (
+        {briefing_links && briefing_links.length > 0 && (
           <Card>
             <CardHeader><CardTitle className="flex items-center gap-2"><FileText className="h-5 w-5" /> Briefings Essenciais</CardTitle></CardHeader>
             <CardContent>
               <ul className="space-y-2">
-                {agency_briefing_links.map((link, index) => (
+                {briefing_links.map((link, index) => (
                   <li key={index}>
                     <a href={link.url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline flex items-center gap-2">
                       <LinkIcon className="h-4 w-4" /> {link.name}
@@ -115,34 +141,34 @@ const PublicClientOnboardingPage = () => {
           </Card>
         )}
 
-        {agency_processes_content && (
+        {processes_content && (
           <Card>
             <CardHeader><CardTitle className="flex items-center gap-2"><Users className="h-5 w-5" /> Nossos Processos</CardTitle></CardHeader>
             <CardContent>
               <div className="prose dark:prose-invert max-w-none whitespace-pre-wrap">
-                {agency_processes_content}
+                {processes_content}
               </div>
             </CardContent>
           </Card>
         )}
 
-        {agency_apps_access_info && (
+        {apps_access_info && (
           <Card>
             <CardHeader><CardTitle className="flex items-center gap-2"><LinkIcon className="h-5 w-5" /> Acesso aos Nossos Apps</CardTitle></CardHeader>
             <CardContent>
               <div className="prose dark:prose-invert max-w-none whitespace-pre-wrap">
-                {agency_apps_access_info}
+                {apps_access_info}
               </div>
             </CardContent>
           </Card>
         )}
 
-        {agency_tutorial_videos && agency_tutorial_videos.length > 0 && (
+        {tutorial_videos && tutorial_videos.length > 0 && (
           <Card>
             <CardHeader><CardTitle className="flex items-center gap-2"><Video className="h-5 w-5" /> Vídeos Tutoriais</CardTitle></CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {agency_tutorial_videos.map((video, index) => (
+                {tutorial_videos.map((video, index) => (
                   <div key={index} className="space-y-2">
                     <h3 className="font-semibold">{video.name}</h3>
                     <div className="relative w-full" style={{ paddingBottom: '56.25%' }}> {/* 16:9 Aspect Ratio */}

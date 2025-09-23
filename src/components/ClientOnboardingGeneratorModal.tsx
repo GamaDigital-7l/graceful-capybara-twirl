@@ -12,34 +12,50 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; // Importar Select
 import { Copy, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { showError, showSuccess, showLoading, dismissToast } from "@/utils/toast";
 import { AgencyPlaybook } from "./AgencyPlaybookEditor";
 import { useSettings } from "@/contexts/SettingsContext";
+import { useQuery } from "@tanstack/react-query"; // Importar useQuery
+import { OnboardingTemplate } from "@/pages/OnboardingTemplatesPage"; // Importar OnboardingTemplate
 
 interface ClientOnboardingGeneratorModalProps {
   isOpen: boolean;
   onClose: () => void;
-  agencyPlaybook: AgencyPlaybook | null;
+  agencyPlaybook: AgencyPlaybook | null; // Mantido para compatibilidade, mas o conteúdo virá do template
 }
+
+const fetchOnboardingTemplates = async (): Promise<OnboardingTemplate[]> => {
+  const { data, error } = await supabase.from("onboarding_page_templates").select("*").order("name");
+  if (error) throw new Error(error.message);
+  return data;
+};
 
 export function ClientOnboardingGeneratorModal({
   isOpen,
   onClose,
-  agencyPlaybook,
+  agencyPlaybook, // Não será mais a fonte principal do conteúdo
 }: ClientOnboardingGeneratorModalProps) {
   const settings = useSettings();
   const [clientName, setClientName] = useState("");
   const [companyName, setCompanyName] = useState("");
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null); // Novo estado para o template selecionado
   const [generatedLink, setGeneratedLink] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
+
+  const { data: templates, isLoading: isLoadingTemplates } = useQuery<OnboardingTemplate[]>({
+    queryKey: ["onboardingTemplates"],
+    queryFn: fetchOnboardingTemplates,
+    enabled: isOpen, // Carregar templates apenas quando o modal estiver aberto
+  });
 
   useEffect(() => {
     if (!isOpen) {
       setClientName("");
       setCompanyName("");
+      setSelectedTemplateId(null);
       setGeneratedLink("");
       setIsGenerating(false);
     }
@@ -50,8 +66,8 @@ export function ClientOnboardingGeneratorModal({
       showError("O nome do cliente é obrigatório.");
       return;
     }
-    if (!agencyPlaybook) {
-      showError("Playbook da agência não carregado. Não é possível gerar a página.");
+    if (!selectedTemplateId) {
+      showError("Por favor, selecione um template de onboarding.");
       return;
     }
     if (!settings?.site_url) {
@@ -68,16 +84,13 @@ export function ClientOnboardingGeneratorModal({
         throw new Error("Usuário não autenticado.");
       }
 
+      // O conteúdo virá do template referenciado pelo onboarding_template_id
       const { data, error } = await supabase
         .from("client_onboarding_pages")
         .insert({
           client_name: clientName.trim(),
           company_name: companyName.trim() || null,
-          agency_welcome_message: agencyPlaybook.onboarding_welcome_message,
-          agency_processes_content: agencyPlaybook.agency_processes,
-          agency_apps_access_info: agencyPlaybook.onboarding_apps_access_info,
-          agency_tutorial_videos: agencyPlaybook.onboarding_tutorial_videos,
-          agency_briefing_links: agencyPlaybook.onboarding_briefing_links,
+          onboarding_template_id: selectedTemplateId, // Referenciar o template
           created_by: user.id,
         })
         .select("public_token")
@@ -131,12 +144,35 @@ export function ClientOnboardingGeneratorModal({
               disabled={isGenerating || !!generatedLink}
             />
           </div>
+          <div className="space-y-2">
+            <Label htmlFor="onboarding-template">Template de Onboarding</Label>
+            <Select
+              value={selectedTemplateId || ""}
+              onValueChange={setSelectedTemplateId}
+              disabled={isGenerating || !!generatedLink || isLoadingTemplates}
+            >
+              <SelectTrigger id="onboarding-template">
+                <SelectValue placeholder="Selecione um template" />
+              </SelectTrigger>
+              <SelectContent>
+                {isLoadingTemplates ? (
+                  <SelectItem value="loading" disabled>Carregando templates...</SelectItem>
+                ) : templates && templates.length > 0 ? (
+                  templates.map(template => (
+                    <SelectItem key={template.id} value={template.id}>{template.name}</SelectItem>
+                  ))
+                ) : (
+                  <SelectItem value="no-templates" disabled>Nenhum template disponível</SelectItem>
+                )}
+              </SelectContent>
+            </Select>
+          </div>
 
           {!generatedLink ? (
             <Button
               onClick={handleGeneratePage}
               className="w-full"
-              disabled={isGenerating || !clientName.trim()}
+              disabled={isGenerating || !clientName.trim() || !selectedTemplateId}
             >
               {isGenerating ? (
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
