@@ -84,7 +84,7 @@ interface PersonalTask {
   due_date: Date; // Alterado para Date
   due_time: string | null;
   is_completed: boolean;
-  priority: 'Low' | 'Medium' | 'High';
+  priority?: 'Highest' | 'High' | 'Medium' | 'Low'; // Corrigido: adicionado 'Highest' e tornado opcional
 }
 
 const fetchWorkspaces = async (): Promise<Workspace[]> => {
@@ -376,7 +376,7 @@ const Dashboard = () => {
             </TabsTrigger>
           )}
           <TabsTrigger value="personal-tasks" className="flex-shrink-0">
-            <Users className="h-4 w-4 mr-2" /> Tarefas Pessoais
+            <ListTodo className="h-4 w-4 mr-2" /> Tarefas Pessoais
           </TabsTrigger>
         </TabsList>
         <TabsContent value="my-tasks" className="mt-4">
