@@ -12,13 +12,13 @@ export default defineConfig(() => ({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
-      // Removendo o alias explícito para date-fns-tz
+      'date-fns-tz': 'date-fns-tz/dist/esm/index.js', // Mantém o alias explícito para a versão ESM
     },
   },
   optimizeDeps: {
-    // Excluir date-fns-tz da otimização para forçar o Vite a processá-lo como um módulo normal
-    exclude: ['date-fns-tz'], 
-    include: [], // Garantir que não há inclusões conflitantes
+    // Incluir explicitamente date-fns-tz e date-fns para garantir o pré-empacotamento correto
+    include: ['date-fns-tz', 'date-fns'], 
+    exclude: [], // Remove qualquer exclusão para evitar conflitos
   },
   build: {
     commonjsOptions: {
