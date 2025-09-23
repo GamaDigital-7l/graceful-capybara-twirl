@@ -136,7 +136,7 @@ const PersonalTasksPage = () => {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Minhas Tarefas Pessoais</h1>
+        <h1 className="text-2xl font-bold">Todoist</h1>
         <Button onClick={handleAddTask}>
           <PlusCircle className="h-4 w-4 mr-2" />
           Adicionar Tarefa

@@ -21,7 +21,7 @@ export function MobileSidebar({ userRole, onClose }: MobileSidebarProps) {
 
   const navItems = [
     { name: "Dashboard", icon: Home, path: "/", roles: ["admin", "equipe", "user"] },
-    { name: "Minhas Tarefas Pessoais", icon: ListTodo, path: "/personal-tasks", roles: ["admin", "equipe"] }, // Novo item
+    { name: "Todoist", icon: ListTodo, path: "/personal-tasks", roles: ["admin", "equipe"] }, // Novo item
     { name: "Financeiro", icon: Banknote, path: "/financial", roles: ["admin"] },
     { name: "Segundo Cérebro", icon: Brain, path: "/second-brain", roles: ["admin", "equipe"] },
     { name: "Briefings", icon: FileText, path: "/briefings", roles: ["admin", "equipe"] },
