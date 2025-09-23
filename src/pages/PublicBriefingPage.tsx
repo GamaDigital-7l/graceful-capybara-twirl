@@ -21,7 +21,7 @@ import { ArrowLeft, ArrowRight } from "lucide-react";
 const fetchBriefingForm = async (formId: string): Promise<BriefingForm | null> => {
   const { data, error } = await supabase
     .from("briefing_forms")
-    .select("*")
+    .select("id, title, description, is_active, display_mode") // Selecionando apenas colunas básicas para depuração
     .eq("id", formId)
     .single();
   if (error) {
@@ -48,7 +48,9 @@ const PublicBriefingPage = () => {
 
   const allFields = useMemo(() => {
     if (!form) return [];
-    return [{ id: "client-name", type: "text", label: "Seu Nome Completo", required: true, placeholder: "Ex: João da Silva" } as BriefingFormField, ...form.form_structure];
+    // Se form_structure não for carregado, precisamos de um fallback
+    const formStructure = (form as any).form_structure || []; 
+    return [{ id: "client-name", type: "text", label: "Seu Nome Completo", required: true, placeholder: "Ex: João da Silva" } as BriefingFormField, ...formStructure];
   }, [form]);
 
   useEffect(() => {
@@ -101,7 +103,9 @@ const PublicBriefingPage = () => {
         showError("Por favor, insira seu nome completo.");
         return false;
       }
-      if (form?.form_structure.some(field => field.required && (!formData[field.id] || (Array.isArray(formData[field.id]) && formData[field.id].length === 0)))) {
+      // Se form_structure não for carregado, precisamos de um fallback
+      const formStructure = (form as any).form_structure || [];
+      if (formStructure.some((field: BriefingFormField) => field.required && (!formData[field.id] || (Array.isArray(formData[field.id]) && formData[field.id].length === 0)))) {
         showError("Por favor, preencha todos os campos obrigatórios.");
         return false;
       }
@@ -339,7 +343,8 @@ const PublicBriefingPage = () => {
                     className="w-full"
                   />
                 </div>
-                {form.form_structure.map((field: BriefingFormField) => (
+                {/* Se form_structure não for carregado, precisamos de um fallback */}
+                {(form as any).form_structure?.map((field: BriefingFormField) => (
                   <div key={field.id} className="space-y-2">
                     <Label htmlFor={field.id} className="text-base font-medium">
                       {field.label} {field.required && <span className="text-destructive">*</span>}

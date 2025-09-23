@@ -19,7 +19,7 @@ export interface BriefingForm {
   workspace_id: string | null; // Nullable for agency-wide forms
   title: string;
   description: string | null;
-  form_structure: BriefingFormField[];
+  form_structure?: BriefingFormField[]; // Tornando opcional
   created_by: string;
   created_at: string;
   is_active: boolean;
