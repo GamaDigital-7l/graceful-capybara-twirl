@@ -16,9 +16,12 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { BriefingResponseViewModal } from "@/components/BriefingResponseViewModal";
 
-const fetchBriefingForm = async (formId: string): Promise<BriefingForm> => {
+const fetchBriefingForm = async (formId: string): Promise<BriefingForm | null> => {
   const { data, error } = await supabase.from("briefing_forms").select("id, title, description, form_structure").eq("id", formId).single();
-  if (error) throw new Error(error.message);
+  if (error) {
+    if (error.code === 'PGRST116') return null; // No rows found
+    throw new Error(error.message);
+  }
   return data as BriefingForm;
 };
 
@@ -42,7 +45,7 @@ const BriefingResponsesPage = () => {
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [selectedResponse, setSelectedResponse] = useState<BriefingResponse | null>(null);
 
-  const { data: form, isLoading: isLoadingForm } = useQuery<BriefingForm>({
+  const { data: form, isLoading: isLoadingForm } = useQuery<BriefingForm | null>({
     queryKey: ["briefingFormDetails", formId],
     queryFn: () => fetchBriefingForm(formId!),
     enabled: !!formId,

@@ -42,9 +42,12 @@ const fetchWorkspaces = async (): Promise<Workspace[]> => {
   return data;
 };
 
-const fetchBriefingForm = async (formId: string): Promise<BriefingForm> => {
+const fetchBriefingForm = async (formId: string): Promise<BriefingForm | null> => {
   const { data, error } = await supabase.from("briefing_forms").select("*").eq("id", formId).single();
-  if (error) throw new Error(error.message);
+  if (error) {
+    if (error.code === 'PGRST116') return null; // No rows found
+    throw new Error(error.message);
+  }
   return data as BriefingForm;
 };
 
@@ -184,7 +187,7 @@ export function BriefingFormEditor() {
 
   const isEditing = !!formId;
 
-  const { data: existingForm, isLoading: isLoadingForm } = useQuery<BriefingForm>({
+  const { data: existingForm, isLoading: isLoadingForm } = useQuery<BriefingForm | null>({
     queryKey: ["briefingForm", formId],
     queryFn: () => fetchBriefingForm(formId!),
     enabled: isEditing,

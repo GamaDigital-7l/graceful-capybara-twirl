@@ -18,13 +18,16 @@ import { BriefingForm, BriefingFormField, BriefingFieldType } from "@/types/brie
 import { AppLogo } from "@/components/AppLogo";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 
-const fetchBriefingForm = async (formId: string): Promise<BriefingForm> => {
+const fetchBriefingForm = async (formId: string): Promise<BriefingForm | null> => {
   const { data, error } = await supabase
     .from("briefing_forms")
     .select("*")
     .eq("id", formId)
     .single();
-  if (error) throw new Error(error.message);
+  if (error) {
+    if (error.code === 'PGRST116') return null; // No rows found
+    throw new Error(error.message);
+  }
   return data as BriefingForm;
 };
 
@@ -36,7 +39,7 @@ const PublicBriefingPage = () => {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
 
-  const { data: form, isLoading, error } = useQuery<BriefingForm, Error>({
+  const { data: form, isLoading, error } = useQuery<BriefingForm | null, Error>({
     queryKey: ["publicBriefingForm", formId],
     queryFn: () => fetchBriefingForm(formId!),
     enabled: !!formId,
