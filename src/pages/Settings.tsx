@@ -106,7 +106,7 @@ const SettingsPage = () => {
           <CardTitle>Configurações da Aplicação</CardTitle>
           <CardDescription>Personalize a aparência e as integrações do seu aplicativo.</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-6">
+        <CardContent className="space-y-6 p-4 sm:p-6"> {/* Ajustado padding */}
           <div className="space-y-2">
             <Label htmlFor="appName">Nome do Aplicativo</Label>
             <Input id="appName" value={appName} onChange={(e) => setAppName(e.target.value)} />
@@ -133,7 +133,7 @@ const SettingsPage = () => {
         <CardHeader>
           <CardTitle>Configurações de Notificação</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-6">
+        <CardContent className="space-y-6 p-4 sm:p-6"> {/* Ajustado padding */}
           <div className="space-y-2">
             <Label htmlFor="whatsapp-template">Template de Mensagem (WhatsApp)</Label>
             <Textarea id="whatsapp-template" value={whatsappMessageTemplate} onChange={(e) => setWhatsappMessageTemplate(e.target.value)} rows={3} />

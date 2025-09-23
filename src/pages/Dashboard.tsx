@@ -228,7 +228,7 @@ const Dashboard = () => {
                   <Link to={`/workspace/${ws.id}`} className="flex flex-col flex-grow">
                     <CardContent className="flex flex-col items-center justify-center pt-4 flex-grow">
                       <Avatar className="h-24 w-24 mb-4">
-                        <AvatarImage src={ws.logo_url || undefined} alt={ws.name} />
+                        <AvatarImage src={ws.logo_url || undefined} alt={ws.name} loading="lazy" /> {/* Adicionado loading="lazy" */}
                         <AvatarFallback>{ws.name.charAt(0).toUpperCase()}</AvatarFallback>
                       </Avatar>
                       <Button variant="outline" className="w-full mt-auto">Ver Quadro</Button>

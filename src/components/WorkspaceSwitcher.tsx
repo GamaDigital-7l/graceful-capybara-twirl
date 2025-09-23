@@ -79,7 +79,7 @@ export function WorkspaceSwitcher({
           <DialogHeader>
             <DialogTitle>Criar Novo Workspace</DialogTitle>
           </DialogHeader>
-          <div className="py-4">
+          <div className="py-4 p-4 sm:p-6"> {/* Ajustado padding */}
             <Label htmlFor="workspace-name">Nome do Workspace</Label>
             <Input
               id="workspace-name"

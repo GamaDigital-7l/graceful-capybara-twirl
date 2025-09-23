@@ -21,12 +21,12 @@ import { ArrowLeft, ArrowRight } from "lucide-react";
 const fetchBriefingForm = async (formId: string): Promise<BriefingForm | null> => {
   const { data, error } = await supabase
     .from("briefing_forms")
-    .select("id, title, description, is_active, display_mode") // Selecionando apenas colunas básicas para depuração
+    .select("id, title, description, is_active, display_mode, form_structure") // Selecionando form_structure também
     .eq("id", formId)
-    .single();
+    .maybeSingle(); // Usar maybeSingle para retornar null se não houver linha
   if (error) {
-    if (error.code === 'PGRST116') return null; // No rows found
-    throw new Error(error.message);
+    console.error("Erro ao buscar formulário de briefing:", error);
+    throw error;
   }
   return data as BriefingForm;
 };
@@ -48,8 +48,7 @@ const PublicBriefingPage = () => {
 
   const allFields = useMemo(() => {
     if (!form) return [];
-    // Se form_structure não for carregado, precisamos de um fallback
-    const formStructure = (form as any).form_structure || []; 
+    const formStructure = form.form_structure || []; 
     return [{ id: "client-name", type: "text", label: "Seu Nome Completo", required: true, placeholder: "Ex: João da Silva" } as BriefingFormField, ...formStructure];
   }, [form]);
 
@@ -103,8 +102,7 @@ const PublicBriefingPage = () => {
         showError("Por favor, insira seu nome completo.");
         return false;
       }
-      // Se form_structure não for carregado, precisamos de um fallback
-      const formStructure = (form as any).form_structure || [];
+      const formStructure = form?.form_structure || [];
       if (formStructure.some((field: BriefingFormField) => field.required && (!formData[field.id] || (Array.isArray(formData[field.id]) && formData[field.id].length === 0)))) {
         showError("Por favor, preencha todos os campos obrigatórios.");
         return false;
@@ -288,7 +286,7 @@ const PublicBriefingPage = () => {
       <div className="flex justify-center items-center min-h-screen p-4 bg-gray-50 dark:bg-gray-900">
         <Card className="w-full max-w-md text-center">
           <CardHeader>
-            <AppLogo className="h-12 w-auto mx-auto mb-4" />
+            <AppLogo className="h-12 w-auto mx-auto mb-4" loading="lazy" /> {/* Adicionado loading="lazy" */}
             <CardTitle className="text-green-600">Obrigado!</CardTitle>
             <CardDescription>Sua resposta para "{form.title}" foi enviada com sucesso.</CardDescription>
           </CardHeader>
@@ -308,7 +306,7 @@ const PublicBriefingPage = () => {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 sm:p-8 flex justify-center items-center">
       <Card className="w-full max-w-2xl">
         <CardHeader className="text-center pb-4">
-          <AppLogo className="h-12 w-auto mx-auto mb-4" />
+          <AppLogo className="h-12 w-auto mx-auto mb-4" loading="lazy" /> {/* Adicionado loading="lazy" */}
           <CardTitle className="text-3xl font-bold mb-2">{form.title}</CardTitle>
           {form.description && <CardDescription className="text-lg text-muted-foreground">{form.description}</CardDescription>}
           {isTypeformMode && (
@@ -343,8 +341,7 @@ const PublicBriefingPage = () => {
                     className="w-full"
                   />
                 </div>
-                {/* Se form_structure não for carregado, precisamos de um fallback */}
-                {(form as any).form_structure?.map((field: BriefingFormField) => (
+                {form.form_structure?.map((field: BriefingFormField) => (
                   <div key={field.id} className="space-y-2">
                     <Label htmlFor={field.id} className="text-base font-medium">
                       {field.label} {field.required && <span className="text-destructive">*</span>}

@@ -122,7 +122,7 @@ export function EditUserModal({ isOpen, onClose, user, onSave }: EditUserModalPr
         <div className="py-4 space-y-4">
           <div className="flex items-center gap-4">
             <Avatar className="h-20 w-20">
-              <AvatarImage src={avatarPreviewUrl || undefined} />
+              <AvatarImage src={avatarPreviewUrl || undefined} loading="lazy" /> {/* Adicionado loading="lazy" */}
               <AvatarFallback className="text-3xl">{fullName?.charAt(0) || user?.email?.charAt(0) || <User className="h-10 w-10" />}</AvatarFallback>
             </Avatar>
             <div className="flex-grow space-y-2">

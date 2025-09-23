@@ -116,6 +116,7 @@ export function KanbanCard({
                 src={coverImage}
                 alt={task.title}
                 className="w-full h-full object-cover"
+                loading="lazy" // Adicionado loading="lazy"
               />
               <div 
                 className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
@@ -137,7 +138,7 @@ export function KanbanCard({
           {task.assignedTo && (
             <div className="flex items-center gap-2 text-xs text-muted-foreground mt-2">
               <Avatar className="h-5 w-5">
-                <AvatarImage src={task.assignedToAvatar || undefined} />
+                <AvatarImage src={task.assignedToAvatar || undefined} loading="lazy" /> {/* Adicionado loading="lazy" */}
                 <AvatarFallback className="text-xs">{task.assignedToName?.charAt(0) || <User className="h-3 w-3" />}</AvatarFallback>
               </Avatar>
               <span>{task.assignedToName}</span>

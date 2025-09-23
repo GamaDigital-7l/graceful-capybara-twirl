@@ -87,7 +87,7 @@ const ClientDashboard = () => {
             <Link to={`/workspace/${ws.id}`} className="flex flex-col flex-grow">
               <CardHeader className="flex flex-col items-center justify-center pt-6 pb-4 flex-grow">
                 <Avatar className="h-24 w-24 mb-4">
-                  <AvatarImage src={ws.logo_url || undefined} alt={ws.name} />
+                  <AvatarImage src={ws.logo_url || undefined} alt={ws.name} loading="lazy" /> {/* Adicionado loading="lazy" */}
                   <AvatarFallback className="text-4xl">{ws.name.charAt(0).toUpperCase()}</AvatarFallback>
                 </Avatar>
                 <CardTitle className="text-lg font-medium text-center">{ws.name}</CardTitle>

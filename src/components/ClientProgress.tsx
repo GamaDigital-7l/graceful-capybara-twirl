@@ -100,7 +100,7 @@ export function ClientProgress() {
                 <div className="flex items-center gap-2">
                   {ws.logo_url ? (
                     <Avatar className="h-6 w-6">
-                      <AvatarImage src={ws.logo_url} alt={ws.name} />
+                      <AvatarImage src={ws.logo_url} alt={ws.name} loading="lazy" /> {/* Adicionado loading="lazy" */}
                       <AvatarFallback>{ws.name.charAt(0)}</AvatarFallback>
                     </Avatar>
                   ) : (

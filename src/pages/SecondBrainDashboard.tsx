@@ -111,7 +111,9 @@ const SecondBrainDashboard = () => {
   };
 
   if (isProfileLoading || userRole === undefined) {
-    return <div className="flex justify-center items-center min-h-screen">Carregando...</div>;
+    return (
+      <div className="flex justify-center items-center min-h-screen">Carregando...</div>
+    );
   }
 
   if (userRole !== 'admin' && userRole !== 'equipe') {
@@ -139,7 +141,7 @@ const SecondBrainDashboard = () => {
           <CardTitle>Meus Clientes</CardTitle>
           <CardDescription>Gerencie os clientes e seus prompts personalizados.</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-4 sm:p-6"> {/* Ajustado padding */}
           {isLoadingClients ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-48 w-full" />)}
@@ -187,7 +189,7 @@ const SecondBrainDashboard = () => {
                     </DropdownMenu>
                   </CardHeader>
                   <Link to={`/second-brain/${client.id}`} className="flex flex-col flex-grow">
-                    <CardContent className="flex-grow flex items-end justify-center p-4">
+                    <CardContent className="flex-grow flex items-end justify-center p-4 pt-0"> {/* Ajustado padding */}
                       <Button variant="outline" className="w-full">Ver Prompts</Button>
                     </CardContent>
                   </Link>

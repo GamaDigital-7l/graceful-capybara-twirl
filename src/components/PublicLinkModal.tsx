@@ -39,7 +39,7 @@ export function PublicLinkModal({ isOpen, onClose, link, isGenerating, messageTe
             {description}
           </DialogDescription>
         </DialogHeader>
-        <div className="py-4 space-y-4">
+        <div className="py-4 space-y-4 p-4 sm:p-6"> {/* Ajustado padding */}
           {isGenerating ? (
             <div className="flex items-center justify-center h-24">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />

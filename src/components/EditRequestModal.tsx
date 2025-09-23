@@ -48,7 +48,7 @@ export function EditRequestModal({
         <DialogHeader>
           <DialogTitle>Solicitar Edição para: {task.title}</DialogTitle>
         </DialogHeader>
-        <div className="py-4">
+        <div className="py-4 p-4 sm:p-6"> {/* Ajustado padding */}
           <Label htmlFor="comment">Adicionar Comentário de Edição</Label>
           <Textarea
             id="comment"

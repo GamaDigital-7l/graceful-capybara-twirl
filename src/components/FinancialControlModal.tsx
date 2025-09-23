@@ -65,7 +65,7 @@ export function FinancialControlModal({ isOpen, onClose, onSave, existingData, w
         <DialogHeader>
           <DialogTitle>{existingData?.id ? "Editar" : "Adicionar"} Lançamento Financeiro</DialogTitle>
         </DialogHeader>
-        <div className="py-4 grid grid-cols-2 gap-4">
+        <div className="py-4 grid grid-cols-2 gap-4 p-4 sm:p-6"> {/* Ajustado padding */}
           <div className="col-span-2 flex items-center space-x-2">
             <Switch id="avulso-switch" checked={isAvulso} onCheckedChange={handleAvulsoToggle} disabled={!!existingData?.id} />
             <Label htmlFor="avulso-switch">É um serviço avulso?</Label>

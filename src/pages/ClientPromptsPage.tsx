@@ -178,7 +178,7 @@ const ClientPromptsPage = () => {
           <CardTitle>Prompts Personalizados</CardTitle>
           <CardDescription>Gerencie os prompts de IA e notas importantes para este cliente.</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-4 sm:p-6"> {/* Ajustado padding */}
           {isLoadingPrompts ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-48 w-full" />)}
@@ -229,7 +229,7 @@ const ClientPromptsPage = () => {
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </CardHeader>
-                  <CardContent className="flex-grow">
+                  <CardContent className="flex-grow p-4 pt-0"> {/* Ajustado padding */}
                     <p className="text-sm text-muted-foreground line-clamp-5">{prompt.content}</p>
                   </CardContent>
                 </Card>

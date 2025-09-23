@@ -123,7 +123,7 @@ export function ClientOnboardingGeneratorModal({
         <DialogHeader>
           <DialogTitle>Gerar Página de Boas-Vindas para Cliente</DialogTitle>
         </DialogHeader>
-        <div className="py-4 space-y-4">
+        <div className="py-4 space-y-4 p-4 sm:p-6"> {/* Ajustado padding */}
           <div className="space-y-2">
             <Label htmlFor="client-name">Nome do Cliente</Label>
             <Input

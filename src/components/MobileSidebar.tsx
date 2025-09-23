@@ -37,7 +37,7 @@ export function MobileSidebar({ userRole, onClose }: MobileSidebarProps) {
   return (
     <SheetContent side="left" className="w-[250px] p-4 flex flex-col">
       <div className="flex items-center justify-between mb-6">
-        <AppLogo className="h-8 w-auto" />
+        <AppLogo className="h-8 w-auto" loading="lazy" /> {/* Adicionado loading="lazy" */}
         <ThemeToggle />
       </div>
       <nav className="flex flex-col gap-2 flex-grow">

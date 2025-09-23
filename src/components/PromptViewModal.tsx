@@ -23,7 +23,7 @@ export function PromptViewModal({ isOpen, onClose, prompt }: PromptViewModalProp
           <DialogTitle>{prompt.title}</DialogTitle>
         </DialogHeader>
         <ScrollArea className="max-h-[70vh] pr-4">
-          <div className="py-4 whitespace-pre-wrap text-sm text-muted-foreground">
+          <div className="py-4 whitespace-pre-wrap text-sm text-muted-foreground p-4 sm:p-6"> {/* Ajustado padding */}
             {prompt.content}
           </div>
         </ScrollArea>

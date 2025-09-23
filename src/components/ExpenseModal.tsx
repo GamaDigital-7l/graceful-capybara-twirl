@@ -67,7 +67,7 @@ export function ExpenseModal({ isOpen, onClose, onSave, existingData }: ExpenseM
         <DialogHeader>
           <DialogTitle>{existingData?.id ? "Editar Gasto" : "Adicionar Novo Gasto"}</DialogTitle>
         </DialogHeader>
-        <div className="py-4 space-y-4">
+        <div className="py-4 space-y-4 p-4 sm:p-6"> {/* Ajustado padding */}
           <div className="space-y-2">
             <Label htmlFor="description">Descrição</Label>
             <Textarea

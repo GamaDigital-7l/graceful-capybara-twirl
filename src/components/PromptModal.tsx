@@ -67,7 +67,7 @@ export function PromptModal({
         <DialogHeader>
           <DialogTitle>{existingPrompt ? "Editar Prompt" : "Adicionar Novo Prompt"}</DialogTitle>
         </DialogHeader>
-        <div className="py-4 space-y-4">
+        <div className="py-4 space-y-4 p-4 sm:p-6"> {/* Ajustado padding */}
           <div className="space-y-2">
             <Label htmlFor="prompt-title">Título do Prompt</Label>
             <Input

@@ -25,7 +25,7 @@ const fetchApprovalData = async (token: string) => {
 
 const PublicApprovalPage = () => {
   const { token } = useParams<{ token: string }>();
-  const [processedTasks, setProcessedTasks] = useState<Set<string>>(new Set());
+  const [processedTasks, setProcessedTasks] = new Set();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<any>(null);
   const [editComment, setEditComment] = useState("");
@@ -100,10 +100,10 @@ const PublicApprovalPage = () => {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 sm:p-8">
       <header className="text-center mb-8">
         <div className="mb-4">
-          <AppLogo className="h-12 w-auto mx-auto" /> {/* Usando AppLogo aqui */}
+          <AppLogo className="h-12 w-auto mx-auto" loading="lazy" /> {/* Adicionado loading="lazy" */}
         </div>
         <div className="flex justify-center items-center gap-4 mb-2">
-          {data.workspace.logo_url && <Avatar><AvatarImage src={data.workspace.logo_url} /><AvatarFallback>{data.workspace.name.charAt(0)}</AvatarFallback></Avatar>}
+          {data.workspace.logo_url && <Avatar><AvatarImage src={data.workspace.logo_url} loading="lazy" /><AvatarFallback>{data.workspace.name.charAt(0)}</AvatarFallback></Avatar>} {/* Adicionado loading="lazy" */}
           <h1 className="text-3xl font-bold">{data.workspace.name}</h1>
         </div>
         <p className="text-muted-foreground">Revise e aprove os posts abaixo.</p>
@@ -123,7 +123,7 @@ const PublicApprovalPage = () => {
             <CardContent className="space-y-4">
               {task.attachments?.[0]?.url && (
                 <AspectRatio ratio={1 / 1} className="bg-muted rounded-md group relative">
-                  <img src={task.attachments[0].url} alt={task.title} className="rounded-md object-cover w-full h-full" />
+                  <img src={task.attachments[0].url} alt={task.title} className="rounded-md object-cover w-full h-full" loading="lazy" /> {/* Adicionado loading="lazy" */}
                   <div 
                     className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
                     onClick={() => handleImageClick(task.attachments[0].url)}

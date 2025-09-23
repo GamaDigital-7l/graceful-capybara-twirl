@@ -292,7 +292,7 @@ export function TaskModal({
                           <SelectItem key={user.id} value={user.id}>
                             <div className="flex items-center gap-2">
                               <Avatar className="h-6 w-6">
-                                <AvatarImage src={user.avatar_url || undefined} />
+                                <AvatarImage src={user.avatar_url || undefined} loading="lazy" /> {/* Adicionado loading="lazy" */}
                                 <AvatarFallback>{user.full_name?.charAt(0) || <User className="h-4 w-4" />}</AvatarFallback>
                               </Avatar>
                               {user.full_name}
@@ -312,7 +312,7 @@ export function TaskModal({
                   {attachmentUrl && (
                     <div className="space-y-2">
                       <AspectRatio ratio={16 / 9} className="bg-muted rounded-md group relative">
-                        <img src={attachmentUrl} alt="Pré-visualização" className="rounded-md object-cover w-full h-full" />
+                        <img src={attachmentUrl} alt="Pré-visualização" className="rounded-md object-cover w-full h-full" loading="lazy" /> {/* Adicionado loading="lazy" */}
                         <div 
                           className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
                           onClick={() => setIsPreviewModalOpen(true)}

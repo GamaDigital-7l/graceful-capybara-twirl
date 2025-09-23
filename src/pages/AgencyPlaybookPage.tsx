@@ -101,7 +101,7 @@ const AgencyPlaybookPage = () => {
                   <CardTitle className="flex items-center gap-2"><LinkIcon /> Links Essenciais</CardTitle>
                   <CardDescription>Acessos rápidos para ferramentas e documentos.</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-4 p-4 sm:p-6"> {/* Ajustado padding */}
                   <div>
                     <h4 className="font-semibold text-sm mb-2 flex items-center gap-2"><FileText className="h-4 w-4" /> Briefings</h4>
                     {playbook.briefings?.length > 0 ? (
@@ -161,7 +161,7 @@ const AgencyPlaybookPage = () => {
                     <CardTitle className="flex items-center gap-2"><FileText /> Proposta Comercial</CardTitle>
                     <CardDescription>Link para o modelo de proposta comercial.</CardDescription>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="p-4 sm:p-6"> {/* Ajustado padding */}
                     {playbook.commercial_proposal_link ? (
                       <div className="flex items-center justify-between p-2 border rounded-md bg-muted/50">
                         <a href={playbook.commercial_proposal_link} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-blue-500 hover:underline">
@@ -182,7 +182,7 @@ const AgencyPlaybookPage = () => {
                     <CardTitle className="flex items-center gap-2"><Users /> Processos da Agência</CardTitle>
                     <CardDescription>Passo a passo para as operações internas.</CardDescription>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="p-4 sm:p-6"> {/* Ajustado padding */}
                     <div className="prose dark:prose-invert max-w-none whitespace-pre-wrap">
                       {playbook.agency_processes || <p className="text-muted-foreground">Nenhum processo da agência preenchido.</p>}
                     </div>
@@ -194,7 +194,7 @@ const AgencyPlaybookPage = () => {
                     <CardTitle className="flex items-center gap-2"><KeyRound /> Logins de Plataformas</CardTitle>
                     <CardDescription>Credenciais para ferramentas e IAs da agência.</CardDescription>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="p-4 sm:p-6"> {/* Ajustado padding */}
                     <ul className="space-y-2">
                       {playbook.logins?.map((login, index) => (
                         <li key={index} className="p-2 border rounded-md bg-muted/50">
@@ -225,7 +225,7 @@ const AgencyPlaybookPage = () => {
                     <CardTitle className="flex items-center gap-2"><FileText /> Cultura e Valores</CardTitle>
                     <CardDescription>Informações sobre a empresa, o que fazer, prazos, etc.</CardDescription>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="p-4 sm:p-6"> {/* Ajustado padding */}
                     <div className="prose dark:prose-invert max-w-none whitespace-pre-wrap">
                       {playbook.culture_and_values || <p className="text-muted-foreground">Nenhuma informação de cultura e valores preenchida.</p>}
                     </div>

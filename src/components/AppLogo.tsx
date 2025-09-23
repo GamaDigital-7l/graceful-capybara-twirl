@@ -9,6 +9,6 @@ export function AppLogo({ className }: AppLogoProps) {
   const logoSrc = theme === "dark" ? "/logo-gama-dark.png" : "/logo-gama-light.png";
 
   return (
-    <img src={logoSrc} alt="Gama Creative Logo" className={className} />
+    <img src={logoSrc} alt="Gama Creative Logo" className={className} loading="lazy" />
   );
 }

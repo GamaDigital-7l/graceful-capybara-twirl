@@ -49,7 +49,7 @@ export function ImagePreviewModal({ isOpen, onClose, imageUrl }: ImagePreviewMod
           <DialogTitle className="p-4">Visualizar Imagem</DialogTitle>
         </DialogHeader>
         <div className="flex justify-center items-center p-4">
-          <img src={imageUrl} alt="Preview" className="max-w-full max-h-[70vh] object-contain" />
+          <img src={imageUrl} alt="Preview" className="max-w-full max-h-[70vh] object-contain" loading="lazy" /> {/* Adicionado loading="lazy" */}
         </div>
         <DialogFooter className="p-4 flex-col sm:flex-row sm:justify-end gap-2">
           <p className="text-xs text-muted-foreground text-center sm:text-right mb-2 sm:mb-0">

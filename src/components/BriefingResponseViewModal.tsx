@@ -92,7 +92,7 @@ export function BriefingResponseViewModal({ isOpen, onClose, response, form }: B
           <DialogTitle>Resposta do Briefing: {form.title}</DialogTitle>
         </DialogHeader>
         <ScrollArea className="max-h-[70vh] pr-4">
-          <div className="py-4 space-y-6">
+          <div className="py-4 space-y-6 p-4 sm:p-6"> {/* Ajustado padding */}
             <div className="space-y-2">
               <p className="text-sm font-medium text-muted-foreground">Enviado por:</p>
               <p className="text-lg font-semibold">{response.client_name || "Usuário Autenticado"}</p>

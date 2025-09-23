@@ -153,7 +153,7 @@ const BriefingResponsesPage = () => {
           <CardTitle>Respostas Recebidas</CardTitle>
           <CardDescription>Visualize e gerencie as respostas enviadas para este formulário.</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-4 sm:p-6"> {/* Ajustado padding */}
           {responses && responses.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {responses.map((response) => (
@@ -201,7 +201,7 @@ const BriefingResponsesPage = () => {
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </CardHeader>
-                  <CardContent className="flex-grow">
+                  <CardContent className="flex-grow p-4 pt-0"> {/* Ajustado padding */}
                     <p className="text-sm text-muted-foreground line-clamp-3">
                       {/* Exibir um resumo das primeiras respostas */}
                       {Object.entries(response.response_data).slice(0, 2).map(([fieldId, value]) => {

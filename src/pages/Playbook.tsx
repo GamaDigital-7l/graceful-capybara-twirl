@@ -125,7 +125,7 @@ const PlaybookPage = () => {
                 <CardTitle className="flex items-center gap-2"><LinkIcon /> Ativos e Links</CardTitle>
                 <CardDescription>Links para contrato, logos, fontes, etc.</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-2">
+              <CardContent className="space-y-2 p-4 sm:p-6"> {/* Ajustado padding */}
                 {playbook.contract_url ? (
                   <a href={playbook.contract_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-blue-500 hover:underline">
                     <BookOpen className="h-4 w-4" /> Ver Contrato
@@ -147,7 +147,7 @@ const PlaybookPage = () => {
                 <CardTitle className="flex items-center gap-2"><Paperclip /> Documentos</CardTitle>
                 <CardDescription>Anexos e documentos importantes.</CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-4 sm:p-6"> {/* Ajustado padding */}
                 <ul className="space-y-1">
                   {playbook.documents?.map((doc, index) => (
                     <li key={index}>
@@ -164,7 +164,7 @@ const PlaybookPage = () => {
                 <CardTitle className="flex items-center gap-2"><KeyRound /> Logins de Redes Sociais</CardTitle>
                 <CardDescription>Credenciais para as plataformas do cliente.</CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-4 sm:p-6"> {/* Ajustado padding */}
                 <ul className="space-y-2">
                   {playbook.social_media_logins?.map((login, index) => (
                     <li key={index} className="p-2 border rounded-md bg-muted/50">
@@ -195,7 +195,7 @@ const PlaybookPage = () => {
                 <CardTitle className="flex items-center gap-2"><FileText /> Briefing</CardTitle>
                 <CardDescription>Respostas e informações chave do projeto.</CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-4 sm:p-6"> {/* Ajustado padding */}
                 <div className="prose dark:prose-invert max-w-none whitespace-pre-wrap">
                   {playbook.briefing || <p className="text-muted-foreground">Nenhum briefing preenchido.</p>}
                 </div>
@@ -207,7 +207,7 @@ const PlaybookPage = () => {
       {playbook && (
         <PlaybookEditor
           isOpen={isEditorOpen}
-          onClose={() => setIsEditorOpen(false)}
+          onClose={() => setIsEditorEditor(false)}
           playbook={playbook}
           onSave={(data) => updatePlaybookMutation.mutate(data)}
         />

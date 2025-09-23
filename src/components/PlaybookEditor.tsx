@@ -108,7 +108,7 @@ export function PlaybookEditor({ isOpen, onClose, playbook, onSave }: PlaybookEd
             <TabsTrigger value="logins">Logins</TabsTrigger>
             <TabsTrigger value="briefing">Briefing</TabsTrigger>
           </TabsList>
-          <TabsContent value="assets" className="pt-4 space-y-4">
+          <TabsContent value="assets" className="pt-4 space-y-4 p-4 sm:p-6"> {/* Ajustado padding */}
             <div>
               <Label htmlFor="contract">URL do Contrato</Label>
               <Input id="contract" value={contractUrl} onChange={(e) => setContractUrl(e.target.value)} placeholder="https://..." />
@@ -123,7 +123,7 @@ export function PlaybookEditor({ isOpen, onClose, playbook, onSave }: PlaybookEd
             ))}
             <Button variant="outline" onClick={addAssetLink}>Adicionar Link</Button>
           </TabsContent>
-          <TabsContent value="documents" className="pt-4 space-y-4">
+          <TabsContent value="documents" className="pt-4 space-y-4 p-4 sm:p-6"> {/* Ajustado padding */}
             <Label>Documentos Anexados</Label>
             {documents.map((doc, index) => (
               <div key={index} className="flex items-center justify-between p-2 border rounded-md">
@@ -138,7 +138,7 @@ export function PlaybookEditor({ isOpen, onClose, playbook, onSave }: PlaybookEd
               </Label>
             </Button>
           </TabsContent>
-          <TabsContent value="logins" className="pt-4 space-y-4">
+          <TabsContent value="logins" className="pt-4 space-y-4 p-4 sm:p-6"> {/* Ajustado padding */}
             <Label>Logins de Redes Sociais</Label>
             {socialLogins.map((login, index) => (
               <div key={index} className="grid grid-cols-3 items-center gap-2">
@@ -152,7 +152,7 @@ export function PlaybookEditor({ isOpen, onClose, playbook, onSave }: PlaybookEd
             ))}
             <Button variant="outline" onClick={addSocialLogin}>Adicionar Login</Button>
           </TabsContent>
-          <TabsContent value="briefing" className="pt-4">
+          <TabsContent value="briefing" className="pt-4 p-4 sm:p-6"> {/* Ajustado padding */}
             <Label htmlFor="briefing">Conteúdo do Briefing</Label>
             <Textarea id="briefing" value={briefing} onChange={(e) => setBriefing(e.target.value)} rows={15} />
           </TabsContent>

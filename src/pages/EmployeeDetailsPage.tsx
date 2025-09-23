@@ -129,7 +129,7 @@ const EmployeeDetailsPage = () => {
           </Button>
           <div className="flex items-center gap-4">
             <Avatar className="h-16 w-16">
-              <AvatarImage src={employee.avatar_url || undefined} />
+              <AvatarImage src={employee.avatar_url || undefined} loading="lazy" /> {/* Adicionado loading="lazy" */}
               <AvatarFallback className="text-2xl">{employee.full_name?.charAt(0) || <User className="h-8 w-8" />}</AvatarFallback>
             </Avatar>
             <div>

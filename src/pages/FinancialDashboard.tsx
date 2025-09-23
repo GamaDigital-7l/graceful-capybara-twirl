@@ -228,7 +228,7 @@ const FinancialDashboard = () => {
             <CardTitle className="text-sm font-medium">Faturamento do Mês (Ativos)</CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-4 sm:p-6"> {/* Ajustado padding */}
             {isLoadingFinancial ? <Skeleton className="h-8 w-3/4" /> : <div className="text-2xl font-bold">{formatCurrency(totalRevenue)}</div>}
           </CardContent>
         </Card>
@@ -237,7 +237,7 @@ const FinancialDashboard = () => {
             <CardTitle className="text-sm font-medium">Clientes Ativos no Mês</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-4 sm:p-6"> {/* Ajustado padding */}
             {isLoadingFinancial ? <Skeleton className="h-8 w-1/4" /> : <div className="text-2xl font-bold">{activeClients}</div>}
           </CardContent>
         </Card>
@@ -246,7 +246,7 @@ const FinancialDashboard = () => {
             <CardTitle className="text-sm font-medium">Total de Gastos</CardTitle>
             <MinusCircle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-4 sm:p-6"> {/* Ajustado padding */}
             {isLoadingExpenses ? <Skeleton className="h-8 w-3/4" /> : <div className="text-2xl font-bold text-destructive">{formatCurrency(totalExpenses)}</div>}
           </CardContent>
         </Card>
@@ -255,7 +255,7 @@ const FinancialDashboard = () => {
             <CardTitle className="text-sm font-medium">Lucro Líquido</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-4 sm:p-6"> {/* Ajustado padding */}
             {(isLoadingFinancial || isLoadingExpenses) ? <Skeleton className="h-8 w-3/4" /> : <div className="text-2xl font-bold">{formatCurrency(netProfit)}</div>}
           </CardContent>
         </Card>
@@ -284,7 +284,7 @@ const FinancialDashboard = () => {
             <CardHeader>
               <CardTitle>Controle de Recebimentos do Mês ({format(selectedPeriod, "MMMM yyyy", { locale: ptBR })})</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-4 sm:p-6"> {/* Ajustado padding */}
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -351,7 +351,7 @@ const FinancialDashboard = () => {
             <CardHeader>
               <CardTitle>Controle de Gastos do Mês ({format(selectedPeriod, "MMMM yyyy", { locale: ptBR })})</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-4 sm:p-6"> {/* Ajustado padding */}
               <Table>
                 <TableHeader>
                   <TableRow>

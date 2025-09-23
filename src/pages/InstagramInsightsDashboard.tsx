@@ -191,7 +191,7 @@ const InstagramInsightsDashboard = () => {
           <CardTitle>Inserir Dados do Instagram</CardTitle>
           <CardDescription>Preencha as métricas mais recentes do Instagram para gerar insights.</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-4 p-4 sm:p-6"> {/* Ajustado padding */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"> {/* Ajustado para 3 colunas */}
             <div className="space-y-2">
               <Label htmlFor="insight-date">Data do Insight</Label>
@@ -271,7 +271,7 @@ const InstagramInsightsDashboard = () => {
         <header className="text-center mb-8">
           {workspaceDetails?.logo_url && (
             <Avatar className="h-24 w-24 mx-auto mb-4">
-              <AvatarImage src={workspaceDetails.logo_url} alt={workspaceDetails.name} />
+              <AvatarImage src={workspaceDetails.logo_url} alt={workspaceDetails.name} loading="lazy" /> {/* Adicionado loading="lazy" */}
               <AvatarFallback className="text-4xl">{workspaceDetails.name.charAt(0)}</AvatarFallback>
             </Avatar>
           )}
@@ -287,7 +287,7 @@ const InstagramInsightsDashboard = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2"><FileText className="h-5 w-5" /> Resumo da IA</CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-4 sm:p-6"> {/* Ajustado padding */}
                 <p className="whitespace-pre-wrap text-muted-foreground">{geminiOutput.summary}</p>
               </CardContent>
             </Card>
@@ -297,7 +297,7 @@ const InstagramInsightsDashboard = () => {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2"><BarChart className="h-5 w-5" /> Métricas Chave</CardTitle>
                 </CardHeader>
-                <CardContent className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <CardContent className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-4 sm:p-6"> {/* Ajustado padding */}
                   {geminiOutput.key_metrics.map((metric, index) => (
                     <div key={index} className="p-4 border rounded-lg bg-muted/20">
                       <p className="text-sm font-medium text-muted-foreground">{metric.name}</p>
@@ -313,7 +313,7 @@ const InstagramInsightsDashboard = () => {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2"><TrendingUp className="h-5 w-5" /> Tendências</CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="p-4 sm:p-6"> {/* Ajustado padding */}
                   <ul className="list-disc list-inside space-y-1 text-muted-foreground">
                     {geminiOutput.trends.map((trend, index) => (
                       <li key={index}>{trend}</li>
@@ -328,7 +328,7 @@ const InstagramInsightsDashboard = () => {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2"><Sparkles className="h-5 w-5" /> Recomendações</CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="p-4 sm:p-6"> {/* Ajustado padding */}
                   <ul className="list-disc list-inside space-y-1 text-muted-foreground">
                     {geminiOutput.recommendations.map((rec, index) => (
                       <li key={index}>{rec}</li>
@@ -343,7 +343,7 @@ const InstagramInsightsDashboard = () => {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2"><FileText className="h-5 w-5" /> Saída Bruta da IA (Debug)</CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="p-4 sm:p-6"> {/* Ajustado padding */}
                   <pre className="whitespace-pre-wrap text-xs bg-muted p-4 rounded-md overflow-x-auto">{geminiOutput.raw_output}</pre>
                 </CardContent>
               </Card>
@@ -357,7 +357,7 @@ const InstagramInsightsDashboard = () => {
               <CardTitle className="flex items-center gap-2"><BarChart className="h-5 w-5" /> Gráfico de Métricas</CardTitle>
               <CardDescription>Visão geral das métricas inseridas.</CardDescription>
             </CardHeader>
-            <CardContent className="h-[400px]">
+            <CardContent className="h-[400px] p-4 sm:p-6"> {/* Ajustado padding */}
               <ResponsiveContainer width="100%" height="100%">
                 <RechartsBarChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" />

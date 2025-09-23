@@ -98,7 +98,7 @@ export function MyTasks() {
                 <CardHeader className="flex flex-row items-center gap-3 pb-4 mb-4 border-b"> {/* Adicionado border-b e ajustado padding */}
                   {logo_url ? (
                     <Avatar className="h-6 w-6">
-                      <AvatarImage src={logo_url} alt={name} />
+                      <AvatarImage src={logo_url} alt={name} loading="lazy" /> {/* Adicionado loading="lazy" */}
                       <AvatarFallback>{name.charAt(0)}</AvatarFallback>
                     </Avatar>
                   ) : (

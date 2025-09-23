@@ -198,7 +198,7 @@ export function WorkspaceSettingsModal({ isOpen, onClose, workspace }: Workspace
                   <div key={member.user_id} className="flex items-center justify-between text-sm p-2 border rounded">
                     <div className="flex items-center gap-2">
                       <Avatar className="h-6 w-6">
-                        <AvatarImage src={user.avatar_url} />
+                        <AvatarImage src={user.avatar_url} loading="lazy" /> {/* Adicionado loading="lazy" */}
                         <AvatarFallback>{user.full_name?.charAt(0) || 'U'}</AvatarFallback>
                       </Avatar>
                       <span>{user.full_name || user.email}</span>

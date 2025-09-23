@@ -111,7 +111,7 @@ export function Header({ pageTitle }: HeaderProps) {
             <MobileSidebar userRole={userRole} onClose={() => setIsMobileMenuOpen(false)} />
           </Sheet>
         )}
-        <AppLogo className="h-8 w-auto" />
+        <AppLogo className="h-8 w-auto" loading="lazy" />
         <h1 className="text-xl sm:text-2xl font-bold whitespace-nowrap">{getPageTitle()}</h1>
       </div>
       {!isMobile && (
@@ -122,6 +122,7 @@ export function Header({ pageTitle }: HeaderProps) {
                 key={item.path}
                 variant={location.pathname.startsWith(item.path) && item.path !== "/" ? "secondary" : (location.pathname === item.path ? "secondary" : "ghost")}
                 asChild
+                size="sm" // Adicionado size="sm" para botões menores em desktop
               >
                 <Link to={item.path}>
                   <item.icon className="mr-2 h-4 w-4" />
@@ -133,7 +134,7 @@ export function Header({ pageTitle }: HeaderProps) {
           {(userRole === 'admin' || userRole === 'equipe') && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost">
+                <Button variant="ghost" size="sm"> {/* Adicionado size="sm" */}
                   <UserCog className="mr-2 h-4 w-4" />
                   Configurações
                 </Button>
@@ -170,7 +171,7 @@ export function Header({ pageTitle }: HeaderProps) {
             </DropdownMenu>
           )}
           <ThemeToggle />
-          <Button onClick={handleLogout} variant="outline">
+          <Button onClick={handleLogout} variant="outline" size="sm"> {/* Adicionado size="sm" */}
             <LogOut className="h-4 w-4 mr-2" />
             Sair
           </Button>

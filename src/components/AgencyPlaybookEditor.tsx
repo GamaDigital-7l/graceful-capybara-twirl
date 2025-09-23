@@ -121,7 +121,7 @@ export function AgencyPlaybookEditor({ isOpen, onClose, playbook, onSave }: Agen
             <TabsTrigger value="logins">Logins</TabsTrigger>
             <TabsTrigger value="culture">Cultura</TabsTrigger>
           </TabsList>
-          <TabsContent value="links" className="pt-4 space-y-6">
+          <TabsContent value="links" className="pt-4 space-y-6 p-4 sm:p-6"> {/* Ajustado padding */}
             <div>
               <Label className="text-lg font-semibold">Briefings</Label>
               {briefings.map((link, index) => (
@@ -164,12 +164,12 @@ export function AgencyPlaybookEditor({ isOpen, onClose, playbook, onSave }: Agen
               <Input id="drive-link" value={driveLink} onChange={(e) => setDriveLink(e.target.value)} placeholder="https://..." />
             </div>
           </TabsContent>
-          <TabsContent value="processes" className="pt-4">
+          <TabsContent value="processes" className="pt-4 p-4 sm:p-6"> {/* Ajustado padding */}
             <Label htmlFor="agency-processes">Processos da Agência (Passo a passo) (suporta Markdown)</Label>
             <Textarea id="agency-processes" value={agencyProcesses} onChange={(e) => setAgencyProcesses(e.target.value)} rows={15} />
             <p className="text-xs text-muted-foreground">Use **negrito**, *itálico*, [links](url) e imagens `![alt](url)`.</p>
           </TabsContent>
-          <TabsContent value="logins" className="pt-4 space-y-4">
+          <TabsContent value="logins" className="pt-4 space-y-4 p-4 sm:p-6"> {/* Ajustado padding */}
             <Label>Logins de IAs e Plataformas</Label>
             {logins.map((login, index) => (
               <div key={index} className="grid grid-cols-3 items-center gap-2">
@@ -183,7 +183,7 @@ export function AgencyPlaybookEditor({ isOpen, onClose, playbook, onSave }: Agen
             ))}
             <Button variant="outline" onClick={addLogin}>Adicionar Login</Button>
           </TabsContent>
-          <TabsContent value="culture" className="pt-4">
+          <TabsContent value="culture" className="pt-4 p-4 sm:p-6"> {/* Ajustado padding */}
             <Label htmlFor="culture-and-values">Cultura e Valores da Agência (suporta Markdown)</Label>
             <Textarea id="culture-and-values" value={cultureAndValues} onChange={(e) => setCultureAndValues(e.target.value)} rows={15} />
             <p className="text-xs text-muted-foreground">Use **negrito**, *itálico*, [links](url) e imagens `![alt](url)`.</p>

@@ -108,7 +108,7 @@ const MarkdownVideoRenderer = ({ node, ...props }: any) => {
     );
   }
   // Fallback para imagem se não for um vídeo reconhecido
-  return <img {...props} className="max-w-full h-auto rounded-md my-4" />;
+  return <img {...props} className="max-w-full h-auto rounded-md my-4" loading="lazy" />;
 };
 
 const PublicClientOnboardingPage = () => {
@@ -170,8 +170,7 @@ const PublicClientOnboardingPage = () => {
   const sections: { [key: string]: React.ReactNode } = {
     welcome_message: welcome_message && (
       <Card>
-        {/* Removido CardHeader para remover o título "Mensagem de Boas-Vindas" */}
-        <CardContent>
+        <CardContent className="p-4 sm:p-6"> {/* Ajustado padding */}
           <div className="prose dark:prose-invert max-w-none">
             <ReactMarkdown remarkPlugins={[remarkGfm]} components={{ img: MarkdownVideoRenderer }}>
               {welcome_message}
@@ -183,7 +182,7 @@ const PublicClientOnboardingPage = () => {
     main_content: main_content && (
       <Card>
         <CardHeader><CardTitle>Detalhes do Seu Projeto</CardTitle></CardHeader>
-        <CardContent>
+        <CardContent className="p-4 sm:p-6"> {/* Ajustado padding */}
           <div className="prose dark:prose-invert max-w-none">
             <ReactMarkdown remarkPlugins={[remarkGfm]} components={{ img: MarkdownVideoRenderer }}>
               {main_content}
@@ -195,7 +194,7 @@ const PublicClientOnboardingPage = () => {
     briefing_links: briefing_links && briefing_links.length > 0 && (
       <Card>
         <CardHeader><CardTitle className="flex items-center gap-2"><FileText className="h-5 w-5" /> Briefings Essenciais</CardTitle></CardHeader>
-        <CardContent>
+        <CardContent className="p-4 sm:p-6"> {/* Ajustado padding */}
           <ul className="space-y-2">
             {briefing_links.map((link, index) => (
               <li key={index}>
@@ -211,7 +210,7 @@ const PublicClientOnboardingPage = () => {
     processes_content: processes_content && processes_content.length > 0 && (
       <Card>
         <CardHeader><CardTitle className="flex items-center gap-2"><Users className="h-5 w-5" /> Nossos Processos</CardTitle></CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="p-4 sm:p-6 space-y-4"> {/* Ajustado padding */}
           {processes_content.map((item, index) => (
             <div key={index} className="space-y-2 border p-3 rounded-md bg-muted/50">
               <h3 className="font-semibold text-lg">{item.title}</h3>
@@ -228,7 +227,7 @@ const PublicClientOnboardingPage = () => {
     apps_access_info: apps_access_info && apps_access_info.length > 0 && (
       <Card>
         <CardHeader><CardTitle className="flex items-center gap-2"><LinkIcon className="h-5 w-5" /> Acesso aos Nossos Apps</CardTitle></CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="p-4 sm:p-6 space-y-4"> {/* Ajustado padding */}
           {apps_access_info.map((item, index) => (
             <div key={index} className="space-y-2 border p-3 rounded-md bg-muted/50">
               <h3 className="font-semibold text-lg">{item.title}</h3>
@@ -245,7 +244,7 @@ const PublicClientOnboardingPage = () => {
     tutorial_videos: tutorial_videos && tutorial_videos.length > 0 && (
       <Card>
         <CardHeader><CardTitle className="flex items-center gap-2"><Video className="h-5 w-5" /> Vídeos Tutoriais</CardTitle></CardHeader>
-        <CardContent>
+        <CardContent className="p-4 sm:p-6"> {/* Ajustado padding */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {tutorial_videos.map((video, index) => (
               <div key={index} className="space-y-2">
@@ -274,7 +273,7 @@ const PublicClientOnboardingPage = () => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 sm:p-8">
       <header className="text-center mb-8">
-        <AppLogo className="h-12 w-auto mx-auto mb-4" />
+        <AppLogo className="h-12 w-auto mx-auto mb-4" loading="lazy" /> {/* Adicionado loading="lazy" */}
         <h1 className="text-3xl font-bold">Bem-vindo(a), {client_name}!</h1>
         {company_name && <p className="text-lg text-muted-foreground">da {company_name}</p>}
         <p className="text-lg text-muted-foreground mt-2">À Gama Creative</p>

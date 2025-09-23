@@ -136,7 +136,7 @@ const BriefingsPage = () => {
           <CardTitle>Meus Formulários de Briefing</CardTitle>
           <CardDescription>Crie e gerencie formulários para coletar informações de clientes.</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-4 sm:p-6"> {/* Ajustado padding */}
           {isLoadingForms ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-48 w-full" />)}
@@ -203,7 +203,7 @@ const BriefingsPage = () => {
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </CardHeader>
-                  <CardContent className="flex-grow">
+                  <CardContent className="flex-grow p-4 pt-0"> {/* Ajustado padding */}
                     <p className="text-sm text-muted-foreground line-clamp-3">{form.description || "Nenhuma descrição."}</p>
                     {form.response_count !== undefined && (
                       <div className="flex items-center gap-1 text-sm text-muted-foreground mt-2">

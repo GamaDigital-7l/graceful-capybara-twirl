@@ -140,7 +140,7 @@ const PublicClientDashboardPage = () => {
       <header className="text-center mb-8">
         {workspace.logo_url && (
           <Avatar className="h-24 w-24 mx-auto mb-4">
-            <AvatarImage src={workspace.logo_url} alt={workspace.name} />
+            <AvatarImage src={workspace.logo_url} alt={workspace.name} loading="lazy" /> {/* Adicionado loading="lazy" */}
             <AvatarFallback className="text-4xl">{workspace.name.charAt(0)}</AvatarFallback>
           </Avatar>
         )}
@@ -243,7 +243,7 @@ const PublicClientDashboardPage = () => {
                         <CardContent className="p-4">
                           {task.attachments?.[0]?.url && (
                             <AspectRatio ratio={16 / 9} className="bg-muted rounded-md mb-2 group relative">
-                              <img src={task.attachments[0].url} alt={task.title} className="rounded-md object-cover w-full h-full" />
+                              <img src={task.attachments[0].url} alt={task.title} className="rounded-md object-cover w-full h-full" loading="lazy" /> {/* Adicionado loading="lazy" */}
                               <div 
                                 className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
                                 onClick={() => handleImageClick(task.attachments[0].url)}
@@ -281,7 +281,7 @@ const PublicClientDashboardPage = () => {
                         <CardContent className="p-4">
                           {task.attachments?.[0]?.url && (
                             <AspectRatio ratio={16 / 9} className="bg-muted rounded-md mb-2 group relative">
-                              <img src={task.attachments[0].url} alt={task.title} className="rounded-md object-cover w-full h-full" />
+                              <img src={task.attachments[0].url} alt={task.title} className="rounded-md object-cover w-full h-full" loading="lazy" /> {/* Adicionado loading="lazy" */}
                               <div 
                                 className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
                                 onClick={() => handleImageClick(task.attachments[0].url)}

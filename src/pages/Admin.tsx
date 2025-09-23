@@ -175,7 +175,7 @@ const AdminPage = () => {
                 <div key={user.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 border rounded-lg gap-4 sm:gap-2">
                   <div className="flex items-center gap-4">
                     <Avatar>
-                      <AvatarImage src={user.avatar_url} />
+                      <AvatarImage src={user.avatar_url} loading="lazy" /> {/* Adicionado loading="lazy" */}
                       <AvatarFallback>{user.full_name?.charAt(0) || 'U'}</AvatarFallback>
                     </Avatar>
                     <div>

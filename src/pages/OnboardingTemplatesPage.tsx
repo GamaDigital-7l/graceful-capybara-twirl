@@ -347,7 +347,7 @@ const OnboardingTemplatesPage = () => {
           <CardTitle>Templates Existentes</CardTitle>
           <CardDescription>Crie modelos de páginas de boas-vindas para diferentes serviços ou clientes.</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-4 sm:p-6"> {/* Ajustado padding */}
           {isLoadingTemplates ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-48 w-full" />)}
@@ -394,7 +394,7 @@ const OnboardingTemplatesPage = () => {
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </CardHeader>
-                  <CardContent className="flex-grow">
+                  <CardContent className="flex-grow p-4 pt-0"> {/* Ajustado padding */}
                     <p className="text-sm text-muted-foreground line-clamp-3">{template.welcome_message || "Nenhuma mensagem de boas-vindas."}</p>
                     <div className="flex items-center gap-2 text-xs text-muted-foreground mt-2">
                       {template.briefing_links?.length > 0 && <><FileText className="h-3 w-3" /> {template.briefing_links.length} Briefings</>}
