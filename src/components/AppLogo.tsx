@@ -2,7 +2,7 @@ import { useTheme } from "next-themes";
 
 interface AppLogoProps {
   className?: string;
-  loading?: "lazy" | "eager" | undefined; // Added loading prop
+  loading?: "lazy" | "eager" | undefined;
 }
 
 export function AppLogo({ className, loading }: AppLogoProps) {

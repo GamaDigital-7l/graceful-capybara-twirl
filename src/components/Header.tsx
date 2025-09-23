@@ -2,7 +2,7 @@ import { Link, useLocation } from "react-router-dom";
 import { AppLogo } from "./AppLogo";
 import { ThemeToggle } from "./ThemeToggle";
 import { Button } from "@/components/ui/button";
-import { LogOut, Home, Banknote, Brain, UserCog, Palette, Users, BookOpen, Menu, BarChart, FileText, LayoutTemplate, ListTodo } from "lucide-react"; // Adicionado ListTodo
+import { LogOut, Home, Banknote, Brain, UserCog, Palette, Users, BookOpen, Menu, BarChart, FileText, LayoutTemplate, ListTodo } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useState, useEffect } from "react";
 import { showError } from "@/utils/toast";
@@ -10,10 +10,10 @@ import { MobileSidebar } from "./MobileSidebar";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Skeleton } from "./ui/skeleton";
 import { Sheet, SheetTrigger } from "@/components/ui/sheet";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu"; // Importar DropdownMenu
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 
 interface HeaderProps {
-  pageTitle?: string; // Optional prop for specific page titles
+  pageTitle?: string;
 }
 
 export function Header({ pageTitle }: HeaderProps) {
@@ -56,10 +56,10 @@ export function Header({ pageTitle }: HeaderProps) {
     if (pageTitle) return pageTitle;
     const path = location.pathname;
     if (path === "/") return "Dashboard";
-    if (path.startsWith("/personal-tasks")) return "Todoist"; // New
-    if (path.startsWith("/workspace/") && !path.includes("/playbook") && !path.includes("/instagram-insights")) return "Workspace"; // Atualizado
+    if (path.startsWith("/personal-tasks")) return "Todoist";
+    if (path.startsWith("/workspace/") && !path.includes("/playbook") && !path.includes("/instagram-insights")) return "Workspace";
     if (path.includes("/playbook")) return "Playbook";
-    if (path.includes("/instagram-insights")) return "Insights do Instagram"; // Novo
+    if (path.includes("/instagram-insights")) return "Insights do Instagram";
     if (path.startsWith("/admin")) return "Admin";
     if (path.startsWith("/settings")) return "Configurações";
     if (path.startsWith("/financial")) return "Financeiro";
@@ -70,15 +70,15 @@ export function Header({ pageTitle }: HeaderProps) {
     if (path.startsWith("/agency-playbook")) return "Playbook da Agência";
     if (path.startsWith("/briefings/new")) return "Novo Formulário de Briefing";
     if (path.startsWith("/briefings/") && path.includes("/edit")) return "Editar Formulário de Briefing";
-    if (path.startsWith("/briefings/") && path.includes("/responses")) return "Respostas do Briefing"; // Novo
+    if (path.startsWith("/briefings/") && path.includes("/responses")) return "Respostas do Briefing";
     if (path.startsWith("/briefings")) return "Gerenciar Briefings";
-    if (path.startsWith("/onboarding-templates")) return "Templates de Onboarding"; // Novo
+    if (path.startsWith("/onboarding-templates")) return "Templates de Onboarding";
     return "Gama Creative Flow";
   };
 
   const navItems = [
     { name: "Dashboard", icon: Home, path: "/", roles: ["admin", "equipe", "user"] },
-    { name: "Todoist", icon: ListTodo, path: "/personal-tasks", roles: ["admin", "equipe"] }, // Novo item
+    { name: "Todoist", icon: ListTodo, path: "/personal-tasks", roles: ["admin", "equipe"] },
     { name: "Financeiro", icon: Banknote, path: "/financial", roles: ["admin"] },
     { name: "Segundo Cérebro", icon: Brain, path: "/second-brain", roles: ["admin", "equipe"] },
     { name: "Briefings", icon: FileText, path: "/briefings", roles: ["admin", "equipe"] },
@@ -113,7 +113,7 @@ export function Header({ pageTitle }: HeaderProps) {
             <MobileSidebar userRole={userRole} onClose={() => setIsMobileMenuOpen(false)} />
           </Sheet>
         )}
-        <AppLogo className="h-8 w-auto" /> {/* Removed loading="lazy" */}
+        <AppLogo className="h-8 w-auto" />
         <h1 className="text-xl sm:text-2xl font-bold whitespace-nowrap">{getPageTitle()}</h1>
       </div>
       {!isMobile && (
@@ -124,7 +124,7 @@ export function Header({ pageTitle }: HeaderProps) {
                 key={item.path}
                 variant={location.pathname.startsWith(item.path) && item.path !== "/" ? "secondary" : (location.pathname === item.path ? "secondary" : "ghost")}
                 asChild
-                size="sm" // Adicionado size="sm" para botões menores em desktop
+                size="sm"
               >
                 <Link to={item.path}>
                   <item.icon className="mr-2 h-4 w-4" />
@@ -136,7 +136,7 @@ export function Header({ pageTitle }: HeaderProps) {
           {(userRole === 'admin' || userRole === 'equipe') && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm"> {/* Adicionado size="sm" */}
+                <Button variant="ghost" size="sm">
                   <UserCog className="mr-2 h-4 w-4" />
                   Configurações
                 </Button>
@@ -173,7 +173,7 @@ export function Header({ pageTitle }: HeaderProps) {
             </DropdownMenu>
           )}
           <ThemeToggle />
-          <Button onClick={handleLogout} variant="outline" size="sm"> {/* Adicionado size="sm" */}
+          <Button onClick={handleLogout} variant="outline" size="sm">
             <LogOut className="h-4 w-4 mr-2" />
             Sair
           </Button>

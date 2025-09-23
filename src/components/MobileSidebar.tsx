@@ -3,9 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "react-router-dom";
 import { AppLogo } from "./AppLogo";
 import { ThemeToggle } from "./ThemeToggle";
-import { LogOut, Home, Banknote, Brain, UserCog, Palette, Users, BookOpen, BarChart, FileText, LayoutTemplate, ListTodo } from "lucide-react"; // Adicionado ListTodo para tarefas pessoais
+import { LogOut, Home, Banknote, Brain, UserCog, Palette, Users, BookOpen, BarChart, FileText, LayoutTemplate, ListTodo } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"; // Importar Accordion
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 interface MobileSidebarProps {
   userRole: string | null;
@@ -21,7 +21,7 @@ export function MobileSidebar({ userRole, onClose }: MobileSidebarProps) {
 
   const navItems = [
     { name: "Dashboard", icon: Home, path: "/", roles: ["admin", "equipe", "user"] },
-    { name: "Todoist", icon: ListTodo, path: "/personal-tasks", roles: ["admin", "equipe"] }, // Novo item
+    { name: "Todoist", icon: ListTodo, path: "/personal-tasks", roles: ["admin", "equipe"] },
     { name: "Financeiro", icon: Banknote, path: "/financial", roles: ["admin"] },
     { name: "Segundo Cérebro", icon: Brain, path: "/second-brain", roles: ["admin", "equipe"] },
     { name: "Briefings", icon: FileText, path: "/briefings", roles: ["admin", "equipe"] },
@@ -32,13 +32,13 @@ export function MobileSidebar({ userRole, onClose }: MobileSidebarProps) {
     { name: "Gerenciar Usuários", icon: Users, path: "/admin", roles: ["admin"] },
     { name: "Visão Geral da Equipe", icon: Users, path: "/employees", roles: ["admin"] },
     { name: "Configurações do App", icon: Palette, path: "/settings", roles: ["admin", "equipe"] },
-    { name: "Templates de Onboarding", icon: LayoutTemplate, path: "/onboarding-templates", roles: ["admin", "equipe"] }, // Novo item
+    { name: "Templates de Onboarding", icon: LayoutTemplate, path: "/onboarding-templates", roles: ["admin", "equipe"] },
   ];
 
   return (
     <SheetContent side="left" className="w-[250px] p-4 flex flex-col">
       <div className="flex items-center justify-between mb-6">
-        <AppLogo className="h-8 w-auto" /> {/* Removed loading="lazy" */}
+        <AppLogo className="h-8 w-auto" />
         <ThemeToggle />
       </div>
       <nav className="flex flex-col gap-2 flex-grow">

@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { showError } from "@/utils/toast";
 import { PasswordInput } from "@/components/PasswordInput";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { AppLogo } from "@/components/AppLogo"; // Importar AppLogo
+import { AppLogo } from "@/components/AppLogo";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -39,7 +39,7 @@ const Login = () => {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <AppLogo className="h-16 w-auto" /> {/* Usando AppLogo aqui */}
+            <AppLogo className="h-16 w-auto" />
           </div>
           <CardTitle>Acesse sua Conta</CardTitle>
           <CardDescription>Entre com seu e-mail e senha para continuar.</CardDescription>

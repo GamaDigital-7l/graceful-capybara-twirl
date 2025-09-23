@@ -38,15 +38,15 @@ const fetchOnboardingPageData = async (publicToken: string): Promise<FullOnboard
     .from("client_onboarding_pages")
     .select("client_name, company_name, onboarding_template_id")
     .eq("public_token", publicToken)
-    .maybeSingle(); // Usar maybeSingle para retornar null se não houver linha
+    .maybeSingle();
   
   if (clientOnboardingError) {
     console.error("Erro ao buscar página de onboarding do cliente:", clientOnboardingError);
-    throw clientOnboardingError; // Lançar erro se for um erro real, não apenas "não encontrado"
+    throw clientOnboardingError;
   }
   if (!clientOnboarding) {
     console.warn("Página de onboarding do cliente não encontrada.");
-    return null; // Retorna null se a página de onboarding do cliente não for encontrada
+    return null;
   }
 
   let template: OnboardingTemplate | null = null;
@@ -55,11 +55,11 @@ const fetchOnboardingPageData = async (publicToken: string): Promise<FullOnboard
       .from("onboarding_page_templates")
       .select("*")
       .eq("id", clientOnboarding.onboarding_template_id)
-      .maybeSingle(); // Usar maybeSingle para retornar null se não houver linha
+      .maybeSingle();
     
     if (templateError) {
       console.error("Erro ao buscar template de onboarding:", templateError);
-      throw templateError; // Lançar erro se for um erro real
+      throw templateError;
     }
     if (templateData) {
       template = templateData as OnboardingTemplate;
@@ -95,7 +95,7 @@ const MarkdownVideoRenderer = ({ node, ...props }: any) => {
 
   if (embedUrl) {
     return (
-      <div className="relative w-full my-4" style={{ paddingBottom: '56.25%' }}> {/* 16:9 Aspect Ratio */}
+      <div className="relative w-full my-4" style={{ paddingBottom: '56.25%' }}>
         <iframe
           className="absolute top-0 left-0 w-full h-full rounded-md"
           src={embedUrl}
@@ -164,13 +164,13 @@ const PublicClientOnboardingPage = () => {
     tutorial_videos,
     briefing_links,
     main_content,
-    section_order, // Obter a ordem das seções
+    section_order,
   } = template;
 
   const sections: { [key: string]: React.ReactNode } = {
     welcome_message: welcome_message && (
       <Card>
-        <CardContent className="p-4 sm:p-6"> {/* Ajustado padding */}
+        <CardContent className="p-4 sm:p-6">
           <div className="prose dark:prose-invert max-w-none">
             <ReactMarkdown remarkPlugins={[remarkGfm]} components={{ img: MarkdownVideoRenderer }}>
               {welcome_message}
@@ -182,7 +182,7 @@ const PublicClientOnboardingPage = () => {
     main_content: main_content && (
       <Card>
         <CardHeader><CardTitle>Detalhes do Seu Projeto</CardTitle></CardHeader>
-        <CardContent className="p-4 sm:p-6"> {/* Ajustado padding */}
+        <CardContent className="p-4 sm:p-6">
           <div className="prose dark:prose-invert max-w-none">
             <ReactMarkdown remarkPlugins={[remarkGfm]} components={{ img: MarkdownVideoRenderer }}>
               {main_content}
@@ -194,7 +194,7 @@ const PublicClientOnboardingPage = () => {
     briefing_links: briefing_links && briefing_links.length > 0 && (
       <Card>
         <CardHeader><CardTitle className="flex items-center gap-2"><FileText className="h-5 w-5" /> Briefings Essenciais</CardTitle></CardHeader>
-        <CardContent className="p-4 sm:p-6"> {/* Ajustado padding */}
+        <CardContent className="p-4 sm:p-6">
           <ul className="space-y-2">
             {briefing_links.map((link, index) => (
               <li key={index}>
@@ -210,7 +210,7 @@ const PublicClientOnboardingPage = () => {
     processes_content: processes_content && processes_content.length > 0 && (
       <Card>
         <CardHeader><CardTitle className="flex items-center gap-2"><Users className="h-5 w-5" /> Nossos Processos</CardTitle></CardHeader>
-        <CardContent className="p-4 sm:p-6 space-y-4"> {/* Ajustado padding */}
+        <CardContent className="p-4 sm:p-6 space-y-4">
           {processes_content.map((item, index) => (
             <div key={index} className="space-y-2 border p-3 rounded-md bg-muted/50">
               <h3 className="font-semibold text-lg">{item.title}</h3>
@@ -227,7 +227,7 @@ const PublicClientOnboardingPage = () => {
     apps_access_info: apps_access_info && apps_access_info.length > 0 && (
       <Card>
         <CardHeader><CardTitle className="flex items-center gap-2"><LinkIcon className="h-5 w-5" /> Acesso aos Nossos Apps</CardTitle></CardHeader>
-        <CardContent className="p-4 sm:p-6 space-y-4"> {/* Ajustado padding */}
+        <CardContent className="p-4 sm:p-6 space-y-4">
           {apps_access_info.map((item, index) => (
             <div key={index} className="space-y-2 border p-3 rounded-md bg-muted/50">
               <h3 className="font-semibold text-lg">{item.title}</h3>
@@ -244,15 +244,15 @@ const PublicClientOnboardingPage = () => {
     tutorial_videos: tutorial_videos && tutorial_videos.length > 0 && (
       <Card>
         <CardHeader><CardTitle className="flex items-center gap-2"><Video className="h-5 w-5" /> Vídeos Tutoriais</CardTitle></CardHeader>
-        <CardContent className="p-4 sm:p-6"> {/* Ajustado padding */}
+        <CardContent className="p-4 sm:p-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {tutorial_videos.map((video, index) => (
               <div key={index} className="space-y-2">
                 <h3 className="font-semibold">{video.name}</h3>
-                <div className="relative w-full" style={{ paddingBottom: '56.25%' }}> {/* 16:9 Aspect Ratio */}
+                <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
                   <iframe
                     className="absolute top-0 left-0 w-full h-full rounded-md"
-                    src={video.url.replace("watch?v=", "embed/")} // Convert YouTube watch URL to embed URL
+                    src={video.url.replace("watch?v=", "embed/")}
                     frameBorder="0"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
@@ -273,7 +273,7 @@ const PublicClientOnboardingPage = () => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 sm:p-8">
       <header className="text-center mb-8">
-        <AppLogo className="h-12 w-auto mx-auto mb-4" /> {/* Removed loading="lazy" */}
+        <AppLogo className="h-12 w-auto mx-auto mb-4" />
         <h1 className="text-3xl font-bold">Bem-vindo(a), {client_name}!</h1>
         {company_name && <p className="text-lg text-muted-foreground">da {company_name}</p>}
         <p className="text-lg text-muted-foreground mt-2">À Gama Creative</p>

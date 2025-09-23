@@ -1,4 +1,4 @@
-import React, { lazy, Suspense } from "react"; // Importar lazy e Suspense
+import React, { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -7,7 +7,7 @@ import { Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { SettingsProvider } from "@/contexts/SettingsContext";
 import { Layout } from "./components/Layout";
-import NotFound from "./pages/NotFound"; // NotFound não precisa de lazy loading, pois é um fallback
+import NotFound from "./pages/NotFound";
 
 // Lazy-load de todos os componentes de página
 const Login = lazy(() => import("./pages/Login"));
@@ -27,12 +27,12 @@ const PublicClientDashboardPage = lazy(() => import("./pages/PublicClientDashboa
 const ClientDashboard = lazy(() => import("./pages/ClientDashboard"));
 const BriefingsPage = lazy(() => import("./pages/BriefingsPage"));
 const PublicBriefingPage = lazy(() => import("./pages/PublicBriefingPage"));
-const BriefingFormEditor = lazy(() => import("./components/BriefingFormEditor")); // Changed to default import
+const BriefingFormEditor = lazy(() => import("./components/BriefingFormEditor"));
 const BriefingResponsesPage = lazy(() => import("./pages/BriefingResponsesPage"));
 const PublicClientOnboardingPage = lazy(() => import("./pages/PublicClientOnboardingPage"));
 const OnboardingTemplatesPage = lazy(() => import("./pages/OnboardingTemplatesPage"));
 const AgencyPlaybookPage = lazy(() => import("./pages/AgencyPlaybookPage"));
-const PersonalTasksPage = lazy(() => import("./pages/PersonalTasksPage")); // New: Personal Tasks Page
+const PersonalTasksPage = lazy(() => import("./pages/PersonalTasksPage"));
 
 
 const queryClient = new QueryClient();
@@ -42,10 +42,10 @@ const App = () => (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
       <SettingsProvider>
         <TooltipProvider>
-          <React.Fragment> {/* Wrapped multiple children in a Fragment */}
+          <React.Fragment>
             <Toaster />
             <Sonner position="top-center" duration={7000} />
-            <Suspense fallback={<div className="flex justify-center items-center min-h-screen">Carregando...</div>}> {/* Fallback global */}
+            <Suspense fallback={<div className="flex justify-center items-center min-h-screen">Carregando...</div>}>
               <Routes>
                 <Route path="/login" element={<Login />} />
                 <Route path="/approve/:token" element={<PublicApprovalPage />} />
@@ -200,7 +200,7 @@ const App = () => (
                 <Route
                   path="/personal-tasks"
                   element={
-                    <Layout pageTitle="Minhas Tarefas Pessoais">
+                    <Layout pageTitle="Todoist">
                       <PersonalTasksPage />
                     </Layout>
                   }

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react"; // Adicionado useCallback
+import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -45,7 +45,7 @@ const fetchWorkspaces = async (): Promise<Workspace[]> => {
 const fetchBriefingForm = async (formId: string): Promise<BriefingForm | null> => {
   const { data, error } = await supabase.from("briefing_forms").select("*").eq("id", formId).single();
   if (error) {
-    if (error.code === 'PGRST116') return null; // No rows found
+    if (error.code === 'PGRST116') return null;
     throw new Error(error.message);
   }
   return data as BriefingForm;
@@ -70,7 +70,7 @@ const SortableField = ({ field, index, onUpdateField, onRemoveField }: SortableF
 
   const handleOptionChange = useCallback((optionIndex: number, newLabel: string) => {
     const newOptions = [...(field.options || [])];
-    newOptions[optionIndex] = { ...newOptions[optionIndex], label: newLabel, value: newLabel }; // Value also changes
+    newOptions[optionIndex] = { ...newOptions[optionIndex], label: newLabel, value: newLabel };
     onUpdateField(index, { options: newOptions });
   }, [field.options, index, onUpdateField]);
 
@@ -173,7 +173,7 @@ const SortableField = ({ field, index, onUpdateField, onRemoveField }: SortableF
   );
 };
 
-export default function BriefingFormEditor() { // Changed to default export
+export default function BriefingFormEditor() {
   const { formId } = useParams<{ formId: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
