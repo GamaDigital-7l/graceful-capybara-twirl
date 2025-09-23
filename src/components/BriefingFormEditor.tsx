@@ -400,7 +400,7 @@ export function BriefingFormEditor() {
         <Card>
           <CardHeader>
             <CardTitle className="mb-2">Estrutura do Formulário</CardTitle>
-            <CardDescription>Arraste e solte para reordenar os campos.</p>
+            <CardDescription>Arraste e solte para reordenar os campos.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
