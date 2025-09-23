@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { GroupTabs, Group } from "@/components/GroupTabs";
-import { supabase, shortenUrl } from "@/integrations/supabase/client"; // Importar shortenUrl
+import { supabase } from "@/integrations/supabase/client"; // Remover shortenUrl
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { showError, showSuccess, showLoading, dismissToast } from "@/utils/toast";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -181,8 +181,8 @@ const WorkspacePage = ({ initialWorkspaceId }: WorkspacePageProps) => {
       }
       
       const approvalUrl = `${settings.site_url}/approve/${tokenData.token}`;
-      const shortenedUrl = await shortenUrl(approvalUrl); // Encurtar a URL
-      return shortenedUrl;
+      // Revertendo para a URL longa original
+      return approvalUrl;
     },
     onSuccess: (link) => {
       dismissToast();
@@ -217,8 +217,8 @@ const WorkspacePage = ({ initialWorkspaceId }: WorkspacePageProps) => {
       }
       
       const dashboardUrl = `${settings.site_url}/client-dashboard/${tokenData.token}`;
-      const shortenedUrl = await shortenUrl(dashboardUrl); // Encurtar a URL
-      return shortenedUrl;
+      // Revertendo para a URL longa original
+      return dashboardUrl;
     },
     onSuccess: (link) => {
       dismissToast();

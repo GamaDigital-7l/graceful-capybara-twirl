@@ -8,18 +8,3 @@ const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiO
 // import { supabase } from "@/integrations/supabase/client";
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
-
-export const shortenUrl = async (longUrl: string): Promise<string> => {
-  const { data, error } = await supabase.functions.invoke("shorten-url", {
-    body: { longUrl },
-  });
-
-  if (error) {
-    throw new Error(`Erro ao encurtar URL: ${error.message}`);
-  }
-
-  // A URL curta completa será construída usando a URL da Edge Function de redirecionamento
-  const shortCode = data.shortCode;
-  const supabaseUrl = SUPABASE_URL; // Usar a URL base do Supabase
-  return `${supabaseUrl}/functions/v1/redirect-short-url?code=${shortCode}`;
-};

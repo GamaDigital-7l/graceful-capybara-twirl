@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase, shortenUrl } from "@/integrations/supabase/client"; // Importar shortenUrl
+import { supabase } from "@/integrations/supabase/client"; // Remover shortenUrl
 import { showError, showSuccess } from "@/utils/toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -94,8 +94,8 @@ const BriefingsPage = () => {
     setIsGeneratingLink(true);
     try {
       const longUrl = `${settings.site_url}/briefings/public/${formId}`;
-      const shortenedUrl = await shortenUrl(longUrl); // Encurtar a URL
-      setGeneratedPublicLink(shortenedUrl);
+      // Revertendo para a URL longa original
+      setGeneratedPublicLink(longUrl);
       setSelectedFormTitle(formTitle);
       setIsPublicLinkModalOpen(true);
     } catch (error: any) {
