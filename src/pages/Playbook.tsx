@@ -161,7 +161,7 @@ const PlaybookPage = () => {
 
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2"><KeyRound /> Logins de Redes Sociais</CardTitle>
+                <CardTitle className="flex items-center gap-2"><KeyRound /> Logins de Redes Socais</CardTitle>
                 <CardDescription>Credenciais para as plataformas do cliente.</CardDescription>
               </CardHeader>
               <CardContent className="p-4 sm:p-6">

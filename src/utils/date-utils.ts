@@ -1,5 +1,5 @@
 import { format, parseISO, isValid } from 'date-fns';
-import *s dateFnsTz from 'date-fns-tz';
+import * as dateFnsTz from 'date-fns-tz'; // Corrigido: 'import *s' para 'import * as'
 import { ptBR } from 'date-fns/locale';
 
 const SAO_PAULO_TIMEZONE = 'America/Sao_Paulo';
@@ -17,7 +17,7 @@ export const toSaoPauloTime = (date: Date | string): Date => {
     console.warn("Invalid date provided to toSaoPauloTime:", date);
     return new Date('Invalid Date');
   }
-  return dateFnsTz.toZonedTime(utcDate, SAO_PAULO_TIMEZONE);
+  return dateFnsTz.toZonedTime(utcDate, SAO_PAULO_TIMEZONE); // Corrigido: 'utcToZonedTime' para 'toZonedTime'
 };
 
 /**
@@ -31,34 +31,32 @@ export const toSaoPauloTime = (date: Date | string): Date => {
  * @returns A data formatada como string no fuso horário de São Paulo.
  */
 export const formatSaoPauloTime = (date: Date | string, formatStr: string): string => {
-  let dateToFormat: Date;
+  let dateObj: Date;
 
   if (typeof date === 'string') {
     // Se for uma string YYYY-MM-DD, crie um objeto Date que a interpreta como data local
     if (date.match(/^\d{4}-\d{2}-\d{2}$/)) {
-      dateToFormat = new Date(date + 'T00:00:00'); // Ex: '2024-07-25T00:00:00' será interpretado localmente
+      // Cria um objeto Date que representa a data à meia-noite no fuso horário local do navegador
+      dateObj = new Date(date + 'T00:00:00');
     } else {
-      // Para strings ISO completas, parse como UTC e converta para o fuso horário de SP
-      dateToFormat = toSaoPauloTime(date);
+      // Para strings ISO completas (e.g., de Supabase timestamp with time zone),
+      // parseia como UTC e converte para o fuso horário de SP.
+      dateObj = toSaoPauloTime(date);
     }
   } else {
-    // Se já for um objeto Date (do seletor de calendário, por exemplo), use-o diretamente
-    dateToFormat = date;
+    // Se já for um objeto Date (e.g., do seletor de calendário), assume que está no fuso horário local
+    dateObj = date;
   }
 
-  if (!isValid(dateToFormat)) {
+  if (!isValid(dateObj)) {
     console.warn("Invalid date provided to formatSaoPauloTime:", date);
     return 'Data Inválida';
   }
 
-  // Para formatos que não incluem hora (como 'yyyy-MM-dd' ou 'PPP'), use `format` diretamente
-  // para respeitar a data local do objeto Date.
-  // Para formatos que incluem hora, use `formatInTimeZone` para garantir a exibição correta no fuso horário de SP.
-  if (formatStr === 'yyyy-MM-dd' || formatStr === 'PPP') {
-    return format(dateToFormat, formatStr, { locale: ptBR });
-  } else {
-    return dateFnsTz.formatInTimeZone(dateToFormat, SAO_PAULO_TIMEZONE, formatStr, { locale: ptBR });
-  }
+  // Usa a função `format` do date-fns, que respeita o fuso horário do objeto Date.
+  // Isso evita o problema de dupla conversão de fuso horário que ocorria com `formatInTimeZone`
+  // quando o input já era uma data local.
+  return format(dateObj, formatStr, { locale: ptBR });
 };
 
 /**
