@@ -5,7 +5,7 @@ import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Skeleton }1 from "@/components/ui/skeleton";
 import { AppLogo } from "@/components/AppLogo";
 import { Link as LinkIcon, FileText, Users, Video } from "lucide-react";
 import { OnboardingTemplate } from "./OnboardingTemplatesPage";
@@ -38,20 +38,15 @@ const fetchOnboardingPageData = async (publicToken: string): Promise<FullOnboard
     .from("client_onboarding_pages")
     .select("client_name, company_name, onboarding_template_id")
     .eq("public_token", publicToken)
-    .single();
+    .maybeSingle(); // Usar maybeSingle para retornar null se não houver linha
   
   if (clientOnboardingError) {
-    if (clientOnboardingError.code === 'PGRST116') {
-      console.warn("Página de onboarding do cliente não encontrada (PGRST116). Retornando null.");
-      return null; // Retorna null se a página de onboarding do cliente não for encontrada
-    } else {
-      console.error("Erro ao buscar página de onboarding do cliente:", clientOnboardingError);
-      throw clientOnboardingError; // Relança outros erros
-    }
+    console.error("Erro ao buscar página de onboarding do cliente:", clientOnboardingError);
+    throw clientOnboardingError; // Lançar erro se for um erro real, não apenas "não encontrado"
   }
-  if (!clientOnboarding) { // Salvaguarda, deve ser coberto pelo bloco acima
-    console.warn("Página de onboarding do cliente não encontrada (clientOnboarding é null). Retornando null.");
-    return null;
+  if (!clientOnboarding) {
+    console.warn("Página de onboarding do cliente não encontrada.");
+    return null; // Retorna null se a página de onboarding do cliente não for encontrada
   }
 
   let template: OnboardingTemplate | null = null;
@@ -60,16 +55,17 @@ const fetchOnboardingPageData = async (publicToken: string): Promise<FullOnboard
       .from("onboarding_page_templates")
       .select("*")
       .eq("id", clientOnboarding.onboarding_template_id)
-      .single();
-    // Handle PGRST116 (no rows found) gracefully
-    if (templateError && templateError.code === 'PGRST116') {
+      .maybeSingle(); // Usar maybeSingle para retornar null se não houver linha
+    
+    if (templateError) {
+      console.error("Erro ao buscar template de onboarding:", templateError);
+      throw templateError; // Lançar erro se for um erro real
+    }
+    if (templateData) {
+      template = templateData as OnboardingTemplate;
+    } else {
       console.warn("Template de onboarding referenciado não encontrado.");
       template = null;
-    } else if (templateError) {
-      console.error("Erro ao buscar template de onboarding:", templateError);
-      throw templateError; // Re-throw other errors
-    } else {
-      template = templateData as OnboardingTemplate;
     }
   }
 
