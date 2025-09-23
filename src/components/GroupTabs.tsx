@@ -75,7 +75,7 @@ const SortableGroupTab = ({
     >
       <TabsTrigger
         value={group.id}
-        className="flex-grow cursor-grab data-[state=active]:shadow-sm flex-shrink-0" // Adicionado flex-shrink-0
+        className="flex-grow cursor-grab data-[state=active]:shadow-sm flex-shrink-0"
         {...attributes}
         {...listeners}
       >
@@ -89,6 +89,7 @@ const SortableGroupTab = ({
               variant="ghost"
               size="icon"
               className="ml-1 h-8 w-8 flex-shrink-0"
+              onClick={(e) => e.stopPropagation()} // Stop propagation to prevent activating TabsTrigger
             >
               <MoreHorizontal className="h-4 w-4" />
             </Button>
@@ -179,7 +180,7 @@ export function GroupTabs({
             items={groups.map((g) => g.id)}
             strategy={horizontalListSortingStrategy}
           >
-            <TabsList className="inline-flex h-auto p-1"> {/* inline-flex para rolagem horizontal */}
+            <TabsList className="inline-flex h-auto p-1">
               {groups.map((group) => (
                 <SortableGroupTab
                   key={group.id}
