@@ -6,6 +6,7 @@ import { ptBR } from "date-fns/locale";
 import { Pencil, Trash2, CalendarDays, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PersonalTask } from "./PersonalTaskModal";
+import { Label } from "@/components/ui/label"; // Importação adicionada
 
 interface PersonalTaskCardProps {
   task: PersonalTask;
