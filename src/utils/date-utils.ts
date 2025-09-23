@@ -1,5 +1,5 @@
 import { format, parseISO, isValid, parse } from 'date-fns';
-import { toZonedTime, formatInTimeZone, zonedTimeToUtc } from 'date-fns-tz'; // Importações nomeadas diretas
+import { toZonedTime, formatInTimeZone, zonedTimeToUtc } from 'date-fns-tz/dist/esm/index.js'; // Importações diretas do caminho ESM
 import { ptBR } from 'date-fns/locale';
 
 const SAO_PAULO_TIMEZONE = 'America/Sao_Paulo';
