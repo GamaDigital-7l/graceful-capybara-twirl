@@ -17,6 +17,8 @@ import {
   Bot,
   BookOpen,
   ListTodo,
+  Clock, // Adicionado Clock icon para tarefas pessoais
+  Trash2, // Adicionado Trash2 icon para tarefas pessoais
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -54,7 +56,7 @@ import {
 import { showError, showSuccess } from "@/utils/toast";
 
 // Constante para o nome do workspace interno
-const INTERNAL_WORKSPACE_NAME = "Frellas"; // Alterado para "Frellas"
+const INTERNAL_WORKSPACE_NAME = "Frellas";
 
 interface Workspace {
   id: string;
@@ -79,7 +81,7 @@ interface PersonalTask {
   id: string;
   title: string;
   description: string | null;
-  due_date: string;
+  due_date: Date; // Alterado para Date
   due_time: string | null;
   is_completed: boolean;
   priority: 'Low' | 'Medium' | 'High';
@@ -105,7 +107,10 @@ const fetchPersonalTasks = async (userId: string): Promise<PersonalTask[]> => {
     .order("due_date", { ascending: true })
     .order("due_time", { ascending: true });
   if (error) throw error;
-  return data;
+  return data.map(task => ({
+    ...task,
+    due_date: new Date(task.due_date), // Converte string para Date
+  })) as PersonalTask[];
 };
 
 const Dashboard = () => {
@@ -371,7 +376,7 @@ const Dashboard = () => {
             </TabsTrigger>
           )}
           <TabsTrigger value="personal-tasks" className="flex-shrink-0">
-            <User className="h-4 w-4 mr-2" /> Tarefas Pessoais
+            <Users className="h-4 w-4 mr-2" /> Tarefas Pessoais
           </TabsTrigger>
         </TabsList>
         <TabsContent value="my-tasks" className="mt-4">
@@ -464,7 +469,7 @@ const Dashboard = () => {
                         <AlertDialogTitle>Tem certeza?</AlertDialogTitle>
                         <AlertDialogDescription>
                           Esta ação não pode ser desfeita. Isso excluirá
-                          permanentemente sua tarefa pessoal.
+                          permanentemente sua tarefa personal.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
