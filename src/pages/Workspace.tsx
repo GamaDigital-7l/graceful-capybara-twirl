@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { GroupTabs, Group } from "@/components/GroupTabs";
-import { supabase } from "@/integrations/supabase/client"; // Remover shortenUrl
+import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { showError, showSuccess, showLoading, dismissToast } from "@/utils/toast";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -264,7 +264,7 @@ const WorkspacePage = ({ initialWorkspaceId }: WorkspacePageProps) => {
         variant="default"
         onClick={() => handleOpenApprovalModal(activeGroupId)}
         disabled={generateApprovalLinkMutation.isPending}
-        size="sm" // Adicionado size="sm"
+        size="sm"
       >
         <Send className="h-4 w-4 mr-2" />
         Enviar para Aprovação
@@ -276,7 +276,7 @@ const WorkspacePage = ({ initialWorkspaceId }: WorkspacePageProps) => {
         variant="outline"
         onClick={() => handleOpenDashboardLinkModal(activeGroupId)}
         disabled={generateDashboardLinkMutation.isPending}
-        size="sm" // Adicionado size="sm"
+        size="sm"
       >
         <Share2 className="h-4 w-4 mr-2" />
         Link do Dashboard
@@ -287,17 +287,25 @@ const WorkspacePage = ({ initialWorkspaceId }: WorkspacePageProps) => {
       <div className="flex items-center gap-2">
         {sendApprovalButton}
         {generateDashboardLinkButton}
-        <Button asChild variant="outline" size="sm"><Link to={`/workspace/${workspaceId}/playbook`}><BookOpen className="h-4 w-4 mr-2" /> Ver Playbook</Link></Button> {/* Adicionado size="sm" */}
+        <Button asChild variant="outline" size="sm">
+          <Link to={`/workspace/${workspaceId}/playbook`}>
+            <span><BookOpen className="h-4 w-4 mr-2" /> Ver Playbook</span>
+          </Link>
+        </Button>
         {(userRole === 'admin' || userRole === 'equipe') && (
-          <Button asChild variant="outline" size="sm"> {/* Adicionado size="sm" */}
+          <Button asChild variant="outline" size="sm">
             <Link to={`/workspace/${workspaceId}/instagram-insights`}>
-              <BarChart className="h-4 w-4 mr-2" /> Insights
+              <span><BarChart className="h-4 w-4 mr-2" /> Insights</span>
             </Link>
           </Button>
         )}
         {userRole === 'admin' && activeGroupId && (
           <AlertDialog>
-            <AlertDialogTrigger asChild><Button variant="outline" className="text-primary border-primary hover:bg-primary/10" size="sm"><CalendarCheck className="h-4 w-4 mr-2" /> Finalizar Mês</Button></AlertDialogTrigger> {/* Adicionado size="sm" */}
+            <AlertDialogTrigger asChild>
+              <Button variant="outline" className="text-primary border-primary hover:bg-primary/10" size="sm">
+                <span><CalendarCheck className="h-4 w-4 mr-2" /> Finalizar Mês</span>
+              </Button>
+            </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader><AlertDialogTitle>Finalizar Mês do Grupo?</AlertDialogTitle><AlertDialogDescription>Esta ação moverá todas as tarefas do grupo atual para a coluna 'Aprovado'. Esta ação não pode ser desfeita.</AlertDialogDescription></AlertDialogHeader>
               <AlertDialogFooter><AlertDialogCancel>Cancelar</AlertDialogCancel><AlertDialogAction onClick={() => endMonthMutation.mutate(activeGroupId)}>Sim, Finalizar Mês</AlertDialogAction></AlertDialogFooter>
