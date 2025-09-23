@@ -24,7 +24,7 @@ import PublicBriefingPage from "./pages/PublicBriefingPage";
 import { BriefingFormEditor } from "./components/BriefingFormEditor";
 import BriefingResponsesPage from "./pages/BriefingResponsesPage";
 import PublicClientOnboardingPage from "./pages/PublicClientOnboardingPage";
-import OnboardingTemplatesPage from "./pages/OnboardingTemplatesPage"; // Novo import
+import OnboardingTemplatesPage from "./pages/OnboardingTemplatesPage";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import { Layout } from "./components/Layout";
@@ -45,6 +45,7 @@ const App = () => (
             <Route path="/client-dashboard/:token" element={<PublicClientDashboardPage />} />
             <Route path="/briefings/public/:formId" element={<PublicBriefingPage />} />
             <Route path="/onboarding/:publicToken" element={<PublicClientOnboardingPage />} />
+            <Route path="/onboarding/preview" element={<PublicClientOnboardingPage />} /> {/* Nova rota de pré-visualização */}
             <Route
               path="/"
               element={
