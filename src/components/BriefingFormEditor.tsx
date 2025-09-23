@@ -314,7 +314,7 @@ export function BriefingFormEditor() {
   }
 
   return (
-    <React.Fragment>
+    <>
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-4">
@@ -422,6 +422,6 @@ export function BriefingFormEditor() {
           </CardContent>
         </Card>
       </div>
-    </React.Fragment>
+    </>
   );
 }
