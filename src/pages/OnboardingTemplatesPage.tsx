@@ -33,6 +33,7 @@ export interface OnboardingTemplate {
   apps_access_info: string | null;
   tutorial_videos: { name: string; url: string }[];
   briefing_links: { name: string; url: string }[];
+  main_content: string | null; // Novo campo
   created_by: string | null;
   created_at: string;
   updated_at: string;
@@ -59,6 +60,7 @@ const OnboardingTemplatesPage = () => {
   const [appsAccessInfo, setAppsAccessInfo] = useState("");
   const [tutorialVideos, setTutorialVideos] = useState<{ name: string; url: string }[]>([]);
   const [briefingLinks, setBriefingLinks] = useState<{ name: string; url: string }[]>([]);
+  const [mainContent, setMainContent] = useState(""); // Novo estado
   const [isSaving, setIsSaving] = useState(false);
 
   const { data: templates, isLoading: isLoadingTemplates } = useQuery<OnboardingTemplate[]>({
@@ -105,6 +107,7 @@ const OnboardingTemplatesPage = () => {
       setAppsAccessInfo(selectedTemplate.apps_access_info || "");
       setTutorialVideos(selectedTemplate.tutorial_videos || []);
       setBriefingLinks(selectedTemplate.briefing_links || []);
+      setMainContent(selectedTemplate.main_content || ""); // Inicializar novo estado
     } else {
       setTemplateName("");
       setWelcomeMessage("");
@@ -112,6 +115,7 @@ const OnboardingTemplatesPage = () => {
       setAppsAccessInfo("");
       setTutorialVideos([]);
       setBriefingLinks([]);
+      setMainContent(""); // Resetar novo estado
     }
   }, [selectedTemplate, isModalOpen]);
 
@@ -171,6 +175,7 @@ const OnboardingTemplatesPage = () => {
       apps_access_info: appsAccessInfo.trim() || null,
       tutorial_videos: tutorialVideos,
       briefing_links: briefingLinks,
+      main_content: mainContent.trim() || null, // Salvar novo campo
     };
 
     if (selectedTemplate) {
@@ -295,11 +300,12 @@ const OnboardingTemplatesPage = () => {
             <DialogTitle>{selectedTemplate ? "Editar Template de Onboarding" : "Criar Novo Template de Onboarding"}</DialogTitle>
           </DialogHeader>
           <Tabs defaultValue="welcome" className="py-4">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-5"> {/* Adicionada nova coluna para 'Conteúdo Principal' */}
               <TabsTrigger value="welcome">Boas-Vindas</TabsTrigger>
               <TabsTrigger value="briefings">Briefings</TabsTrigger>
               <TabsTrigger value="processes">Processos</TabsTrigger>
               <TabsTrigger value="apps">Apps & Vídeos</TabsTrigger>
+              <TabsTrigger value="main-content">Conteúdo Principal</TabsTrigger> {/* Nova aba */}
             </TabsList>
             <TabsContent value="welcome" className="pt-4 space-y-4">
               <div className="space-y-2">
@@ -307,8 +313,9 @@ const OnboardingTemplatesPage = () => {
                 <Input id="template-name" value={templateName} onChange={(e) => setTemplateName(e.target.value)} placeholder="Ex: Onboarding Social Media" />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="welcome-message">Mensagem de Boas-Vindas</Label>
+                <Label htmlFor="welcome-message">Mensagem de Boas-Vindas (suporta Markdown)</Label>
                 <Textarea id="welcome-message" value={welcomeMessage} onChange={(e) => setWelcomeMessage(e.target.value)} rows={5} placeholder="Ex: Olá [Nome do Cliente], seja bem-vindo(a) à Gama Creative..." />
+                <p className="text-xs text-muted-foreground">Use **negrito**, *itálico*, [links](url) e imagens `![alt](url)`.</p>
               </div>
             </TabsContent>
             <TabsContent value="briefings" className="pt-4 space-y-4">
@@ -323,13 +330,15 @@ const OnboardingTemplatesPage = () => {
               <Button variant="outline" onClick={addBriefingLink} className="mt-2">Adicionar Link de Briefing</Button>
             </TabsContent>
             <TabsContent value="processes" className="pt-4">
-              <Label htmlFor="processes-content">Conteúdo dos Processos da Agência</Label>
+              <Label htmlFor="processes-content">Conteúdo dos Processos da Agência (suporta Markdown)</Label>
               <Textarea id="processes-content" value={processesContent} onChange={(e) => setProcessesContent(e.target.value)} rows={10} placeholder="Descreva aqui como funcionam os processos da sua agência..." />
+              <p className="text-xs text-muted-foreground">Use **negrito**, *itálico*, [links](url) e imagens `![alt](url)`.</p>
             </TabsContent>
             <TabsContent value="apps" className="pt-4 space-y-4">
               <div>
-                <Label htmlFor="apps-access-info">Informações de Acesso aos Apps</Label>
+                <Label htmlFor="apps-access-info">Informações de Acesso aos Apps (suporta Markdown)</Label>
                 <Textarea id="apps-access-info" value={appsAccessInfo} onChange={(e) => setAppsAccessInfo(e.target.value)} rows={5} placeholder="Ex: Para acessar nosso Kanban, use o link..." />
+                <p className="text-xs text-muted-foreground">Use **negrito**, *itálico*, [links](url) e imagens `![alt](url)`.</p>
               </div>
               <div>
                 <Label className="text-lg font-semibold">Vídeos Tutoriais</Label>
@@ -342,6 +351,13 @@ const OnboardingTemplatesPage = () => {
                 ))}
                 <Button variant="outline" onClick={addTutorialVideo} className="mt-2">Adicionar Vídeo Tutorial</Button>
               </div>
+            </TabsContent>
+            <TabsContent value="main-content" className="pt-4"> {/* Nova aba para o conteúdo principal */}
+              <Label htmlFor="main-content">Conteúdo Principal (suporta Markdown)</Label>
+              <Textarea id="main-content" value={mainContent} onChange={(e) => setMainContent(e.target.value)} rows={15} placeholder="Descreva os serviços contratados, prazos, o que está incluído no pacote, etc. Use Markdown para formatar o texto, adicionar imagens e vídeos." />
+              <p className="text-xs text-muted-foreground">
+                Use **negrito**, *itálico*, `código`, [links](url), listas (`- item`), imagens `![alt](url)` e vídeos `![alt](https://www.youtube.com/watch?v=VIDEO_ID)`.
+              </p>
             </TabsContent>
           </Tabs>
           <DialogFooter>

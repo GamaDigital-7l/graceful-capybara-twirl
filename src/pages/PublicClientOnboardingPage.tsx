@@ -8,7 +8,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Skeleton } from "@/components/ui/skeleton";
 import { AppLogo } from "@/components/AppLogo";
 import { Link as LinkIcon, FileText, Users, Video } from "lucide-react";
-import { OnboardingTemplate } from "./OnboardingTemplatesPage"; // Importar OnboardingTemplate
+import { OnboardingTemplate } from "./OnboardingTemplatesPage";
+import ReactMarkdown from "react-markdown"; // Importar ReactMarkdown
+import remarkGfm from "remark-gfm"; // Importar remarkGfm
 
 interface OnboardingPageData {
   client_name: string;
@@ -49,6 +51,41 @@ const fetchOnboardingPageData = async (publicToken: string): Promise<FullOnboard
     company_name: clientOnboarding.company_name,
     template: template,
   };
+};
+
+// Componente para renderizar vídeos do YouTube/Vimeo a partir de links Markdown
+const MarkdownVideoRenderer = ({ node, ...props }: any) => {
+  const url = props.src;
+  if (!url) return null;
+
+  let embedUrl = '';
+  // YouTube
+  const youtubeMatch = url.match(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com|youtu\.be)\/(?:watch\?v=|embed\/|v\/|)([\w-]{11})(?:\S+)?/);
+  if (youtubeMatch && youtubeMatch[1]) {
+    embedUrl = `https://www.youtube.com/embed/${youtubeMatch[1]}`;
+  }
+  // Vimeo
+  const vimeoMatch = url.match(/(?:https?:\/\/)?(?:www\.)?(?:vimeo\.com)\/(?:video\/|)(\d+)(?:\S+)?/);
+  if (vimeoMatch && vimeoMatch[1]) {
+    embedUrl = `https://player.vimeo.com/video/${vimeoMatch[1]}`;
+  }
+
+  if (embedUrl) {
+    return (
+      <div className="relative w-full my-4" style={{ paddingBottom: '56.25%' }}> {/* 16:9 Aspect Ratio */}
+        <iframe
+          className="absolute top-0 left-0 w-full h-full rounded-md"
+          src={embedUrl}
+          frameBorder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+          title={props.alt || "Embedded video"}
+        ></iframe>
+      </div>
+    );
+  }
+  // Fallback para imagem se não for um vídeo reconhecido
+  return <img {...props} className="max-w-full h-auto rounded-md my-4" />;
 };
 
 const PublicClientOnboardingPage = () => {
@@ -103,6 +140,7 @@ const PublicClientOnboardingPage = () => {
     apps_access_info,
     tutorial_videos,
     briefing_links,
+    main_content, // Novo campo
   } = template;
 
   return (
@@ -119,7 +157,20 @@ const PublicClientOnboardingPage = () => {
           <Card>
             <CardHeader><CardTitle>Mensagem de Boas-Vindas</CardTitle></CardHeader>
             <CardContent>
-              <p className="whitespace-pre-wrap text-muted-foreground">{welcome_message}</p>
+              <ReactMarkdown remarkPlugins={[remarkGfm]} components={{ img: MarkdownVideoRenderer }} className="prose dark:prose-invert max-w-none">
+                {welcome_message}
+              </ReactMarkdown>
+            </CardContent>
+          </Card>
+        )}
+
+        {main_content && ( // Nova seção para o conteúdo principal
+          <Card>
+            <CardHeader><CardTitle>Detalhes do Seu Projeto</CardTitle></CardHeader>
+            <CardContent>
+              <ReactMarkdown remarkPlugins={[remarkGfm]} components={{ img: MarkdownVideoRenderer }} className="prose dark:prose-invert max-w-none">
+                {main_content}
+              </ReactMarkdown>
             </CardContent>
           </Card>
         )}
@@ -145,9 +196,9 @@ const PublicClientOnboardingPage = () => {
           <Card>
             <CardHeader><CardTitle className="flex items-center gap-2"><Users className="h-5 w-5" /> Nossos Processos</CardTitle></CardHeader>
             <CardContent>
-              <div className="prose dark:prose-invert max-w-none whitespace-pre-wrap">
+              <ReactMarkdown remarkPlugins={[remarkGfm]} components={{ img: MarkdownVideoRenderer }} className="prose dark:prose-invert max-w-none">
                 {processes_content}
-              </div>
+              </ReactMarkdown>
             </CardContent>
           </Card>
         )}
@@ -156,9 +207,9 @@ const PublicClientOnboardingPage = () => {
           <Card>
             <CardHeader><CardTitle className="flex items-center gap-2"><LinkIcon className="h-5 w-5" /> Acesso aos Nossos Apps</CardTitle></CardHeader>
             <CardContent>
-              <div className="prose dark:prose-invert max-w-none whitespace-pre-wrap">
+              <ReactMarkdown remarkPlugins={[remarkGfm]} components={{ img: MarkdownVideoRenderer }} className="prose dark:prose-invert max-w-none">
                 {apps_access_info}
-              </div>
+              </ReactMarkdown>
             </CardContent>
           </Card>
         )}
