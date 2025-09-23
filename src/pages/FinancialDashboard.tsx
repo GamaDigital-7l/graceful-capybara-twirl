@@ -93,6 +93,7 @@ const FinancialDashboard = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Usuário não autenticado.");
 
+      // Ao salvar, formate a data para YYYY-MM-DD no fuso horário de São Paulo
       const dataToSave = { ...rest, expense_date: formatSaoPauloTime(expense_date, 'yyyy-MM-dd'), user_id: user.id };
       const query = id ? supabase.from("expenses").update(dataToSave).eq("id", id) : supabase.from("expenses").insert(dataToSave);
       const { error } = await query;

@@ -83,7 +83,8 @@ export function TaskModal({
       setDescription(task.description || "");
       setAttachmentUrl(task.attachments?.[0]?.url || "");
       setActionType(task.actionType || "none");
-      setDueDate(task.dueDate ? new Date(task.dueDate) : undefined);
+      // Ao carregar, trate a string YYYY-MM-DD como data local de São Paulo
+      setDueDate(task.dueDate ? new Date(task.dueDate + 'T00:00:00') : undefined);
       setDueTime(task.due_time || ""); // Carregar due_time
       setComments(task.comments || []);
       setAssignedTo(task.assignedTo || null); // Carregar assignedTo
@@ -165,7 +166,8 @@ export function TaskModal({
       attachments: finalAttachmentUrl
         ? [{ id: "1", url: finalAttachmentUrl, isCover: true }]
         : [],
-      dueDate: dueDate?.toISOString(),
+      // Ao salvar, formate a data para YYYY-MM-DD no fuso horário de São Paulo
+      dueDate: dueDate ? formatSaoPauloTime(dueDate, 'yyyy-MM-dd') : undefined,
       due_time: dueTime || null, // Salvar due_time
       comments: comments,
       assignedTo: assignedTo, // Salvar assignedTo

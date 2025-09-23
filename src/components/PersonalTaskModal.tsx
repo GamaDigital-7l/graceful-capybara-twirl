@@ -56,7 +56,8 @@ export function PersonalTaskModal({
     if (existingTask) {
       setTitle(existingTask.title);
       setDescription(existingTask.description || "");
-      setDueDate(existingTask.due_date);
+      // Ao carregar, trate a string YYYY-MM-DD como data local de São Paulo
+      setDueDate(existingTask.due_date ? new Date(existingTask.due_date.toISOString().split('T')[0] + 'T00:00:00') : undefined);
       setDueTime(existingTask.due_time || "");
       setReminderPreferences(existingTask.reminder_preferences || []);
       setPriority(existingTask.priority || 'Medium');
@@ -90,7 +91,8 @@ export function PersonalTaskModal({
       id: existingTask?.id,
       title: title.trim(),
       description: description.trim() || undefined,
-      due_date: dueDate,
+      // Ao salvar, formate a data para YYYY-MM-DD no fuso horário de São Paulo
+      due_date: dueDate, // A formatação para string YYYY-MM-DD será feita na mutation da página
       due_time: dueTime || undefined,
       is_completed: existingTask?.is_completed || false,
       reminder_preferences: reminderPreferences,
