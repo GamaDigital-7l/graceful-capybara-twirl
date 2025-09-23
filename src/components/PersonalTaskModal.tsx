@@ -17,7 +17,8 @@ import { ptBR } from "date-fns/locale";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
-import { Checkbox } from "@/components/ui/checkbox"; // Import Checkbox
+import { Checkbox } from "@/components/ui/checkbox";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; // Import Select
 
 export interface PersonalTask {
   id?: string;
@@ -28,6 +29,7 @@ export interface PersonalTask {
   due_time?: string; // HH:mm format
   is_completed?: boolean;
   reminder_preferences?: string[]; // New field for reminder preferences
+  priority?: 'Highest' | 'High' | 'Medium' | 'Low'; // New field for priority
 }
 
 interface PersonalTaskModalProps {
@@ -48,6 +50,7 @@ export function PersonalTaskModal({
   const [dueDate, setDueDate] = useState<Date | undefined>(undefined);
   const [dueTime, setDueTime] = useState(""); // HH:mm format
   const [reminderPreferences, setReminderPreferences] = useState<string[]>([]); // State for reminder preferences
+  const [priority, setPriority] = useState<'Highest' | 'High' | 'Medium' | 'Low'>('Medium'); // State for priority
 
   useEffect(() => {
     if (existingTask) {
@@ -56,12 +59,14 @@ export function PersonalTaskModal({
       setDueDate(existingTask.due_date);
       setDueTime(existingTask.due_time || "");
       setReminderPreferences(existingTask.reminder_preferences || []);
+      setPriority(existingTask.priority || 'Medium');
     } else {
       setTitle("");
       setDescription("");
       setDueDate(new Date()); // Default to today
       setDueTime("");
       setReminderPreferences([]);
+      setPriority('Medium');
     }
   }, [existingTask, isOpen]);
 
@@ -89,6 +94,7 @@ export function PersonalTaskModal({
       due_time: dueTime || undefined,
       is_completed: existingTask?.is_completed || false,
       reminder_preferences: reminderPreferences,
+      priority: priority, // Save priority
     };
     onSave(taskToSave);
     onClose();
@@ -162,6 +168,24 @@ export function PersonalTaskModal({
                 className="w-full"
               />
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="priority">Prioridade</Label>
+            <Select
+              value={priority}
+              onValueChange={(value) => setPriority(value as 'Highest' | 'High' | 'Medium' | 'Low')}
+            >
+              <SelectTrigger id="priority">
+                <SelectValue placeholder="Selecione a prioridade" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Highest">Mais Alta</SelectItem>
+                <SelectItem value="High">Alta</SelectItem>
+                <SelectItem value="Medium">Média</SelectItem>
+                <SelectItem value="Low">Baixa</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2 border-t pt-4">

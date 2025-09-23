@@ -17,7 +17,7 @@ import { isPast, format } from "date-fns";
 const fetchPersonalTasks = async (userId: string): Promise<PersonalTask[]> => {
   const { data, error } = await supabase
     .from("personal_tasks")
-    .select("*, reminder_preferences") // Select new column
+    .select("*, reminder_preferences, priority") // Select new columns
     .eq("user_id", userId)
     .order("due_date", { ascending: true })
     .order("due_time", { ascending: true });
@@ -51,12 +51,13 @@ export function PersonalTasksWidget() {
   const saveTaskMutation = useMutation({
     mutationFn: async (task: PersonalTask) => {
       if (!currentUserId) throw new Error("Usuário não autenticado.");
-      const { id, due_date, reminder_preferences, ...rest } = task; // Destructure reminder_preferences
+      const { id, due_date, reminder_preferences, priority, ...rest } = task; // Destructure reminder_preferences and priority
       const dataToSave = {
         ...rest,
         user_id: currentUserId,
         due_date: format(due_date, 'yyyy-MM-dd'), // Format Date to string for Supabase
         reminder_preferences: reminder_preferences || [], // Save reminder preferences
+        priority: priority || 'Medium', // Save priority
       };
 
       if (id) {

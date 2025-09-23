@@ -3,10 +3,11 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { format, isPast } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Pencil, Trash2, CalendarDays, Clock } from "lucide-react";
+import { Pencil, Trash2, CalendarDays, Clock, Flag } from "lucide-react"; // Import Flag icon
 import { cn } from "@/lib/utils";
 import { PersonalTask } from "./PersonalTaskModal";
-import { Label } from "@/components/ui/label"; // Importação adicionada
+import { Label } from "@/components/ui/label";
+import { Badge } from "./ui/badge"; // Import Badge
 
 interface PersonalTaskCardProps {
   task: PersonalTask;
@@ -22,10 +23,30 @@ export function PersonalTaskCard({ task, onEdit, onDelete, onToggleComplete }: P
 
   const isOverdue = !task.is_completed && isPast(fullDueDateTime);
 
+  const getPriorityBadgeVariant = (priority: PersonalTask['priority']) => {
+    switch (priority) {
+      case 'Highest': return 'destructive';
+      case 'High': return 'default'; // You might want a specific 'high' color
+      case 'Medium': return 'secondary';
+      case 'Low': return 'outline';
+      default: return 'outline';
+    }
+  };
+
+  const getPriorityLabel = (priority: PersonalTask['priority']) => {
+    switch (priority) {
+      case 'Highest': return 'Mais Alta';
+      case 'High': return 'Alta';
+      case 'Medium': return 'Média';
+      case 'Low': return 'Baixa';
+      default: return 'Média';
+    }
+  };
+
   return (
     <Card className={cn(
-      "flex items-center justify-between p-4",
-      task.is_completed && "opacity-70 line-through",
+      "flex items-center justify-between p-4 transition-all duration-300 ease-in-out", // Added transition
+      task.is_completed && "opacity-70 line-through bg-green-50/20 dark:bg-green-900/10", // Visual feedback
       isOverdue && "border-destructive ring-1 ring-destructive"
     )}>
       <div className="flex items-center space-x-4 flex-grow">
@@ -51,6 +72,11 @@ export function PersonalTaskCard({ task, onEdit, onDelete, onToggleComplete }: P
                 <Clock className="h-4 w-4" />
                 <span>{task.due_time}</span>
               </div>
+            )}
+            {task.priority && (
+              <Badge variant={getPriorityBadgeVariant(task.priority)} className="flex items-center gap-1">
+                <Flag className="h-3 w-3" /> {getPriorityLabel(task.priority)}
+              </Badge>
             )}
             {isOverdue && (
               <span className="text-destructive font-semibold ml-2">Atrasado!</span>
