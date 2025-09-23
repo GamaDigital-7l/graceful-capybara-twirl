@@ -1,5 +1,5 @@
 import { format, parseISO, isValid, parse } from 'date-fns';
-import { toZonedTime, formatInTimeZone, zonedTimeToUtc } from 'date-fns-tz'; // Importações nomeadas padrão
+import * as dateFnsTz from 'date-fns-tz'; // Importando como namespace
 import { ptBR } from 'date-fns/locale';
 
 const SAO_PAULO_TIMEZONE = 'America/Sao_Paulo';
@@ -15,7 +15,7 @@ export const toSaoPauloTime = (date: Date | string): Date => {
     console.warn("Invalid date provided to toSaoPauloTime:", date);
     return new Date('Invalid Date'); // Retorna um objeto Date inválido para propagar o problema de forma clara
   }
-  return toZonedTime(utcDate, SAO_PAULO_TIMEZONE); // Usando a função importada diretamente
+  return dateFnsTz.toZonedTime(utcDate, SAO_PAULO_TIMEZONE); // Usando a função do namespace
 };
 
 /**
@@ -30,7 +30,7 @@ export const formatSaoPauloTime = (date: Date | string, formatStr: string): stri
     console.warn("Invalid date provided to formatSaoPauloTime:", date);
     return 'Data Inválida'; // Retorna uma string de fallback amigável
   }
-  return formatInTimeZone(utcDate, SAO_PAULO_TIMEZONE, formatStr, { locale: ptBR }); // Usando a função importada diretamente
+  return dateFnsTz.formatInTimeZone(utcDate, SAO_PAULO_TIMEZONE, formatStr, { locale: ptBR }); // Usando a função do namespace
 };
 
 /**
@@ -52,7 +52,7 @@ export const parseSaoPauloDateString = (dateString: string): Date => {
   }
   // Convert this local date to a UTC date that, when viewed in São Paulo, is the correct local date.
   // This effectively "pins" the date to São Paulo's midnight.
-  return zonedTimeToUtc(parsedDate, SAO_PAULO_TIMEZONE); // Usando a função importada diretamente
+  return dateFnsTz.zonedTimeToUtc(parsedDate, SAO_PAULO_TIMEZONE); // Usando a função do namespace
 };
 
 /**
