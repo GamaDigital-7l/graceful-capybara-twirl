@@ -9,7 +9,7 @@ import { ptBR } from "date-fns/locale";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
-import { formatSaoPauloDate } from "@/utils/date-utils"; // Importar utilitário de data
+import { formatSaoPauloDate, parseSaoPauloDateString, formatSaoPauloTime } from "@/utils/date-utils"; // Importar utilitário de data
 
 export interface ExpenseData {
   id?: string;
@@ -37,13 +37,13 @@ export function ExpenseModal({ isOpen, onClose, onSave, existingData }: ExpenseM
       setDescription(existingData.description || "");
       setAmount(existingData.amount || "");
       setCategory(existingData.category || "");
-      // Ao carregar, trate a string YYYY-MM-DD como data local de São Paulo
-      setExpenseDate(existingData.expense_date ? new Date(existingData.expense_date.toISOString().split('T')[0] + 'T00:00:00') : new Date());
+      // existingData.expense_date já deve ser um objeto Date no fuso horário de SP
+      setExpenseDate(existingData.expense_date || undefined);
     } else {
       setDescription("");
       setAmount("");
       setCategory("");
-      setExpenseDate(new Date());
+      setExpenseDate(parseSaoPauloDateString(formatSaoPauloTime(new Date(), 'yyyy-MM-dd'))); // Default to today in SP timezone
     }
   }, [existingData, isOpen]);
 

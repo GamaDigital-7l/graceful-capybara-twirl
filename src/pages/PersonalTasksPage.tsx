@@ -16,7 +16,7 @@ import * as chrono from 'chrono-node'; // Import chrono-node
 import { Input } from "@/components/ui/input"; // Import Input for NLP field
 import { Label } from "@/components/ui/label"; // Import Label
 import { correctGrammar } from "@/utils/grammar"; // Import new grammar utility
-import { formatSaoPauloTime } from "@/utils/date-utils"; // Importar utilitário de data
+import { formatSaoPauloTime, parseSaoPauloDateString } from "@/utils/date-utils"; // Importar utilitário de data e parseSaoPauloDateString
 
 const fetchPersonalTasks = async (userId: string): Promise<PersonalTask[]> => {
   const { data, error } = await supabase
@@ -28,7 +28,7 @@ const fetchPersonalTasks = async (userId: string): Promise<PersonalTask[]> => {
   if (error) throw new Error(error.message);
   return data.map(task => ({
     ...task,
-    due_date: new Date(task.due_date), // Convert string to Date object
+    due_date: parseSaoPauloDateString(task.due_date), // Convert string to Date object using parseSaoPauloDateString
   })) as PersonalTask[];
 };
 
@@ -133,7 +133,7 @@ const PersonalTasksPage = () => {
 
       let newTask: Partial<PersonalTask> = {
         title: correctedText.trim(), // Usar o texto corrigido como título inicial
-        due_date: new Date(), // Default to today
+        due_date: parseSaoPauloDateString(formatSaoPauloTime(new Date(), 'yyyy-MM-dd')), // Default to today in SP timezone
         priority: 'Medium',
         reminder_preferences: [],
       };
@@ -142,7 +142,8 @@ const PersonalTasksPage = () => {
         const firstResult = parsedResult[0];
         const startDate = firstResult.start.date();
         
-        newTask.due_date = startDate;
+        // Ensure startDate is treated as São Paulo local time
+        newTask.due_date = parseSaoPauloDateString(formatSaoPauloTime(startDate, 'yyyy-MM-dd'));
         
         // Extract time if available
         if (firstResult.start.isCertain('hour') || firstResult.start.isCertain('minute')) {

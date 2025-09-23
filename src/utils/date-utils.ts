@@ -1,4 +1,4 @@
-import { format, parseISO, isValid } from 'date-fns'; // Importar isValid
+import { format, parseISO, isValid, parse } from 'date-fns'; // Importar isValid e parse
 import * as dateFnsTz from 'date-fns-tz';
 import { ptBR } from 'date-fns/locale';
 
@@ -15,7 +15,7 @@ export const toSaoPauloTime = (date: Date | string): Date => {
     console.warn("Invalid date provided to toSaoPauloTime:", date);
     return new Date('Invalid Date'); // Retorna um objeto Date inválido para propagar o problema de forma clara
   }
-  return dateFnsTz.toZonedTime(utcDate, SAO_PAULO_TIMEZONE); // Corrigido para toZonedTime
+  return dateFnsTz.toZonedTime(utcDate, SAO_PAULO_TIMEZONE);
 };
 
 /**
@@ -31,6 +31,28 @@ export const formatSaoPauloTime = (date: Date | string, formatStr: string): stri
     return 'Data Inválida'; // Retorna uma string de fallback amigável
   }
   return dateFnsTz.formatInTimeZone(utcDate, SAO_PAULO_TIMEZONE, formatStr, { locale: ptBR });
+};
+
+/**
+ * Parses a 'YYYY-MM-DD' string as a date in the São Paulo timezone,
+ * returning a Date object that represents midnight of that day in São Paulo.
+ * This is crucial for correctly initializing date pickers.
+ * @param dateString The date string in 'YYYY-MM-DD' format.
+ * @returns A Date object representing the start of the day in São Paulo timezone.
+ */
+export const parseSaoPauloDateString = (dateString: string): Date => {
+  if (!dateString) {
+    return new Date('Invalid Date');
+  }
+  // Parse the string as a local date (without timezone interpretation)
+  const parsedDate = parse(dateString, 'yyyy-MM-dd', new Date());
+  if (!isValid(parsedDate)) {
+    console.warn("Invalid date string provided to parseSaoPauloDateString:", dateString);
+    return new Date('Invalid Date');
+  }
+  // Convert this local date to a UTC date that, when viewed in São Paulo, is the correct local date.
+  // This effectively "pins" the date to São Paulo's midnight.
+  return dateFnsTz.zonedTimeToUtc(parsedDate, SAO_PAULO_TIMEZONE);
 };
 
 /**

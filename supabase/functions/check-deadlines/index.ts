@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import { addHours, addMinutes, isBefore, parseISO } from "https://esm.sh/date-fns@3.6.0"; // Versão atualizada
-import { utcToZonedTime } from "https://esm.sh/date-fns-tz@3.1.3"; // Versão atualizada
+import { utcToZonedTime, zonedTimeToUtc } from "https://esm.sh/date-fns-tz@3.1.3"; // Versão atualizada, importado zonedTimeToUtc
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -61,17 +61,17 @@ serve(async (req) => {
       const workspaceName = (task.groups as { workspaces: { name: string } }).workspaces.name;
 
       // Combine due_date and due_time into a São Paulo zoned date
-      let fullDueDateSaoPaulo: Date;
-      const taskDueDate = parseISO(task.due_date); // This is usually YYYY-MM-DD, interpreted as UTC midnight
-      
-      if (task.due_time) {
-        const [hours, minutes] = task.due_time.split(':').map(Number);
-        // Create a date object in São Paulo timezone for the due date and time
-        fullDueDateSaoPaulo = utcToZonedTime(new Date(taskDueDate.getFullYear(), taskDueDate.getMonth(), taskDueDate.getDate(), hours, minutes, 0), SAO_PAULO_TIMEZONE);
-      } else {
-        // If no specific time, assume end of day in São Paulo for notification purposes
-        fullDueDateSaoPaulo = utcToZonedTime(new Date(taskDueDate.getFullYear(), taskDueDate.getMonth(), taskDueDate.getDate(), 23, 59, 59), SAO_PAULO_TIMEZONE);
-      }
+      const [year, month, day] = task.due_date.split('-').map(Number);
+      const [hours, minutes] = task.due_time ? task.due_time.split(':').map(Number) : [23, 59]; // Default to end of day if no time
+
+      // Create a Date object representing that specific time in São Paulo
+      const dateInSaoPaulo = new Date(year, month - 1, day, hours, minutes, 0); // Month is 0-indexed
+
+      // Convert this São Paulo local time to its UTC equivalent
+      const fullDueDateTimeUtc = zonedTimeToUtc(dateInSaoPaulo, SAO_PAULO_TIMEZONE);
+
+      // Convert this UTC date back to São Paulo timezone for consistent comparisons
+      const fullDueDateTimeSaoPaulo = utcToZonedTime(fullDueDateTimeUtc, SAO_PAULO_TIMEZONE);
 
       // Convert notification thresholds to São Paulo time for comparison
       const twoHoursFromNowSaoPaulo = addHours(nowSaoPaulo, 2);
@@ -79,8 +79,8 @@ serve(async (req) => {
 
       // Check for 2-hour notification
       if (
-        isBefore(fullDueDateSaoPaulo, twoHoursFromNowSaoPaulo) &&
-        isBefore(nowSaoPaulo, fullDueDateSaoPaulo) && // Ensure notification is sent before deadline
+        isBefore(fullDueDateTimeSaoPaulo, twoHoursFromNowSaoPaulo) &&
+        isBefore(nowSaoPaulo, fullDueDateTimeSaoPaulo) && // Ensure notification is sent before deadline
         (!task.last_notified_2hr_at || isBefore(utcToZonedTime(parseISO(task.last_notified_2hr_at), SAO_PAULO_TIMEZONE), addHours(nowSaoPaulo, -2))) // Notified more than 2 hours ago
       ) {
         notificationsToSend.push({
@@ -93,8 +93,8 @@ serve(async (req) => {
 
       // Check for 30-minute notification
       if (
-        isBefore(fullDueDateSaoPaulo, thirtyMinutesFromNowSaoPaulo) &&
-        isBefore(nowSaoPaulo, fullDueDateSaoPaulo) && // Ensure notification is sent before deadline
+        isBefore(fullDueDateTimeSaoPaulo, thirtyMinutesFromNowSaoPaulo) &&
+        isBefore(nowSaoPaulo, fullDueDateTimeSaoPaulo) && // Ensure notification is sent before deadline
         (!task.last_notified_30min_at || isBefore(utcToZonedTime(parseISO(task.last_notified_30min_at), SAO_PAULO_TIMEZONE), addMinutes(nowSaoPaulo, -30))) // Notified more than 30 minutes ago
       ) {
         notificationsToSend.push({
@@ -134,7 +134,7 @@ serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error in check-deadlines Edge Function:", error.message);
     return new Response(JSON.stringify({ error: error.message }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

@@ -34,7 +34,7 @@ import { AspectRatio } from "./ui/aspect-ratio";
 import { ScrollArea } from "./ui/scroll-area";
 import { ImagePreviewModal } from "./ImagePreviewModal";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { formatSaoPauloDate, formatSaoPauloTime, formatSaoPauloHour, formatSaoPauloDateTime } from "@/utils/date-utils"; // Importar utilitário de data
+import { formatSaoPauloDate, formatSaoPauloTime, formatSaoPauloHour, formatSaoPauloDateTime, parseSaoPauloDateString } from "@/utils/date-utils"; // Importar utilitário de data e parseSaoPauloDateString
 
 interface UserProfile {
   id: string;
@@ -84,7 +84,7 @@ export function TaskModal({
       setAttachmentUrl(task.attachments?.[0]?.url || "");
       setActionType(task.actionType || "none");
       // Ao carregar, trate a string YYYY-MM-DD como data local de São Paulo
-      setDueDate(task.dueDate ? new Date(task.dueDate + 'T00:00:00') : undefined);
+      setDueDate(task.dueDate ? parseSaoPauloDateString(task.dueDate) : undefined);
       setDueTime(task.due_time || ""); // Carregar due_time
       setComments(task.comments || []);
       setAssignedTo(task.assignedTo || null); // Carregar assignedTo

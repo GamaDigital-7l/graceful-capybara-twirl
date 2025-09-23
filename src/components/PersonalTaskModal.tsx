@@ -18,7 +18,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; // Import Select
-import { formatSaoPauloDate } from "@/utils/date-utils"; // Importar utilitário de data
+import { formatSaoPauloDate, parseSaoPauloDateString, formatSaoPauloTime } from "@/utils/date-utils"; // Importar utilitário de data
 
 export interface PersonalTask {
   id?: string;
@@ -56,15 +56,15 @@ export function PersonalTaskModal({
     if (existingTask) {
       setTitle(existingTask.title);
       setDescription(existingTask.description || "");
-      // Ao carregar, trate a string YYYY-MM-DD como data local de São Paulo
-      setDueDate(existingTask.due_date ? new Date(existingTask.due_date.toISOString().split('T')[0] + 'T00:00:00') : undefined);
+      // existingTask.due_date já deve ser um objeto Date no fuso horário de SP
+      setDueDate(existingTask.due_date || undefined);
       setDueTime(existingTask.due_time || "");
       setReminderPreferences(existingTask.reminder_preferences || []);
       setPriority(existingTask.priority || 'Medium');
     } else {
       setTitle("");
       setDescription("");
-      setDueDate(new Date()); // Default to today
+      setDueDate(parseSaoPauloDateString(formatSaoPauloTime(new Date(), 'yyyy-MM-dd'))); // Default to today in SP timezone
       setDueTime("");
       setReminderPreferences([]);
       setPriority('Medium');

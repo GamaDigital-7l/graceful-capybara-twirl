@@ -18,7 +18,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { startOfMonth, subMonths, addMonths } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { formatSaoPauloTime } from "@/utils/date-utils"; // Importar utilitário de data
+import { formatSaoPauloTime, parseSaoPauloDateString } from "@/utils/date-utils"; // Importar utilitário de data e parseSaoPauloDateString
 
 const fetchFinancialData = async (period?: Date) => {
   let query = supabase.from("financial_control").select("*, workspace:workspaces(name)");
@@ -40,7 +40,10 @@ const fetchExpenses = async (period?: Date) => {
   query = query.order("expense_date", { ascending: false });
   const { data, error } = await query;
   if (error) throw error;
-  return data;
+  return data.map(expense => ({
+    ...expense,
+    expense_date: parseSaoPauloDateString(expense.expense_date), // Convert string to Date object using parseSaoPauloDateString
+  }));
 };
 
 const fetchWorkspaces = async (): Promise<Workspace[]> => {
