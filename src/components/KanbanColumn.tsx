@@ -123,40 +123,40 @@ export function KanbanColumn({
             </div>
           )}
         </div>
-        <AlertDialog>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0">
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0">
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <AlertDialog>
               <AlertDialogTrigger asChild>
-                <DropdownMenuItem className="text-destructive cursor-pointer">
+                <DropdownMenuItem className="text-destructive cursor-pointer" onSelect={(e) => e.preventDefault()}> {/* Prevent default to keep dropdown open until alert confirms */}
                   <Trash2 className="mr-2 h-4 w-4" />
                   Deletar Coluna
                 </DropdownMenuItem>
               </AlertDialogTrigger>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
-              <AlertDialogDescription>
-                Isso irá deletar a coluna "{column.title}" e todas as suas tarefas. Esta ação não pode ser desfeita.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancelar</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={() => onDeleteColumn(column.id)}
-                className="bg-destructive hover:bg-destructive/90"
-              >
-                Sim, deletar
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Isso irá deletar a coluna "{column.title}" e todas as suas tarefas. Esta ação não pode ser desfeita.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={() => onDeleteColumn(column.id)}
+                    className="bg-destructive hover:bg-destructive/90"
+                  >
+                    Sim, deletar
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </CardHeader>
       <CardContent className="flex flex-col gap-4 flex-grow">
         <SortableContext items={tasksIds}>
