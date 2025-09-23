@@ -23,6 +23,7 @@ import BriefingsPage from "./pages/BriefingsPage";
 import PublicBriefingPage from "./pages/PublicBriefingPage";
 import { BriefingFormEditor } from "./components/BriefingFormEditor";
 import BriefingResponsesPage from "./pages/BriefingResponsesPage"; // Novo import
+import PublicClientOnboardingPage from "./pages/PublicClientOnboardingPage"; // Novo import
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import { Layout } from "./components/Layout";
@@ -42,6 +43,7 @@ const App = () => (
             <Route path="/approve/:token" element={<PublicApprovalPage />} />
             <Route path="/client-dashboard/:token" element={<PublicClientDashboardPage />} />
             <Route path="/briefings/public/:formId" element={<PublicBriefingPage />} />
+            <Route path="/onboarding/:publicToken" element={<PublicClientOnboardingPage />} /> {/* Nova rota */}
             <Route
               path="/"
               element={
