@@ -7,9 +7,11 @@ import { showError, showSuccess } from "@/utils/toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Pencil, Link as LinkIcon, FileText, KeyRound, Cloud, Lightbulb, Users, Eye, EyeOff } from "lucide-react";
+import { Pencil, Link as LinkIcon, FileText, KeyRound, Cloud, Lightbulb, Users, Eye, EyeOff, Copy, PlusCircle, Video } from "lucide-react";
 import { AgencyPlaybookEditor } from "@/components/AgencyPlaybookEditor";
 import type { AgencyPlaybook } from "@/components/AgencyPlaybookEditor";
+import { toast } from "sonner";
+import { ClientOnboardingGeneratorModal } from "@/components/ClientOnboardingGeneratorModal"; // Importar o novo modal
 
 const fetchAgencyPlaybook = async (): Promise<AgencyPlaybook | null> => {
   const { data, error } = await supabase
@@ -26,6 +28,7 @@ const fetchAgencyPlaybook = async (): Promise<AgencyPlaybook | null> => {
 const AgencyPlaybookPage = () => {
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [visiblePasswords, setVisiblePasswords] = useState<Set<string>>(new Set());
+  const [isGenerateOnboardingModalOpen, setIsGenerateOnboardingModalOpen] = useState(false); // Novo estado para o modal
   const queryClient = useQueryClient();
 
   const { data: playbook, isLoading: isLoadingPlaybook } = useQuery({
@@ -62,6 +65,11 @@ const AgencyPlaybookPage = () => {
     });
   };
 
+  const handleCopyText = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast.success("Copiado para a área de transferência!");
+  };
+
   const renderSkeletons = () => (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <Skeleton className="h-48 w-full" />
@@ -74,7 +82,11 @@ const AgencyPlaybookPage = () => {
   return (
     <React.Fragment>
       <div className="space-y-6">
-        <div className="flex justify-end">
+        <div className="flex justify-end gap-2">
+          <Button onClick={() => setIsGenerateOnboardingModalOpen(true)}>
+            <PlusCircle className="h-4 w-4 mr-2" />
+            Gerar Página de Boas-Vindas
+          </Button>
           <Button onClick={() => setIsEditorOpen(true)}>
             <Pencil className="h-4 w-4 mr-2" />
             Editar Playbook da Agência
@@ -95,7 +107,12 @@ const AgencyPlaybookPage = () => {
                     {playbook.briefings?.length > 0 ? (
                       <ul className="space-y-1 list-disc list-inside">
                         {playbook.briefings.map((link, index) => (
-                          <li key={index}><a href={link.url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">{link.name}</a></li>
+                          <li key={index} className="flex items-center justify-between">
+                            <a href={link.url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">{link.name}</a>
+                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleCopyText(link.url)}>
+                              <Copy className="h-4 w-4" />
+                            </Button>
+                          </li>
                         ))}
                       </ul>
                     ) : <p className="text-sm text-muted-foreground">Nenhum link de briefing.</p>}
@@ -105,7 +122,12 @@ const AgencyPlaybookPage = () => {
                     {playbook.ai_agents?.length > 0 ? (
                       <ul className="space-y-1 list-disc list-inside">
                         {playbook.ai_agents.map((link, index) => (
-                          <li key={index}><a href={link.url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">{link.name}</a></li>
+                          <li key={index} className="flex items-center justify-between">
+                            <a href={link.url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">{link.name}</a>
+                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleCopyText(link.url)}>
+                              <Copy className="h-4 w-4" />
+                            </Button>
+                          </li>
                         ))}
                       </ul>
                     ) : <p className="text-sm text-muted-foreground">Nenhum link de agente de IA.</p>}
@@ -115,7 +137,12 @@ const AgencyPlaybookPage = () => {
                     {playbook.useful_links?.length > 0 ? (
                       <ul className="space-y-1 list-disc list-inside">
                           {playbook.useful_links.map((link, index) => (
-                            <li key={index}><a href={link.url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">{link.name}</a></li>
+                            <li key={index} className="flex items-center justify-between">
+                              <a href={link.url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">{link.name}</a>
+                              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleCopyText(link.url)}>
+                                <Copy className="h-4 w-4" />
+                              </Button>
+                            </li>
                           ))}
                         </ul>
                       ) : <p className="text-sm text-muted-foreground">Nenhum link útil.</p>}
@@ -136,9 +163,14 @@ const AgencyPlaybookPage = () => {
                   </CardHeader>
                   <CardContent>
                     {playbook.commercial_proposal_link ? (
-                      <a href={playbook.commercial_proposal_link} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-blue-500 hover:underline">
-                        Acessar Proposta Comercial
-                      </a>
+                      <div className="flex items-center justify-between p-2 border rounded-md bg-muted/50">
+                        <a href={playbook.commercial_proposal_link} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-blue-500 hover:underline">
+                          Acessar Proposta Comercial
+                        </a>
+                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleCopyText(playbook.commercial_proposal_link!)}>
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                      </div>
                     ) : (
                       <p className="text-sm text-muted-foreground">Nenhum link de proposta comercial configurado.</p>
                     )}
@@ -199,6 +231,68 @@ const AgencyPlaybookPage = () => {
                     </div>
                   </CardContent>
                 </Card>
+
+                {/* Nova seção de Onboarding do Cliente */}
+                <Card className="lg:col-span-2">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2"><Users /> Onboarding do Cliente</CardTitle>
+                    <CardDescription>Recursos para integrar novos clientes.</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <h4 className="font-semibold text-sm mb-2">Mensagem de Boas-Vindas</h4>
+                      {playbook.onboarding_welcome_message ? (
+                        <div className="relative p-3 border rounded-md bg-muted/50">
+                          <p className="whitespace-pre-wrap text-sm text-muted-foreground">{playbook.onboarding_welcome_message}</p>
+                          <Button variant="ghost" size="icon" className="absolute top-1 right-1 h-7 w-7" onClick={() => handleCopyText(playbook.onboarding_welcome_message!)}>
+                            <Copy className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ) : <p className="text-sm text-muted-foreground">Nenhuma mensagem de boas-vindas configurada.</p>}
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-sm mb-2">Links de Briefings para Onboarding</h4>
+                      {playbook.onboarding_briefing_links?.length > 0 ? (
+                        <ul className="space-y-1 list-disc list-inside">
+                          {playbook.onboarding_briefing_links.map((link, index) => (
+                            <li key={index} className="flex items-center justify-between">
+                              <a href={link.url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">{link.name}</a>
+                              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleCopyText(link.url)}>
+                                <Copy className="h-4 w-4" />
+                              </Button>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : <p className="text-sm text-muted-foreground">Nenhum link de briefing para onboarding.</p>}
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-sm mb-2">Informações de Acesso aos Apps</h4>
+                      {playbook.onboarding_apps_access_info ? (
+                        <div className="relative p-3 border rounded-md bg-muted/50">
+                          <p className="whitespace-pre-wrap text-sm text-muted-foreground">{playbook.onboarding_apps_access_info}</p>
+                          <Button variant="ghost" size="icon" className="absolute top-1 right-1 h-7 w-7" onClick={() => handleCopyText(playbook.onboarding_apps_access_info!)}>
+                            <Copy className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ) : <p className="text-sm text-muted-foreground">Nenhuma informação de acesso aos apps configurada.</p>}
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-sm mb-2 flex items-center gap-2"><Video className="h-4 w-4" /> Vídeos Tutoriais</h4>
+                      {playbook.onboarding_tutorial_videos?.length > 0 ? (
+                        <ul className="space-y-1 list-disc list-inside">
+                          {playbook.onboarding_tutorial_videos.map((video, index) => (
+                            <li key={index} className="flex items-center justify-between">
+                              <a href={video.url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">{video.name}</a>
+                              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleCopyText(video.url)}>
+                                <Copy className="h-4 w-4" />
+                              </Button>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : <p className="text-sm text-muted-foreground">Nenhum vídeo tutorial configurado.</p>}
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
             ) : <p className="text-center text-muted-foreground">Nenhum playbook da agência encontrado. Por favor, edite para adicionar conteúdo.</p>
           )}
@@ -211,6 +305,12 @@ const AgencyPlaybookPage = () => {
             />
           )}
         </div>
+        {/* Modal para gerar página de onboarding (será criado no próximo passo) */}
+        <ClientOnboardingGeneratorModal
+          isOpen={isGenerateOnboardingModalOpen}
+          onClose={() => setIsGenerateOnboardingModalOpen(false)}
+          agencyPlaybook={playbook}
+        />
     </React.Fragment>
   );
 }
