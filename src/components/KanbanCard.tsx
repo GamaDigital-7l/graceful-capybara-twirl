@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { CalendarDays, MessageSquare, Eye, User } from "lucide-react";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
-import { useState } from "react";
+import { useState, useEffect } from "react"; // Adicionado useEffect
 import { ImagePreviewModal } from "./ImagePreviewModal"; // Importar o modal de pré-visualização
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { formatSaoPauloDate } from "@/utils/date-utils"; // Importar utilitário de data
@@ -71,6 +71,18 @@ export function KanbanCard({
 
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
   const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
+  const [formattedDueDate, setFormattedDueDate] = useState<string | null>(null); // Estado para a data formatada
+
+  useEffect(() => {
+    const updateFormattedDate = async () => {
+      if (task.dueDate) {
+        setFormattedDueDate(await formatSaoPauloDate(task.dueDate));
+      } else {
+        setFormattedDueDate(null);
+      }
+    };
+    updateFormattedDate();
+  }, [task.dueDate]);
 
   const style = {
     transition,
@@ -146,12 +158,12 @@ export function KanbanCard({
           )}
         </CardContent>
 
-        {(task.dueDate || (task.comments && task.comments.length > 0)) && (
+        {(formattedDueDate || (task.comments && task.comments.length > 0)) && (
           <div className="px-4 pb-2 flex justify-between items-center text-sm text-muted-foreground">
-            {task.dueDate ? (
+            {formattedDueDate ? (
               <div className="flex items-center gap-1">
                 <CalendarDays className="h-4 w-4" />
-                <span>{formatSaoPauloDate(task.dueDate)}</span>
+                <span>{formattedDueDate}</span>
               </div>
             ) : <div />}
             {task.comments && task.comments.length > 0 && (

@@ -1,21 +1,32 @@
 import { format, parseISO, isValid, parse } from 'date-fns';
-import * as dateFnsTz from 'date-fns-tz'; // Importando como namespace
 import { ptBR } from 'date-fns/locale';
 
 const SAO_PAULO_TIMEZONE = 'America/Sao_Paulo';
+
+// Cache para o módulo date-fns-tz carregado dinamicamente
+let dateFnsTzModule: typeof import('date-fns-tz') | null = null;
+
+// Função para carregar o módulo date-fns-tz dinamicamente
+const loadDateFnsTz = async () => {
+  if (!dateFnsTzModule) {
+    dateFnsTzModule = await import('date-fns-tz');
+  }
+  return dateFnsTzModule;
+};
 
 /**
  * Converte uma data UTC para o fuso horário de São Paulo.
  * @param date A data em UTC (pode ser um objeto Date ou string ISO).
  * @returns Um objeto Date no fuso horário de São Paulo.
  */
-export const toSaoPauloTime = (date: Date | string): Date => {
+export const toSaoPauloTime = async (date: Date | string): Promise<Date> => {
+  const { toZonedTime } = await loadDateFnsTz();
   const utcDate = typeof date === 'string' ? parseISO(date) : date;
   if (!isValid(utcDate)) {
     console.warn("Invalid date provided to toSaoPauloTime:", date);
-    return new Date('Invalid Date'); // Retorna um objeto Date inválido para propagar o problema de forma clara
+    return new Date('Invalid Date');
   }
-  return dateFnsTz.toZonedTime(utcDate, SAO_PAULO_TIMEZONE); // Usando a função do namespace
+  return toZonedTime(utcDate, SAO_PAULO_TIMEZONE);
 };
 
 /**
@@ -24,13 +35,14 @@ export const toSaoPauloTime = (date: Date | string): Date => {
  * @param formatStr A string de formato (ex: 'dd/MM/yyyy HH:mm').
  * @returns A data formatada como string no fuso horário de São Paulo.
  */
-export const formatSaoPauloTime = (date: Date | string, formatStr: string): string => {
+export const formatSaoPauloTime = async (date: Date | string, formatStr: string): Promise<string> => {
+  const { formatInTimeZone } = await loadDateFnsTz();
   const utcDate = typeof date === 'string' ? parseISO(date) : date;
-  if (!isValid(utcDate)) { // Verifica se a data é válida após o parse
+  if (!isValid(utcDate)) {
     console.warn("Invalid date provided to formatSaoPauloTime:", date);
-    return 'Data Inválida'; // Retorna uma string de fallback amigável
+    return 'Data Inválida';
   }
-  return dateFnsTz.formatInTimeZone(utcDate, SAO_PAULO_TIMEZONE, formatStr, { locale: ptBR }); // Usando a função do namespace
+  return formatInTimeZone(utcDate, SAO_PAULO_TIMEZONE, formatStr, { locale: ptBR });
 };
 
 /**
@@ -40,19 +52,17 @@ export const formatSaoPauloTime = (date: Date | string, formatStr: string): stri
  * @param dateString The date string in 'YYYY-MM-DD' format.
  * @returns A Date object representing the start of the day in São Paulo timezone.
  */
-export const parseSaoPauloDateString = (dateString: string): Date => {
+export const parseSaoPauloDateString = async (dateString: string): Promise<Date> => {
+  const { zonedTimeToUtc } = await loadDateFnsTz();
   if (!dateString) {
     return new Date('Invalid Date');
   }
-  // Parse the string as a local date (without timezone interpretation)
   const parsedDate = parse(dateString, 'yyyy-MM-dd', new Date());
   if (!isValid(parsedDate)) {
     console.warn("Invalid date string provided to parseSaoPauloDateString:", dateString);
     return new Date('Invalid Date');
   }
-  // Convert this local date to a UTC date that, when viewed in São Paulo, is the correct local date.
-  // This effectively "pins" the date to São Paulo's midnight.
-  return dateFnsTz.zonedTimeToUtc(parsedDate, SAO_PAULO_TIMEZONE); // Usando a função do namespace
+  return zonedTimeToUtc(parsedDate, SAO_PAULO_TIMEZONE);
 };
 
 /**
@@ -60,7 +70,7 @@ export const parseSaoPauloDateString = (dateString: string): Date => {
  * @param date A data (pode ser um objeto Date ou string ISO).
  * @returns A data formatada como string.
  */
-export const formatSaoPauloDate = (date: Date | string): string => {
+export const formatSaoPauloDate = async (date: Date | string): Promise<string> => {
   return formatSaoPauloTime(date, 'PPP');
 };
 
@@ -69,7 +79,7 @@ export const formatSaoPauloDate = (date: Date | string): string => {
  * @param date A data (pode ser um objeto Date ou string ISO).
  * @returns A data e hora formatadas como string.
  */
-export const formatSaoPauloDateTime = (date: Date | string): string => {
+export const formatSaoPauloDateTime = async (date: Date | string): Promise<string> => {
   return formatSaoPauloTime(date, 'dd/MM/yyyy HH:mm');
 };
 
@@ -78,6 +88,6 @@ export const formatSaoPauloDateTime = (date: Date | string): string => {
  * @param date A data (pode ser um objeto Date ou string ISO).
  * @returns A hora formatada como string.
  */
-export const formatSaoPauloHour = (date: Date | string): string => {
+export const formatSaoPauloHour = async (date: Date | string): Promise<string> => {
   return formatSaoPauloTime(date, 'HH:mm');
 };

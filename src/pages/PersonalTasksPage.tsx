@@ -28,7 +28,7 @@ const fetchPersonalTasks = async (userId: string): Promise<PersonalTask[]> => {
   if (error) throw new Error(error.message);
   return data.map(task => ({
     ...task,
-    due_date: parseSaoPauloDateString(task.due_date), // Convert string to Date object using parseSaoPauloDateString
+    due_date: new Date(task.due_date), // Convert string to Date object
   })) as PersonalTask[];
 };
 
@@ -60,7 +60,7 @@ const PersonalTasksPage = () => {
       const dataToSave = {
         ...rest,
         user_id: currentUserId,
-        due_date: formatSaoPauloTime(due_date, 'yyyy-MM-dd'), // Format Date to string for Supabase
+        due_date: await formatSaoPauloTime(due_date, 'yyyy-MM-dd'), // Format Date to string for Supabase
         reminder_preferences: reminder_preferences || [], // Save reminder preferences
         priority: priority || 'Medium', // Save priority
       };
@@ -133,7 +133,7 @@ const PersonalTasksPage = () => {
 
       let newTask: Partial<PersonalTask> = {
         title: correctedText.trim(), // Usar o texto corrigido como título inicial
-        due_date: parseSaoPauloDateString(formatSaoPauloTime(new Date(), 'yyyy-MM-dd')), // Default to today in SP timezone
+        due_date: await parseSaoPauloDateString(await formatSaoPauloTime(new Date(), 'yyyy-MM-dd')), // Default to today in SP timezone
         priority: 'Medium',
         reminder_preferences: [],
       };
@@ -143,11 +143,11 @@ const PersonalTasksPage = () => {
         const startDate = firstResult.start.date();
         
         // Ensure startDate is treated as São Paulo local time
-        newTask.due_date = parseSaoPauloDateString(formatSaoPauloTime(startDate, 'yyyy-MM-dd'));
+        newTask.due_date = await parseSaoPauloDateString(await formatSaoPauloTime(startDate, 'yyyy-MM-dd'));
         
         // Extract time if available
         if (firstResult.start.isCertain('hour') || firstResult.start.isCertain('minute')) {
-          newTask.due_time = formatSaoPauloTime(startDate, 'HH:mm');
+          newTask.due_time = await formatSaoPauloTime(startDate, 'HH:mm');
           // Set default reminder for 30 min before if time is certain
           newTask.reminder_preferences = ['30m_before'];
         } else {

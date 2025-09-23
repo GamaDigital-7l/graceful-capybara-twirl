@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react"; // Adicionado useEffect
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -66,6 +66,7 @@ const PublicClientDashboardPage = () => {
   const { token } = useParams<{ token: string }>();
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
   const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
+  const [formattedCurrentDate, setFormattedCurrentDate] = useState<string | null>(null); // Estado para a data atual formatada
 
   const { data, isLoading, error } = useQuery<PublicDashboardData, Error>({
     queryKey: ["publicClientDashboard", token],
@@ -73,6 +74,13 @@ const PublicClientDashboardPage = () => {
     enabled: !!token,
     retry: false,
   });
+
+  useEffect(() => {
+    const updateFormattedDate = async () => {
+      setFormattedCurrentDate(await formatSaoPauloTime(new Date(), 'dd/MM/yyyy HH:mm'));
+    };
+    updateFormattedDate();
+  }, []);
 
   const handleImageClick = (imageUrl: string) => {
     setPreviewImageUrl(imageUrl);
@@ -92,7 +100,7 @@ const PublicClientDashboardPage = () => {
     if (!data?.instagramInsights) return [];
     const insights = data.instagramInsights;
     return [{
-      name: formatSaoPauloTime(insights.insight_date, "dd/MM"),
+      name: insights.insight_date, // Usaremos um useEffect para formatar isso
       Seguidores: insights.followers,
       Engajamento: insights.engagement_rate,
       Alcance: insights.reach,
@@ -102,6 +110,26 @@ const PublicClientDashboardPage = () => {
       Interações: insights.interactions || 0, // Incluído
     }];
   }, [data?.instagramInsights]);
+
+  const [formattedInsightDate, setFormattedInsightDate] = useState<string | null>(null);
+  const [formattedTaskDueDates, setFormattedTaskDueDates] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    const formatDates = async () => {
+      if (data?.instagramInsights?.insight_date) {
+        setFormattedInsightDate(await formatSaoPauloDate(data.instagramInsights.insight_date));
+      }
+      const newFormattedDueDates: Record<string, string> = {};
+      for (const task of data?.kanbanTasks || []) {
+        if (task.due_date) {
+          newFormattedDueDates[task.id] = await formatSaoPauloTime(task.due_date, 'dd MMM');
+        }
+      }
+      setFormattedTaskDueDates(newFormattedDueDates);
+    };
+    formatDates();
+  }, [data?.instagramInsights?.insight_date, data?.kanbanTasks]);
+
 
   if (isLoading) {
     return (
@@ -146,7 +174,7 @@ const PublicClientDashboardPage = () => {
         )}
         <h1 className="text-3xl font-bold">{workspace.name}</h1>
         <p className="text-lg text-muted-foreground">Dashboard do Cliente</p>
-        <p className="text-sm text-muted-foreground mt-2">Última atualização: {formatSaoPauloTime(new Date(), 'dd/MM/yyyy HH:mm')}</p>
+        <p className="text-sm text-muted-foreground mt-2">Última atualização: {formattedCurrentDate}</p>
       </header>
 
       <main className="max-w-6xl mx-auto space-y-8">
@@ -155,7 +183,7 @@ const PublicClientDashboardPage = () => {
             <h2 className="text-2xl font-bold mb-4 flex items-center gap-2"><BarChart className="h-6 w-6" /> Insights do Instagram</h2>
             <Card className="mb-6">
               <CardHeader>
-                <CardTitle>Métricas Recentes ({formatSaoPauloDate(instagramInsights.insight_date)})</CardTitle>
+                <CardTitle>Métricas Recentes ({formattedInsightDate})</CardTitle>
                 <CardDescription>Visão geral do desempenho do Instagram.</CardDescription>
               </CardHeader>
               <CardContent className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"> {/* Ajustado para 4 colunas */}
@@ -260,7 +288,7 @@ const PublicClientDashboardPage = () => {
                             </span>
                             {task.due_date && (
                               <span className="flex items-center gap-1">
-                                <CalendarDays className="h-3 w-3" /> {formatSaoPauloTime(task.due_date, 'dd MMM')}
+                                <CalendarDays className="h-3 w-3" /> {formattedTaskDueDates[task.id]}
                               </span>
                             )}
                           </div>
@@ -296,7 +324,7 @@ const PublicClientDashboardPage = () => {
                             <span className="font-semibold text-green-600">{task.column_title}</span>
                             {task.due_date && (
                               <span className="flex items-center gap-1">
-                                <CalendarDays className="h-3 w-3" /> {formatSaoPauloTime(task.due_date, 'dd MMM')}
+                                <CalendarDays className="h-3 w-3" /> {formattedTaskDueDates[task.id]}
                               </span>
                             )}
                           </div>

@@ -43,6 +43,7 @@ const BriefingResponsesPage = () => {
   const [isProfileLoading, setProfileLoading] = useState(true);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [selectedResponse, setSelectedResponse] = useState<BriefingResponse | null>(null);
+  const [formattedSubmittedDates, setFormattedSubmittedDates] = useState<Record<string, string>>({}); // Novo estado
 
   const { data: form, isLoading: isLoadingForm } = useQuery<BriefingForm | null>({
     queryKey: ["briefingFormDetails", formId],
@@ -87,6 +88,17 @@ const BriefingResponsesPage = () => {
       navigate("/"); // Redirect non-staff users
     }
   }, [isProfileLoading, userRole, navigate]);
+
+  useEffect(() => {
+    const formatDates = async () => {
+      const newFormattedDates: Record<string, string> = {};
+      for (const response of responses || []) {
+        newFormattedDates[response.id] = await formatSaoPauloDateTime(response.submitted_at);
+      }
+      setFormattedSubmittedDates(newFormattedDates);
+    };
+    formatDates();
+  }, [responses]);
 
   const deleteResponseMutation = useMutation({
     mutationFn: async (responseId: string) => {
@@ -161,7 +173,7 @@ const BriefingResponsesPage = () => {
                     <div className="flex flex-col">
                       <CardTitle className="text-lg font-medium flex-grow pr-2">{response.client_name || "Usuário Autenticado"}</CardTitle>
                       <CardDescription className="flex items-center gap-1 text-sm text-muted-foreground mt-1">
-                        <CalendarDays className="h-3 w-3" /> {formatSaoPauloDateTime(response.submitted_at)}
+                        <CalendarDays className="h-3 w-3" /> {formattedSubmittedDates[response.id]}
                       </CardDescription>
                     </div>
                     <DropdownMenu>
@@ -203,11 +215,11 @@ const BriefingResponsesPage = () => {
                   <CardContent className="flex-grow p-4 pt-0"> {/* Ajustado padding */}
                     <p className="text-sm text-muted-foreground line-clamp-3">
                       {/* Exibir um resumo das primeiras respostas */}
-                      {Object.entries(response.response_data).slice(0, 2).map(([fieldId, value]) => {
-                        const field = form.form_structure.find(f => f.id === fieldId);
-                        if (!field) return null;
+                      {form.form_structure?.slice(0, 2).map((field) => {
+                        const value = response.response_data[field.id];
+                        if (!value) return null;
                         const displayValue = Array.isArray(value) ? value.join(", ") : value;
-                        return <span key={fieldId} className="block">{field.label}: {displayValue}</span>;
+                        return <span key={field.id} className="block">{field.label}: {displayValue}</span>;
                       })}
                     </p>
                   </CardContent>

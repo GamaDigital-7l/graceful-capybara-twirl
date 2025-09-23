@@ -51,24 +51,38 @@ export function PersonalTaskModal({
   const [dueTime, setDueTime] = useState(""); // HH:mm format
   const [reminderPreferences, setReminderPreferences] = useState<string[]>([]); // State for reminder preferences
   const [priority, setPriority] = useState<'Highest' | 'High' | 'Medium' | 'Low'>('Medium'); // State for priority
+  const [formattedDueDateDisplay, setFormattedDueDateDisplay] = useState<string | null>(null); // Novo estado para exibição da data
 
   useEffect(() => {
-    if (existingTask) {
-      setTitle(existingTask.title);
-      setDescription(existingTask.description || "");
-      // existingTask.due_date já deve ser um objeto Date no fuso horário de SP
-      setDueDate(existingTask.due_date || undefined);
-      setDueTime(existingTask.due_time || "");
-      setReminderPreferences(existingTask.reminder_preferences || []);
-      setPriority(existingTask.priority || 'Medium');
-    } else {
-      setTitle("");
-      setDescription("");
-      setDueDate(parseSaoPauloDateString(formatSaoPauloTime(new Date(), 'yyyy-MM-dd'))); // Default to today in SP timezone
-      setDueTime("");
-      setReminderPreferences([]);
-      setPriority('Medium');
-    }
+    const updateFormattedDate = async () => {
+      if (dueDate) {
+        setFormattedDueDateDisplay(await formatSaoPauloDate(dueDate));
+      } else {
+        setFormattedDueDateDisplay(null);
+      }
+    };
+    updateFormattedDate();
+  }, [dueDate]);
+
+  useEffect(() => {
+    const initializeState = async () => {
+      if (existingTask) {
+        setTitle(existingTask.title);
+        setDescription(existingTask.description || "");
+        setDueDate(existingTask.due_date || undefined);
+        setDueTime(existingTask.due_time || "");
+        setReminderPreferences(existingTask.reminder_preferences || []);
+        setPriority(existingTask.priority || 'Medium');
+      } else {
+        setTitle("");
+        setDescription("");
+        setDueDate(await parseSaoPauloDateString(await formatSaoPauloTime(new Date(), 'yyyy-MM-dd'))); // Default to today in SP timezone
+        setDueTime("");
+        setReminderPreferences([]);
+        setPriority('Medium');
+      }
+    };
+    initializeState();
   }, [existingTask, isOpen]);
 
   const handleReminderChange = (reminderType: string, checked: boolean | 'indeterminate') => {
@@ -142,8 +156,8 @@ export function PersonalTaskModal({
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {dueDate ? (
-                      formatSaoPauloDate(dueDate)
+                    {formattedDueDateDisplay ? (
+                      formattedDueDateDisplay
                     ) : (
                       <span>Selecione uma data</span>
                     )}

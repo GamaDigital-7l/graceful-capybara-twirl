@@ -8,6 +8,7 @@ import { PersonalTask } from "./PersonalTaskModal";
 import { Label } from "@/components/ui/label";
 import { Badge } from "./ui/badge"; // Import Badge
 import { formatSaoPauloDate, formatSaoPauloHour } from "@/utils/date-utils"; // Importar utilitário de data
+import { useState, useEffect } from "react"; // Adicionado useState e useEffect
 
 interface PersonalTaskCardProps {
   task: PersonalTask;
@@ -17,8 +18,27 @@ interface PersonalTaskCardProps {
 }
 
 export function PersonalTaskCard({ task, onEdit, onDelete, onToggleComplete }: PersonalTaskCardProps) {
+  const [formattedDueDate, setFormattedDueDate] = useState<string | null>(null);
+  const [formattedDueTime, setFormattedDueTime] = useState<string | null>(null);
+
+  useEffect(() => {
+    const updateFormattedDates = async () => {
+      if (task.due_date) {
+        setFormattedDueDate(await formatSaoPauloDate(task.due_date));
+      } else {
+        setFormattedDueDate(null);
+      }
+      if (task.due_time) {
+        setFormattedDueTime(await formatSaoPauloHour(new Date(`2000-01-01T${task.due_time}`)));
+      } else {
+        setFormattedDueTime(null);
+      }
+    };
+    updateFormattedDates();
+  }, [task.due_date, task.due_time]);
+
   const fullDueDateTime = task.due_time
-    ? new Date(`${formatSaoPauloDate(task.due_date)}T${task.due_time}`)
+    ? new Date(`${task.due_date.toISOString().split('T')[0]}T${task.due_time}`) // Usar a data já como objeto Date
     : task.due_date;
 
   const isOverdue = !task.is_completed && isPast(fullDueDateTime);
@@ -63,14 +83,16 @@ export function PersonalTaskCard({ task, onEdit, onDelete, onToggleComplete }: P
             <p className="text-sm text-muted-foreground mt-1">{task.description}</p>
           )}
           <div className="flex items-center gap-3 text-sm text-muted-foreground mt-2">
-            <div className="flex items-center gap-1">
-              <CalendarDays className="h-4 w-4" />
-              <span>{formatSaoPauloDate(task.due_date)}</span>
-            </div>
-            {task.due_time && (
+            {formattedDueDate && (
+              <div className="flex items-center gap-1">
+                <CalendarDays className="h-4 w-4" />
+                <span>{formattedDueDate}</span>
+              </div>
+            )}
+            {formattedDueTime && (
               <div className="flex items-center gap-1">
                 <Clock className="h-4 w-4" />
-                <span>{formatSaoPauloHour(new Date(`2000-01-01T${task.due_time}`))}</span>
+                <span>{formattedDueTime}</span>
               </div>
             )}
             {task.priority && (

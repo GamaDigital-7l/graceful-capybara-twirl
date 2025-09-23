@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react"; // Adicionado useEffect
 import { Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -23,7 +23,7 @@ import { formatSaoPauloTime, parseSaoPauloDateString } from "@/utils/date-utils"
 const fetchFinancialData = async (period?: Date) => {
   let query = supabase.from("financial_control").select("*, workspace:workspaces(name)");
   if (period) {
-    query = query.eq("period", formatSaoPauloTime(period, 'yyyy-MM-dd'));
+    query = query.eq("period", await formatSaoPauloTime(period, 'yyyy-MM-dd'));
   }
   query = query.order("period", { ascending: false }).order("client_name");
   const { data, error } = await query;
@@ -34,8 +34,8 @@ const fetchFinancialData = async (period?: Date) => {
 const fetchExpenses = async (period?: Date) => {
   let query = supabase.from("expenses").select("*");
   if (period) {
-    query = query.gte("expense_date", formatSaoPauloTime(startOfMonth(period), 'yyyy-MM-dd'))
-                 .lt("expense_date", formatSaoPauloTime(addMonths(startOfMonth(period), 1), 'yyyy-MM-dd'));
+    query = query.gte("expense_date", await formatSaoPauloTime(startOfMonth(period), 'yyyy-MM-dd'))
+                 .lt("expense_date", await formatSaoPauloTime(addMonths(startOfMonth(period), 1), 'yyyy-MM-dd'));
   }
   query = query.order("expense_date", { ascending: false });
   const { data, error } = await query;
@@ -59,26 +59,40 @@ const FinancialDashboard = () => {
   const [selectedIncomeData, setSelectedIncomeData] = useState<Partial<FinancialData> | null>(null);
   const [selectedExpenseData, setSelectedExpenseData] = useState<Partial<ExpenseData> | null>(null);
   const [selectedPeriod, setSelectedPeriod] = useState<Date>(startOfMonth(new Date()));
+  const [formattedMonthOptions, setFormattedMonthOptions] = useState<{ value: string; label: string }[]>([]); // Novo estado
+  const [formattedExpenseDates, setFormattedExpenseDates] = useState<Record<string, string>>({}); // Novo estado
 
-  const { data: financialData, isLoading: isLoadingFinancial } = useQuery({
-    queryKey: ["financialData", selectedPeriod.toISOString()],
-    queryFn: () => fetchFinancialData(selectedPeriod),
-  });
+  useEffect(() => {
+    const updateMonthOptions = async () => {
+      const options = [];
+      let current = startOfMonth(new Date());
+      for (let i = 0; i < 12; i++) {
+        options.push({
+          value: current.toISOString(),
+          label: await formatSaoPauloTime(current, "MMMM yyyy"),
+        });
+        current = subMonths(current, 1);
+      }
+      setFormattedMonthOptions(options.reverse());
+    };
+    updateMonthOptions();
+  }, []);
 
-  const { data: expenses, isLoading: isLoadingExpenses } = useQuery({
-    queryKey: ["expenses", selectedPeriod.toISOString()],
-    queryFn: () => fetchExpenses(selectedPeriod),
-  });
-
-  const { data: workspaces, isLoading: isLoadingWorkspaces } = useQuery<Workspace[]>({
-    queryKey: ["workspaces"],
-    queryFn: fetchWorkspaces,
-  });
+  useEffect(() => {
+    const formatDates = async () => {
+      const newFormattedDates: Record<string, string> = {};
+      for (const expense of expenses || []) {
+        newFormattedDates[expense.id!] = await formatSaoPauloTime(expense.expense_date, "dd/MM/yyyy");
+      }
+      setFormattedExpenseDates(newFormattedDates);
+    };
+    formatDates();
+  }, [expenses]);
 
   const incomeMutation = useMutation({
     mutationFn: async (data: FinancialData) => {
       const { id, ...rest } = data;
-      const dataToSave = { ...rest, period: formatSaoPauloTime(selectedPeriod, 'yyyy-MM-dd') };
+      const dataToSave = { ...rest, period: await formatSaoPauloTime(selectedPeriod, 'yyyy-MM-dd') };
       const query = id ? supabase.from("financial_control").update(dataToSave).eq("id", id) : supabase.from("financial_control").insert(dataToSave);
       const { error } = await query;
       if (error) throw error;
@@ -97,7 +111,7 @@ const FinancialDashboard = () => {
       if (!user) throw new Error("Usuário não autenticado.");
 
       // Ao salvar, formate a data para YYYY-MM-DD no fuso horário de São Paulo
-      const dataToSave = { ...rest, expense_date: formatSaoPauloTime(expense_date, 'yyyy-MM-dd'), user_id: user.id };
+      const dataToSave = { ...rest, expense_date: await formatSaoPauloTime(expense_date, 'yyyy-MM-dd'), user_id: user.id };
       const query = id ? supabase.from("expenses").update(dataToSave).eq("id", id) : supabase.from("expenses").insert(dataToSave);
       const { error } = await query;
       if (error) throw error;
@@ -170,19 +184,6 @@ const FinancialDashboard = () => {
 
   const usedWorkspaceIds = financialData?.filter(d => d.workspace_id).map(d => d.workspace_id!) || [];
 
-  const monthOptions = useMemo(() => {
-    const options = [];
-    let current = startOfMonth(new Date());
-    for (let i = 0; i < 12; i++) {
-      options.push({
-        value: current.toISOString(),
-        label: formatSaoPauloTime(current, "MMMM yyyy"),
-      });
-      current = subMonths(current, 1);
-    }
-    return options.reverse();
-  }, []);
-
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -196,7 +197,7 @@ const FinancialDashboard = () => {
               <SelectValue placeholder="Selecione o Mês" />
             </SelectTrigger>
             <SelectContent>
-              {monthOptions.map((option) => (
+              {formattedMonthOptions.map((option) => (
                 <SelectItem key={option.value} value={option.value}>
                   {option.label}
                 </SelectItem>
@@ -287,7 +288,7 @@ const FinancialDashboard = () => {
         <TabsContent value="income">
           <Card>
             <CardHeader>
-              <CardTitle>Controle de Recebimentos do Mês ({formatSaoPauloTime(selectedPeriod, "MMMM yyyy")})</CardTitle>
+              <CardTitle>Controle de Recebimentos do Mês ({formattedMonthOptions.find(opt => opt.value === selectedPeriod.toISOString())?.label})</CardTitle>
             </CardHeader>
             <CardContent className="p-4 sm:p-6"> {/* Ajustado padding */}
               <Table>
@@ -354,7 +355,7 @@ const FinancialDashboard = () => {
         <TabsContent value="expenses">
           <Card>
             <CardHeader>
-              <CardTitle>Controle de Gastos do Mês ({formatSaoPauloTime(selectedPeriod, "MMMM yyyy")})</CardTitle>
+              <CardTitle>Controle de Gastos do Mês ({formattedMonthOptions.find(opt => opt.value === selectedPeriod.toISOString())?.label})</CardTitle>
             </CardHeader>
             <CardContent className="p-4 sm:p-6"> {/* Ajustado padding */}
               <Table>
@@ -380,7 +381,7 @@ const FinancialDashboard = () => {
                         <TableCell className="font-medium">{item.description}</TableCell>
                         <TableCell>{item.category || 'N/A'}</TableCell>
                         <TableCell className="text-destructive">{formatCurrency(Number(item.amount))}</TableCell>
-                        <TableCell>{formatSaoPauloTime(item.expense_date, "dd/MM/yyyy")}</TableCell>
+                        <TableCell>{formattedExpenseDates[item.id!]}</TableCell>
                         <TableCell className="text-right">
                           <AlertDialog>
                             <DropdownMenu>

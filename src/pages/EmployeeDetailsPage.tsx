@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react"; // Adicionado useEffect
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -47,7 +47,7 @@ const fetchEmployeeProfile = async (employeeId: string): Promise<EmployeeProfile
 const fetchAssignedTasks = async (employeeId: string, month: Date): Promise<AssignedTask[]> => {
   const { data, error } = await supabase.rpc("get_tasks_assigned_to_user_by_month", { 
     p_assigned_to_user_id: employeeId, 
-    p_month: formatSaoPauloTime(month, 'yyyy-MM-dd')
+    p_month: await formatSaoPauloTime(month, 'yyyy-MM-dd')
   });
   if (error) throw new Error(error.message);
   return data || [];
@@ -56,6 +56,8 @@ const fetchAssignedTasks = async (employeeId: string, month: Date): Promise<Assi
 const EmployeeDetailsPage = () => {
   const { employeeId } = useParams<{ employeeId: string }>();
   const [selectedMonth, setSelectedMonth] = useState<Date>(startOfMonth(new Date()));
+  const [formattedMonthOptions, setFormattedMonthOptions] = useState<{ value: string; label: string }[]>([]); // Novo estado
+  const [formattedTaskDueDates, setFormattedTaskDueDates] = useState<Record<string, string>>({}); // Novo estado
 
   const { data: employee, isLoading: isLoadingEmployee, error: employeeError } = useQuery<EmployeeProfile>({
     queryKey: ["employeeProfile", employeeId],
@@ -68,6 +70,35 @@ const EmployeeDetailsPage = () => {
     queryFn: () => fetchAssignedTasks(employeeId!, selectedMonth),
     enabled: !!employeeId,
   });
+
+  useEffect(() => {
+    const updateMonthOptions = async () => {
+      const options = [];
+      let current = startOfMonth(new Date());
+      for (let i = 0; i < 12; i++) {
+        options.push({
+          value: current.toISOString(),
+          label: await formatSaoPauloTime(current, "MMMM yyyy"),
+        });
+        current = subMonths(current, 1);
+      }
+      setFormattedMonthOptions(options.reverse());
+    };
+    updateMonthOptions();
+  }, []);
+
+  useEffect(() => {
+    const formatDates = async () => {
+      const newFormattedDueDates: Record<string, string> = {};
+      for (const task of tasks || []) {
+        if (task.due_date) {
+          newFormattedDueDates[task.id] = await formatSaoPauloTime(task.due_date, "dd MMM, yyyy");
+        }
+      }
+      setFormattedTaskDueDates(newFormattedDueDates);
+    };
+    formatDates();
+  }, [tasks]);
 
   const { totalTasks, completedTasks, pendingTasks, overdueTasks } = useMemo(() => {
     if (!tasks) return { totalTasks: 0, completedTasks: 0, pendingTasks: [], overdueTasks: [] };
@@ -85,19 +116,6 @@ const EmployeeDetailsPage = () => {
   }, [tasks, selectedMonth]);
 
   const progressPercentage = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
-
-  const monthOptions = useMemo(() => {
-    const options = [];
-    let current = startOfMonth(new Date());
-    for (let i = 0; i < 12; i++) {
-      options.push({
-        value: current.toISOString(),
-        label: formatSaoPauloTime(current, "MMMM yyyy"),
-      });
-      current = subMonths(current, 1);
-    }
-    return options.reverse();
-  }, []);
 
   if (employeeError) showError(`Erro ao carregar perfil do funcionário: ${employeeError.message}`);
   if (tasksError) showError(`Erro ao carregar tarefas do funcionário: ${tasksError.message}`);
@@ -148,7 +166,7 @@ const EmployeeDetailsPage = () => {
               <SelectValue placeholder="Selecione o Mês" />
             </SelectTrigger>
             <SelectContent>
-              {monthOptions.map((option) => (
+              {formattedMonthOptions.map((option) => (
                 <SelectItem key={option.value} value={option.value}>
                   {option.label}
                 </SelectItem>
@@ -162,7 +180,7 @@ const EmployeeDetailsPage = () => {
         <div className="lg:col-span-1 space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Resumo de Tarefas ({formatSaoPauloTime(selectedMonth, "MMMM yyyy")})</CardTitle>
+              <CardTitle>Resumo de Tarefas ({formattedMonthOptions.find(opt => opt.value === selectedMonth.toISOString())?.label})</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
@@ -189,7 +207,7 @@ const EmployeeDetailsPage = () => {
         <div className="lg:col-span-2 space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Tarefas Atribuídas ({formatSaoPauloTime(selectedMonth, "MMMM yyyy")})</CardTitle>
+              <CardTitle>Tarefas Atribuídas ({formattedMonthOptions.find(opt => opt.value === selectedMonth.toISOString())?.label})</CardTitle>
               <CardDescription>Todas as tarefas atribuídas a {employee.full_name} no mês selecionado.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -215,7 +233,7 @@ const EmployeeDetailsPage = () => {
                             <span className={cn(
                               task.due_date && isPast(new Date(task.due_date)) && task.column_title !== "Aprovado" && "text-destructive font-semibold"
                             )}>
-                              {formatSaoPauloTime(task.due_date, "dd MMM, yyyy")}
+                              {formattedTaskDueDates[task.id]}
                             </span>
                           </div>
                         )}
