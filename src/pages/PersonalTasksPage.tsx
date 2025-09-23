@@ -15,6 +15,7 @@ import { isPast, format, parseISO, setHours, setMinutes } from "date-fns";
 import * as chrono from 'chrono-node'; // Import chrono-node
 import { Input } from "@/components/ui/input"; // Import Input for NLP field
 import { Label } from "@/components/ui/label"; // Import Label
+import { correctGrammar } from "@/utils/grammar"; // Import new grammar utility
 
 const fetchPersonalTasks = async (userId: string): Promise<PersonalTask[]> => {
   const { data, error } = await supabase
@@ -121,12 +122,16 @@ const PersonalTasksPage = () => {
     toggleCompleteMutation.mutate({ taskId, isCompleted });
   };
 
-  const handleNlpInput = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleNlpInput = async (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && nlpInput.trim()) {
-      const parsedResult = chrono.parse(nlpInput, new Date(), { forwardDate: true });
+      // 1. Correção gramatical automática
+      const correctedText = await correctGrammar(nlpInput);
+      
+      // 2. Processamento de linguagem natural
+      const parsedResult = chrono.parse(correctedText, new Date(), { forwardDate: true });
 
       let newTask: Partial<PersonalTask> = {
-        title: nlpInput.trim(),
+        title: correctedText.trim(), // Usar o texto corrigido como título inicial
         due_date: new Date(), // Default to today
         priority: 'Medium',
         reminder_preferences: [],
@@ -148,11 +153,21 @@ const PersonalTasksPage = () => {
         }
 
         // Attempt to extract title by removing the date/time part
-        const dateText = nlpInput.substring(firstResult.index, firstResult.index + firstResult.text.length);
-        const titleCandidate = nlpInput.replace(dateText, '').trim();
+        // Prioritize removing the *exact* matched text from chrono-node
+        const titleCandidate = correctedText.replace(firstResult.text, '').trim();
         if (titleCandidate) {
           newTask.title = titleCandidate;
         }
+      }
+
+      // 3. Inferir prioridade com base em palavras-chave
+      const lowerCaseTitle = newTask.title.toLowerCase();
+      if (lowerCaseTitle.includes("urgente") || lowerCaseTitle.includes("agora") || lowerCaseTitle.includes("imediatamente")) {
+        newTask.priority = 'Highest';
+      } else if (lowerCaseTitle.includes("importante") || lowerCaseTitle.includes("alta prioridade")) {
+        newTask.priority = 'High';
+      } else if (lowerCaseTitle.includes("baixa prioridade") || lowerCaseTitle.includes("quando puder")) {
+        newTask.priority = 'Low';
       }
 
       setSelectedTask(newTask as PersonalTask);
@@ -196,9 +211,9 @@ const PersonalTasksPage = () => {
           value={nlpInput}
           onChange={(e) => setNlpInput(e.target.value)}
           onKeyDown={handleNlpInput}
-          placeholder="Ex: Reunião com a equipe amanhã às 10h"
+          placeholder="Ex: Reunião com a equipe amanhã às 10h urgente"
         />
-        <p className="text-sm text-muted-foreground">Pressione Enter para criar a tarefa. Tente "Pagar contas na sexta", "Comprar presente para mãe dia 25", "Enviar relatório hoje 17h".</p>
+        <p className="text-sm text-muted-foreground">Pressione Enter para criar a tarefa. Tente "Pagar contas na sexta", "Comprar presente para mãe dia 25", "Enviar relatório hoje 17h importante".</p>
       </div>
 
       <Tabs defaultValue="upcoming">
