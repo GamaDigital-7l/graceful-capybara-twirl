@@ -157,11 +157,9 @@ const PublicClientOnboardingPage = () => {
       <Card>
         <CardHeader><CardTitle>Mensagem de Boas-Vindas</CardTitle></CardHeader>
         <CardContent>
-          <div className="prose dark:prose-invert max-w-none">
-            <ReactMarkdown remarkPlugins={[remarkGfm]} components={{ img: MarkdownVideoRenderer }}>
-              {welcome_message}
-            </ReactMarkdown>
-          </div>
+          <ReactMarkdown remarkPlugins={[remarkGfm]} components={{ img: MarkdownVideoRenderer }} className="prose dark:prose-invert max-w-none">
+            {welcome_message}
+          </ReactMarkdown>
         </CardContent>
       </Card>
     ),
@@ -169,11 +167,9 @@ const PublicClientOnboardingPage = () => {
       <Card>
         <CardHeader><CardTitle>Detalhes do Seu Projeto</CardTitle></CardHeader>
         <CardContent>
-          <div className="prose dark:prose-invert max-w-none">
-            <ReactMarkdown remarkPlugins={[remarkGfm]} components={{ img: MarkdownVideoRenderer }}>
-              {main_content}
-            </ReactMarkdown>
-          </div>
+          <ReactMarkdown remarkPlugins={[remarkGfm]} components={{ img: MarkdownVideoRenderer }} className="prose dark:prose-invert max-w-none">
+            {main_content}
+          </ReactMarkdown>
         </CardContent>
       </Card>
     ),
@@ -200,11 +196,9 @@ const PublicClientOnboardingPage = () => {
           {processes_content.map((item, index) => (
             <div key={index} className="space-y-2 border p-3 rounded-md bg-muted/50">
               <h3 className="font-semibold text-lg">{item.title}</h3>
-              <div className="prose dark:prose-invert max-w-none text-sm text-muted-foreground">
-                <ReactMarkdown remarkPlugins={[remarkGfm]} components={{ img: MarkdownVideoRenderer }}>
-                  {item.content}
-                </ReactMarkdown>
-              </div>
+              <ReactMarkdown remarkPlugins={[remarkGfm]} components={{ img: MarkdownVideoRenderer }} className="prose dark:prose-invert max-w-none text-sm text-muted-foreground">
+                {item.content}
+              </ReactMarkdown>
             </div>
           ))}
         </CardContent>
@@ -217,11 +211,9 @@ const PublicClientOnboardingPage = () => {
           {apps_access_info.map((item, index) => (
             <div key={index} className="space-y-2 border p-3 rounded-md bg-muted/50">
               <h3 className="font-semibold text-lg">{item.title}</h3>
-              <div className="prose dark:prose-invert max-w-none text-sm text-muted-foreground">
-                <ReactMarkdown remarkPlugins={[remarkGfm]} components={{ img: MarkdownVideoRenderer }}>
-                  {item.content}
-                </ReactMarkdown>
-              </div>
+              <ReactMarkdown remarkPlugins={[remarkGfm]} components={{ img: MarkdownVideoRenderer }} className="prose dark:prose-invert max-w-none text-sm text-muted-foreground">
+                {item.content}
+              </ReactMarkdown>
             </div>
           ))}
         </CardContent>
