@@ -1,6 +1,5 @@
 import { format, parseISO, isValid, parse } from 'date-fns';
-import type { toZonedTime as toZonedTimeType, formatInTimeZone as formatInTimeZoneType, zonedTimeToUtc as zonedTimeToUtcType } from 'date-fns-tz'; // Importar tipos
-import { toZonedTime, formatInTimeZone, zonedTimeToUtc } from 'date-fns-tz'; // Importar valores
+import dateFnsTz from 'date-fns-tz'; // Importando como default import
 import { ptBR } from 'date-fns/locale';
 
 const SAO_PAULO_TIMEZONE = 'America/Sao_Paulo';
@@ -16,7 +15,7 @@ export const toSaoPauloTime = (date: Date | string): Date => {
     console.warn("Invalid date provided to toSaoPauloTime:", date);
     return new Date('Invalid Date');
   }
-  return toZonedTime(utcDate, SAO_PAULO_TIMEZONE);
+  return dateFnsTz.toZonedTime(utcDate, SAO_PAULO_TIMEZONE); // Acessando a função do objeto importado
 };
 
 /**
@@ -31,7 +30,7 @@ export const formatSaoPauloTime = (date: Date | string, formatStr: string): stri
     console.warn("Invalid date provided to formatSaoPauloTime:", date);
     return 'Data Inválida';
   }
-  return formatInTimeZone(utcDate, SAO_PAULO_TIMEZONE, formatStr, { locale: ptBR });
+  return dateFnsTz.formatInTimeZone(utcDate, SAO_PAULO_TIMEZONE, formatStr, { locale: ptBR }); // Acessando a função do objeto importado
 };
 
 /**
@@ -50,7 +49,7 @@ export const parseSaoPauloDateString = (dateString: string): Date => {
     console.warn("Invalid date string provided to parseSaoPauloDateString:", dateString);
     return new Date('Invalid Date');
   }
-  return zonedTimeToUtc(parsedDate, SAO_PAULO_TIMEZONE);
+  return dateFnsTz.zonedTimeToUtc(parsedDate, SAO_PAULO_TIMEZONE); // Acessando a função do objeto importado
 };
 
 /**
