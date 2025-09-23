@@ -58,10 +58,10 @@ serve(async (req) => {
     const now = new Date();
     const nowISO = now.toISOString();
 
-    // Fetch all uncompleted personal tasks
+    // Fetch all uncompleted personal tasks, including reminder_preferences
     const { data: tasks, error: tasksError } = await supabaseAdmin
       .from("personal_tasks")
-      .select("*")
+      .select("*, reminder_preferences")
       .eq("is_completed", false);
 
     if (tasksError) throw tasksError;
@@ -69,13 +69,14 @@ serve(async (req) => {
     const updates = [];
 
     for (const task of tasks) {
+      const reminderPreferences = task.reminder_preferences || [];
+
       let taskDueDate = parseISO(task.due_date);
       let fullDueDateTime: Date;
 
       if (task.due_time) {
-        const [hours, minutes, seconds] = task.due_time.split(':').map(Number);
+        const [hours, minutes] = task.due_time.split(':').map(Number);
         fullDueDateTime = addHours(addMinutes(taskDueDate, minutes), hours);
-        if (seconds) fullDueDateTime = addMinutes(fullDueDateTime, seconds); // Add seconds if present
       } else {
         // If no specific time, consider it due at the end of the day for reminders
         fullDueDateTime = endOfDay(taskDueDate);
@@ -87,28 +88,28 @@ serve(async (req) => {
       // --- Pre-reminders ---
       // 1 day before
       const oneDayBefore = subDays(fullDueDateTime, 1);
-      if (isAfter(now, oneDayBefore) && isBefore(now, fullDueDateTime) && (!task.last_notified_1d_before_at || isBefore(parseISO(task.last_notified_1d_before_at), subHours(now, 1)))) {
+      if (reminderPreferences.includes('1d_before') && isAfter(now, oneDayBefore) && isBefore(now, fullDueDateTime) && (!task.last_notified_1d_before_at || isBefore(parseISO(task.last_notified_1d_before_at), subHours(now, 1)))) {
         await sendTelegramNotification(supabaseAdmin, `🗓️ Lembrete: A tarefa pessoal *"${taskTitle}"* vence em menos de 1 dia!`);
         updates.push({ id: taskId, last_notified_1d_before_at: nowISO });
       }
 
       // 1 hour before
       const oneHourBefore = subHours(fullDueDateTime, 1);
-      if (isAfter(now, oneHourBefore) && isBefore(now, fullDueDateTime) && (!task.last_notified_1h_before_at || isBefore(parseISO(task.last_notified_1h_before_at), subMinutes(now, 1)))) {
+      if (reminderPreferences.includes('1h_before') && isAfter(now, oneHourBefore) && isBefore(now, fullDueDateTime) && (!task.last_notified_1h_before_at || isBefore(parseISO(task.last_notified_1h_before_at), subMinutes(now, 1)))) {
         await sendTelegramNotification(supabaseAdmin, `⏰ Lembrete: A tarefa pessoal *"${taskTitle}"* vence em menos de 1 hora!`);
         updates.push({ id: taskId, last_notified_1h_before_at: nowISO });
       }
 
       // 30 minutes before
       const thirtyMinutesBefore = subMinutes(fullDueDateTime, 30);
-      if (isAfter(now, thirtyMinutesBefore) && isBefore(now, fullDueDateTime) && (!task.last_notified_30m_before_at || isBefore(parseISO(task.last_notified_30m_before_at), subMinutes(now, 1)))) {
+      if (reminderPreferences.includes('30m_before') && isAfter(now, thirtyMinutesBefore) && isBefore(now, fullDueDateTime) && (!task.last_notified_30m_before_at || isBefore(parseISO(task.last_notified_30m_before_at), subMinutes(now, 1)))) {
         await sendTelegramNotification(supabaseAdmin, `🚨 ALERTA: A tarefa pessoal *"${taskTitle}"* vence em menos de 30 minutos!`);
         updates.push({ id: taskId, last_notified_30m_before_at: nowISO });
       }
 
       // 15 minutes before
       const fifteenMinutesBefore = subMinutes(fullDueDateTime, 15);
-      if (isAfter(now, fifteenMinutesBefore) && isBefore(now, fullDueDateTime) && (!task.last_notified_15m_before_at || isBefore(parseISO(task.last_notified_15m_before_at), subMinutes(now, 1)))) {
+      if (reminderPreferences.includes('15m_before') && isAfter(now, fifteenMinutesBefore) && isBefore(now, fullDueDateTime) && (!task.last_notified_15m_before_at || isBefore(parseISO(task.last_notified_15m_before_at), subMinutes(now, 1)))) {
         await sendTelegramNotification(supabaseAdmin, `⚠️ Atenção: A tarefa pessoal *"${taskTitle}"* vence em menos de 15 minutos!`);
         updates.push({ id: taskId, last_notified_15m_before_at: nowISO });
       }
@@ -117,7 +118,7 @@ serve(async (req) => {
       // Check if current time is within a small window around the due time
       const dueTimeWindowStart = subMinutes(fullDueDateTime, 5);
       const dueTimeWindowEnd = addMinutes(fullDueDateTime, 5);
-      if (isAfter(now, dueTimeWindowStart) && isBefore(now, dueTimeWindowEnd) && (!task.last_notified_at_due_time || isBefore(parseISO(task.last_notified_at_due_time), subMinutes(now, 1)))) {
+      if (reminderPreferences.includes('at_due_time') && isAfter(now, dueTimeWindowStart) && isBefore(now, dueTimeWindowEnd) && (!task.last_notified_at_due_time || isBefore(parseISO(task.last_notified_at_due_time), subMinutes(now, 1)))) {
         await sendTelegramNotification(supabaseAdmin, `🔔 AGORA: A tarefa pessoal *"${taskTitle}"* está vencendo!`);
         updates.push({ id: taskId, last_notified_at_due_time: nowISO });
       }
@@ -125,14 +126,14 @@ serve(async (req) => {
       // --- Post-reminders (if not completed) ---
       // 1 hour after due time
       const oneHourAfter = addHours(fullDueDateTime, 1);
-      if (isAfter(now, oneHourAfter) && (!task.last_notified_1h_after_at || isBefore(parseISO(task.last_notified_1h_after_at), subMinutes(now, 1)))) {
+      if (reminderPreferences.includes('1h_after') && isAfter(now, oneHourAfter) && (!task.last_notified_1h_after_at || isBefore(parseISO(task.last_notified_1h_after_at), subMinutes(now, 1)))) {
         await sendTelegramNotification(supabaseAdmin, `⏳ Atrasado: A tarefa pessoal *"${taskTitle}"* venceu há 1 hora e ainda não foi concluída!`);
         updates.push({ id: taskId, last_notified_1h_after_at: nowISO });
       }
 
       // 1 day after due time
       const oneDayAfter = addDays(fullDueDateTime, 1);
-      if (isAfter(now, oneDayAfter) && (!task.last_notified_1d_after_at || isBefore(parseISO(task.last_notified_1d_after_at), subHours(now, 1)))) {
+      if (reminderPreferences.includes('1d_after') && isAfter(now, oneDayAfter) && (!task.last_notified_1d_after_at || isBefore(parseISO(task.last_notified_1d_after_at), subHours(now, 1)))) {
         await sendTelegramNotification(supabaseAdmin, `🔴 MUITO ATRASADO: A tarefa pessoal *"${taskTitle}"* venceu há 1 dia e ainda não foi concluída!`);
         updates.push({ id: taskId, last_notified_1d_after_at: nowISO });
       }

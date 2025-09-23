@@ -17,6 +17,7 @@ import { ptBR } from "date-fns/locale";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
+import { Checkbox } from "@/components/ui/checkbox"; // Import Checkbox
 
 export interface PersonalTask {
   id?: string;
@@ -26,6 +27,7 @@ export interface PersonalTask {
   due_date: Date;
   due_time?: string; // HH:mm format
   is_completed?: boolean;
+  reminder_preferences?: string[]; // New field for reminder preferences
 }
 
 interface PersonalTaskModalProps {
@@ -45,6 +47,7 @@ export function PersonalTaskModal({
   const [description, setDescription] = useState("");
   const [dueDate, setDueDate] = useState<Date | undefined>(undefined);
   const [dueTime, setDueTime] = useState(""); // HH:mm format
+  const [reminderPreferences, setReminderPreferences] = useState<string[]>([]); // State for reminder preferences
 
   useEffect(() => {
     if (existingTask) {
@@ -52,13 +55,25 @@ export function PersonalTaskModal({
       setDescription(existingTask.description || "");
       setDueDate(existingTask.due_date);
       setDueTime(existingTask.due_time || "");
+      setReminderPreferences(existingTask.reminder_preferences || []);
     } else {
       setTitle("");
       setDescription("");
       setDueDate(new Date()); // Default to today
       setDueTime("");
+      setReminderPreferences([]);
     }
   }, [existingTask, isOpen]);
+
+  const handleReminderChange = (reminderType: string, checked: boolean | 'indeterminate') => {
+    setReminderPreferences(prev => {
+      if (checked) {
+        return [...prev, reminderType];
+      } else {
+        return prev.filter(type => type !== reminderType);
+      }
+    });
+  };
 
   const handleSave = () => {
     if (!title.trim() || !dueDate) {
@@ -73,6 +88,7 @@ export function PersonalTaskModal({
       due_date: dueDate,
       due_time: dueTime || undefined,
       is_completed: existingTask?.is_completed || false,
+      reminder_preferences: reminderPreferences,
     };
     onSave(taskToSave);
     onClose();
@@ -145,6 +161,68 @@ export function PersonalTaskModal({
                 onChange={(e) => setDueTime(e.target.value)}
                 className="w-full"
               />
+            </div>
+          </div>
+
+          <div className="space-y-2 border-t pt-4">
+            <Label className="text-base font-medium">Lembretes</Label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="reminder-1d-before"
+                  checked={reminderPreferences.includes('1d_before')}
+                  onCheckedChange={(checked) => handleReminderChange('1d_before', checked)}
+                />
+                <Label htmlFor="reminder-1d-before">1 dia antes</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="reminder-1h-before"
+                  checked={reminderPreferences.includes('1h_before')}
+                  onCheckedChange={(checked) => handleReminderChange('1h_before', checked)}
+                />
+                <Label htmlFor="reminder-1h-before">1 hora antes</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="reminder-30m-before"
+                  checked={reminderPreferences.includes('30m_before')}
+                  onCheckedChange={(checked) => handleReminderChange('30m_before', checked)}
+                />
+                <Label htmlFor="reminder-30m-before">30 minutos antes</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="reminder-15m-before"
+                  checked={reminderPreferences.includes('15m_before')}
+                  onCheckedChange={(checked) => handleReminderChange('15m_before', checked)}
+                />
+                <Label htmlFor="reminder-15m-before">15 minutos antes</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="reminder-at-due-time"
+                  checked={reminderPreferences.includes('at_due_time')}
+                  onCheckedChange={(checked) => handleReminderChange('at_due_time', checked)}
+                />
+                <Label htmlFor="reminder-at-due-time">No horário de vencimento</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="reminder-1h-after"
+                  checked={reminderPreferences.includes('1h_after')}
+                  onCheckedChange={(checked) => handleReminderChange('1h_after', checked)}
+                />
+                <Label htmlFor="reminder-1h-after">1 hora depois (se não concluída)</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="reminder-1d-after"
+                  checked={reminderPreferences.includes('1d_after')}
+                  onCheckedChange={(checked) => handleReminderChange('1d_after', checked)}
+                />
+                <Label htmlFor="reminder-1d-after">1 dia depois (se não concluída)</Label>
+              </div>
             </div>
           </div>
         </div>
