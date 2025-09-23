@@ -12,6 +12,7 @@ export default defineConfig(() => ({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      'date-fns-tz': 'date-fns-tz/dist/esm/index.js', // Adicionado alias explícito
     },
   },
   optimizeDeps: {
