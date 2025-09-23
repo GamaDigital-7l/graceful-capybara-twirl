@@ -170,7 +170,7 @@ const PublicClientOnboardingPage = () => {
   const sections: { [key: string]: React.ReactNode } = {
     welcome_message: welcome_message && (
       <Card>
-        <CardHeader><CardTitle>Mensagem de Boas-Vindas</CardTitle></CardHeader>
+        {/* Removido CardHeader para remover o título "Mensagem de Boas-Vindas" */}
         <CardContent>
           <div className="prose dark:prose-invert max-w-none">
             <ReactMarkdown remarkPlugins={[remarkGfm]} components={{ img: MarkdownVideoRenderer }}>
