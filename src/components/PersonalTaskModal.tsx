@@ -12,13 +12,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar as CalendarIcon, Clock } from "lucide-react";
-import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; // Import Select
+import { formatSaoPauloDate } from "@/utils/date-utils"; // Importar utilitário de data
 
 export interface PersonalTask {
   id?: string;
@@ -141,7 +141,7 @@ export function PersonalTaskModal({
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
                     {dueDate ? (
-                      format(dueDate, "PPP", { locale: ptBR })
+                      formatSaoPauloDate(dueDate)
                     ) : (
                       <span>Selecione uma data</span>
                     )}

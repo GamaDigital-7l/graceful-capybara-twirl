@@ -11,11 +11,12 @@ import { PlusCircle, ListTodo, CheckCircle, AlertCircle } from "lucide-react";
 import { PersonalTaskCard } from "@/components/PersonalTaskCard";
 import { PersonalTaskModal, PersonalTask } from "@/components/PersonalTaskModal";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { isPast, format, parseISO, setHours, setMinutes } from "date-fns";
+import { isPast } from "date-fns";
 import * as chrono from 'chrono-node'; // Import chrono-node
 import { Input } from "@/components/ui/input"; // Import Input for NLP field
 import { Label } from "@/components/ui/label"; // Import Label
 import { correctGrammar } from "@/utils/grammar"; // Import new grammar utility
+import { formatSaoPauloTime } from "@/utils/date-utils"; // Importar utilitário de data
 
 const fetchPersonalTasks = async (userId: string): Promise<PersonalTask[]> => {
   const { data, error } = await supabase
@@ -59,7 +60,7 @@ const PersonalTasksPage = () => {
       const dataToSave = {
         ...rest,
         user_id: currentUserId,
-        due_date: format(due_date, 'yyyy-MM-dd'), // Format Date to string for Supabase
+        due_date: formatSaoPauloTime(due_date, 'yyyy-MM-dd'), // Format Date to string for Supabase
         reminder_preferences: reminder_preferences || [], // Save reminder preferences
         priority: priority || 'Medium', // Save priority
       };
@@ -145,7 +146,7 @@ const PersonalTasksPage = () => {
         
         // Extract time if available
         if (firstResult.start.isCertain('hour') || firstResult.start.isCertain('minute')) {
-          newTask.due_time = format(startDate, 'HH:mm');
+          newTask.due_time = formatSaoPauloTime(startDate, 'HH:mm');
           // Set default reminder for 30 min before if time is certain
           newTask.reminder_preferences = ['30m_before'];
         } else {

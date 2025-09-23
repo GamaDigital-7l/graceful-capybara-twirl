@@ -5,11 +5,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar as CalendarIcon } from "lucide-react";
-import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
+import { formatSaoPauloDate } from "@/utils/date-utils"; // Importar utilitário de data
 
 export interface ExpenseData {
   id?: string;
@@ -110,7 +110,7 @@ export function ExpenseModal({ isOpen, onClose, onSave, existingData }: ExpenseM
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
                   {expenseDate ? (
-                    format(expenseDate, "PPP", { locale: ptBR })
+                    formatSaoPauloDate(expenseDate)
                   ) : (
                     <span>Selecione uma data</span>
                   )}

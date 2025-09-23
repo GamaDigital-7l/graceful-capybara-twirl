@@ -4,11 +4,11 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { CalendarDays, MessageSquare, Eye, User } from "lucide-react";
-import { format } from "date-fns";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { useState } from "react";
 import { ImagePreviewModal } from "./ImagePreviewModal"; // Importar o modal de pré-visualização
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { formatSaoPauloDate } from "@/utils/date-utils"; // Importar utilitário de data
 
 export interface Attachment {
   id: string;
@@ -151,7 +151,7 @@ export function KanbanCard({
             {task.dueDate ? (
               <div className="flex items-center gap-1">
                 <CalendarDays className="h-4 w-4" />
-                <span>{format(new Date(task.dueDate), "dd MMM")}</span>
+                <span>{formatSaoPauloDate(task.dueDate)}</span>
               </div>
             ) : <div />}
             {task.comments && task.comments.length > 0 && (

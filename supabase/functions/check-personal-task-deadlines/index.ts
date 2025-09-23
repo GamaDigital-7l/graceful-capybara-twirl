@@ -1,11 +1,14 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
-import { format, addDays, subDays, addHours, subHours, addMinutes, isBefore, isAfter, isEqual, parseISO, startOfDay, endOfDay } from "https://esm.sh/date-fns@2.30.0";
+import { addDays, subDays, addHours, subHours, addMinutes, isBefore, isAfter, isEqual, parseISO } from "https://esm.sh/date-fns@2.30.0";
+import { utcToZonedTime, zonedTimeToUtc } from "https://esm.sh/date-fns-tz@2.0.0"; // Importar date-fns-tz
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+const SAO_PAULO_TIMEZONE = 'America/Sao_Paulo';
 
 // Helper to send Telegram notification
 const sendTelegramNotification = async (supabaseAdmin: any, message: string) => {
@@ -55,8 +58,8 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    const now = new Date();
-    const nowISO = now.toISOString();
+    const nowUtc = new Date(); // Current time in UTC
+    const nowSaoPaulo = utcToZonedTime(nowUtc, SAO_PAULO_TIMEZONE); // Current time in São Paulo timezone
 
     // Fetch all uncompleted personal tasks, including reminder_preferences
     const { data: tasks, error: tasksError } = await supabaseAdmin
@@ -71,71 +74,80 @@ serve(async (req) => {
     for (const task of tasks) {
       const reminderPreferences = task.reminder_preferences || [];
 
-      let taskDueDate = parseISO(task.due_date);
-      let fullDueDateTime: Date;
+      // Parse task.due_date as a date in São Paulo timezone
+      const taskDueDateSaoPaulo = utcToZonedTime(parseISO(task.due_date), SAO_PAULO_TIMEZONE);
+      let fullDueDateTimeSaoPaulo: Date;
 
       if (task.due_time) {
         const [hours, minutes] = task.due_time.split(':').map(Number);
-        fullDueDateTime = addHours(addMinutes(taskDueDate, minutes), hours);
+        // Create a date object in São Paulo timezone for the due date and time
+        fullDueDateTimeSaoPaulo = utcToZonedTime(new Date(taskDueDateSaoPaulo.getFullYear(), taskDueDateSaoPaulo.getMonth(), taskDueDateSaoPaulo.getDate(), hours, minutes, 0), SAO_PAULO_TIMEZONE);
       } else {
-        // If no specific time, consider it due at the end of the day for reminders
-        fullDueDateTime = endOfDay(taskDueDate);
+        // If no specific time, consider it due at the end of the day in São Paulo for reminders
+        fullDueDateTimeSaoPaulo = utcToZonedTime(new Date(taskDueDateSaoPaulo.getFullYear(), taskDueDateSaoPaulo.getMonth(), taskDueDateSaoPaulo.getDate(), 23, 59, 59), SAO_PAULO_TIMEZONE);
       }
 
-      const taskTitle = task.title;
       const taskId = task.id;
+      const taskTitle = task.title;
+
+      // Helper to check if a notification was recently sent for a specific type
+      const wasNotifiedRecently = (lastNotifiedAt: string | null) => {
+        if (!lastNotifiedAt) return false;
+        const lastNotifiedSaoPaulo = utcToZonedTime(parseISO(lastNotifiedAt), SAO_PAULO_TIMEZONE);
+        return isAfter(lastNotifiedSaoPaulo, subMinutes(nowSaoPaulo, 1)); // Notified within the last minute
+      };
 
       // --- Pre-reminders ---
       // 1 day before
-      const oneDayBefore = subDays(fullDueDateTime, 1);
-      if (reminderPreferences.includes('1d_before') && isAfter(now, oneDayBefore) && isBefore(now, fullDueDateTime) && (!task.last_notified_1d_before_at || isBefore(parseISO(task.last_notified_1d_before_at), subHours(now, 1)))) {
+      const oneDayBeforeSaoPaulo = subDays(fullDueDateTimeSaoPaulo, 1);
+      if (reminderPreferences.includes('1d_before') && isAfter(nowSaoPaulo, oneDayBeforeSaoPaulo) && isBefore(nowSaoPaulo, fullDueDateTimeSaoPaulo) && !wasNotifiedRecently(task.last_notified_1d_before_at)) {
         await sendTelegramNotification(supabaseAdmin, `🗓️ Lembrete: A tarefa pessoal *"${taskTitle}"* vence em menos de 1 dia!`);
-        updates.push({ id: taskId, last_notified_1d_before_at: nowISO });
+        updates.push({ id: taskId, last_notified_1d_before_at: nowUtc.toISOString() });
       }
 
       // 1 hour before
-      const oneHourBefore = subHours(fullDueDateTime, 1);
-      if (reminderPreferences.includes('1h_before') && isAfter(now, oneHourBefore) && isBefore(now, fullDueDateTime) && (!task.last_notified_1h_before_at || isBefore(parseISO(task.last_notified_1h_before_at), subMinutes(now, 1)))) {
+      const oneHourBeforeSaoPaulo = subHours(fullDueDateTimeSaoPaulo, 1);
+      if (reminderPreferences.includes('1h_before') && isAfter(nowSaoPaulo, oneHourBeforeSaoPaulo) && isBefore(nowSaoPaulo, fullDueDateTimeSaoPaulo) && !wasNotifiedRecently(task.last_notified_1h_before_at)) {
         await sendTelegramNotification(supabaseAdmin, `⏰ Lembrete: A tarefa pessoal *"${taskTitle}"* vence em menos de 1 hora!`);
-        updates.push({ id: taskId, last_notified_1h_before_at: nowISO });
+        updates.push({ id: taskId, last_notified_1h_before_at: nowUtc.toISOString() });
       }
 
       // 30 minutes before
-      const thirtyMinutesBefore = subMinutes(fullDueDateTime, 30);
-      if (reminderPreferences.includes('30m_before') && isAfter(now, thirtyMinutesBefore) && isBefore(now, fullDueDateTime) && (!task.last_notified_30m_before_at || isBefore(parseISO(task.last_notified_30m_before_at), subMinutes(now, 1)))) {
+      const thirtyMinutesBeforeSaoPaulo = subMinutes(fullDueDateTimeSaoPaulo, 30);
+      if (reminderPreferences.includes('30m_before') && isAfter(nowSaoPaulo, thirtyMinutesBeforeSaoPaulo) && isBefore(nowSaoPaulo, fullDueDateTimeSaoPaulo) && !wasNotifiedRecently(task.last_notified_30m_before_at)) {
         await sendTelegramNotification(supabaseAdmin, `🚨 ALERTA: A tarefa pessoal *"${taskTitle}"* vence em menos de 30 minutos!`);
-        updates.push({ id: taskId, last_notified_30m_before_at: nowISO });
+        updates.push({ id: taskId, last_notified_30m_before_at: nowUtc.toISOString() });
       }
 
       // 15 minutes before
-      const fifteenMinutesBefore = subMinutes(fullDueDateTime, 15);
-      if (reminderPreferences.includes('15m_before') && isAfter(now, fifteenMinutesBefore) && isBefore(now, fullDueDateTime) && (!task.last_notified_15m_before_at || isBefore(parseISO(task.last_notified_15m_before_at), subMinutes(now, 1)))) {
+      const fifteenMinutesBeforeSaoPaulo = subMinutes(fullDueDateTimeSaoPaulo, 15);
+      if (reminderPreferences.includes('15m_before') && isAfter(nowSaoPaulo, fifteenMinutesBeforeSaoPaulo) && isBefore(nowSaoPaulo, fullDueDateTimeSaoPaulo) && !wasNotifiedRecently(task.last_notified_15m_before_at)) {
         await sendTelegramNotification(supabaseAdmin, `⚠️ Atenção: A tarefa pessoal *"${taskTitle}"* vence em menos de 15 minutos!`);
-        updates.push({ id: taskId, last_notified_15m_before_at: nowISO });
+        updates.push({ id: taskId, last_notified_15m_before_at: nowUtc.toISOString() });
       }
 
       // --- At due time reminder ---
       // Check if current time is within a small window around the due time
-      const dueTimeWindowStart = subMinutes(fullDueDateTime, 5);
-      const dueTimeWindowEnd = addMinutes(fullDueDateTime, 5);
-      if (reminderPreferences.includes('at_due_time') && isAfter(now, dueTimeWindowStart) && isBefore(now, dueTimeWindowEnd) && (!task.last_notified_at_due_time || isBefore(parseISO(task.last_notified_at_due_time), subMinutes(now, 1)))) {
+      const dueTimeWindowStartSaoPaulo = subMinutes(fullDueDateTimeSaoPaulo, 5);
+      const dueTimeWindowEndSaoPaulo = addMinutes(fullDueDateTimeSaoPaulo, 5);
+      if (reminderPreferences.includes('at_due_time') && isAfter(nowSaoPaulo, dueTimeWindowStartSaoPaulo) && isBefore(nowSaoPaulo, dueTimeWindowEndSaoPaulo) && !wasNotifiedRecently(task.last_notified_at_due_time)) {
         await sendTelegramNotification(supabaseAdmin, `🔔 AGORA: A tarefa pessoal *"${taskTitle}"* está vencendo!`);
-        updates.push({ id: taskId, last_notified_at_due_time: nowISO });
+        updates.push({ id: taskId, last_notified_at_due_time: nowUtc.toISOString() });
       }
 
       // --- Post-reminders (if not completed) ---
       // 1 hour after due time
-      const oneHourAfter = addHours(fullDueDateTime, 1);
-      if (reminderPreferences.includes('1h_after') && isAfter(now, oneHourAfter) && (!task.last_notified_1h_after_at || isBefore(parseISO(task.last_notified_1h_after_at), subMinutes(now, 1)))) {
+      const oneHourAfterSaoPaulo = addHours(fullDueDateTimeSaoPaulo, 1);
+      if (reminderPreferences.includes('1h_after') && isAfter(nowSaoPaulo, oneHourAfterSaoPaulo) && !wasNotifiedRecently(task.last_notified_1h_after_at)) {
         await sendTelegramNotification(supabaseAdmin, `⏳ Atrasado: A tarefa pessoal *"${taskTitle}"* venceu há 1 hora e ainda não foi concluída!`);
-        updates.push({ id: taskId, last_notified_1h_after_at: nowISO });
+        updates.push({ id: taskId, last_notified_1h_after_at: nowUtc.toISOString() });
       }
 
       // 1 day after due time
-      const oneDayAfter = addDays(fullDueDateTime, 1);
-      if (reminderPreferences.includes('1d_after') && isAfter(now, oneDayAfter) && (!task.last_notified_1d_after_at || isBefore(parseISO(task.last_notified_1d_after_at), subHours(now, 1)))) {
+      const oneDayAfterSaoPaulo = addDays(fullDueDateTimeSaoPaulo, 1);
+      if (reminderPreferences.includes('1d_after') && isAfter(nowSaoPaulo, oneDayAfterSaoPaulo) && !wasNotifiedRecently(task.last_notified_1d_after_at)) {
         await sendTelegramNotification(supabaseAdmin, `🔴 MUITO ATRASADO: A tarefa pessoal *"${taskTitle}"* venceu há 1 dia e ainda não foi concluída!`);
-        updates.push({ id: taskId, last_notified_1d_after_at: nowISO });
+        updates.push({ id: taskId, last_notified_1d_after_at: nowUtc.toISOString() });
       }
     }
 

@@ -11,11 +11,10 @@ import {
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { BriefingForm, BriefingResponse, BriefingFormField } from "@/types/briefing";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
 import { Button } from "@/components/ui/button"; // Importar Button
 import { Copy } from "lucide-react"; // Importar ícone Copy
 import { showSuccess } from "@/utils/toast"; // Importar showSuccess
+import { formatSaoPauloDateTime } from "@/utils/date-utils"; // Importar utilitário de data
 
 interface BriefingResponseViewModalProps {
   isOpen: boolean;
@@ -74,7 +73,7 @@ export function BriefingResponseViewModal({ isOpen, onClose, response, form }: B
   const handleCopyResponse = () => {
     let responseText = `Resposta do Briefing: ${form.title}\n\n`;
     responseText += `Enviado por: ${response.client_name || "Usuário Autenticado"}\n`;
-    responseText += `Data de Envio: ${format(new Date(response.submitted_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}\n\n`;
+    responseText += `Data de Envio: ${formatSaoPauloDateTime(response.submitted_at)}\n\n`;
 
     form.form_structure?.forEach((field) => {
       responseText += `${field.label}:\n`;
@@ -99,7 +98,7 @@ export function BriefingResponseViewModal({ isOpen, onClose, response, form }: B
             </div>
             <div className="space-y-2">
               <p className="text-sm font-medium text-muted-foreground">Data de Envio:</p>
-              <p className="text-lg font-semibold">{format(new Date(response.submitted_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}</p>
+              <p className="text-lg font-semibold">{formatSaoPauloDateTime(response.submitted_at)}</p>
             </div>
             {form.form_structure?.map((field) => (
               <div key={field.id} className="space-y-2 border-t pt-4">

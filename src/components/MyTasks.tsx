@@ -103,7 +103,7 @@ export function MyTasks() {
                     <Briefcase className="h-5 w-5 text-primary" />
                   )}
                   <CardTitle className="text-lg font-medium flex-grow pr-2">{name}</CardTitle>
-                  <Badge variant="secondary">{tasks.length}</Badge>
+                  <Badge variant="secondary" className="h-5">{tasks.length}</Badge>
                 </CardHeader>
                 <CardContent className="p-4 pt-0 space-y-3">
                   {tasks.map((task) => (

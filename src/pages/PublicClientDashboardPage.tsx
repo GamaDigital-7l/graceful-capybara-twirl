@@ -8,7 +8,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { BarChart, Users, TrendingUp, CalendarDays, FileText, CheckCircle, ListTodo, Sparkles } from "lucide-react";
-import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { cn } from "@/lib/utils";
@@ -23,6 +22,7 @@ import {
   Tooltip,
   Legend,
 } from "recharts";
+import { formatSaoPauloTime, formatSaoPauloDate } from "@/utils/date-utils"; // Importar utilitário de data
 
 interface PublicDashboardData {
   workspace: {
@@ -92,7 +92,7 @@ const PublicClientDashboardPage = () => {
     if (!data?.instagramInsights) return [];
     const insights = data.instagramInsights;
     return [{
-      name: format(new Date(insights.insight_date), "dd/MM"),
+      name: formatSaoPauloTime(insights.insight_date, "dd/MM"),
       Seguidores: insights.followers,
       Engajamento: insights.engagement_rate,
       Alcance: insights.reach,
@@ -146,7 +146,7 @@ const PublicClientDashboardPage = () => {
         )}
         <h1 className="text-3xl font-bold">{workspace.name}</h1>
         <p className="text-lg text-muted-foreground">Dashboard do Cliente</p>
-        <p className="text-sm text-muted-foreground mt-2">Última atualização: {format(new Date(), 'dd/MM/yyyy HH:mm', { locale: ptBR })}</p>
+        <p className="text-sm text-muted-foreground mt-2">Última atualização: {formatSaoPauloTime(new Date(), 'dd/MM/yyyy HH:mm')}</p>
       </header>
 
       <main className="max-w-6xl mx-auto space-y-8">
@@ -155,7 +155,7 @@ const PublicClientDashboardPage = () => {
             <h2 className="text-2xl font-bold mb-4 flex items-center gap-2"><BarChart className="h-6 w-6" /> Insights do Instagram</h2>
             <Card className="mb-6">
               <CardHeader>
-                <CardTitle>Métricas Recentes ({format(new Date(instagramInsights.insight_date), 'dd/MM/yyyy', { locale: ptBR })})</CardTitle>
+                <CardTitle>Métricas Recentes ({formatSaoPauloDate(instagramInsights.insight_date)})</CardTitle>
                 <CardDescription>Visão geral do desempenho do Instagram.</CardDescription>
               </CardHeader>
               <CardContent className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"> {/* Ajustado para 4 colunas */}
@@ -260,7 +260,7 @@ const PublicClientDashboardPage = () => {
                             </span>
                             {task.due_date && (
                               <span className="flex items-center gap-1">
-                                <CalendarDays className="h-3 w-3" /> {format(new Date(task.due_date), 'dd MMM', { locale: ptBR })}
+                                <CalendarDays className="h-3 w-3" /> {formatSaoPauloTime(task.due_date, 'dd MMM')}
                               </span>
                             )}
                           </div>
@@ -296,7 +296,7 @@ const PublicClientDashboardPage = () => {
                             <span className="font-semibold text-green-600">{task.column_title}</span>
                             {task.due_date && (
                               <span className="flex items-center gap-1">
-                                <CalendarDays className="h-3 w-3" /> {format(new Date(task.due_date), 'dd MMM', { locale: ptBR })}
+                                <CalendarDays className="h-3 w-3" /> {formatSaoPauloTime(task.due_date, 'dd MMM')}
                               </span>
                             )}
                           </div>

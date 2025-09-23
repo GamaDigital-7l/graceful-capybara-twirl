@@ -24,12 +24,12 @@ import {
   Tooltip,
   Legend,
 } from "recharts";
-import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { formatSaoPauloDate, formatSaoPauloTime } from "@/utils/date-utils"; // Importar utilitário de data
 
 interface InstagramInsightData {
   id?: string;
@@ -109,7 +109,7 @@ const InstagramInsightsDashboard = () => {
 
     try {
       const instagramData = {
-        date: format(insightDate, 'yyyy-MM-dd'),
+        date: formatSaoPauloTime(insightDate, 'yyyy-MM-dd'),
         followers: Number(followers),
         engagement_rate: Number(engagementRate),
         reach: Number(reach),
@@ -146,7 +146,7 @@ const InstagramInsightsDashboard = () => {
     if (!geminiOutput || !insightDate || followers === "" || engagementRate === "" || reach === "" || impressions === "" || profileViews === "" || postsCount === "" || interactions === "") return [];
     
     return [{
-      name: format(insightDate, "dd/MM"),
+      name: formatSaoPauloTime(insightDate, "dd/MM"),
       Seguidores: Number(followers),
       Engajamento: Number(engagementRate),
       Alcance: Number(reach),
@@ -160,7 +160,7 @@ const InstagramInsightsDashboard = () => {
 
   const reportPeriodDisplay = useMemo(() => {
     if (reportStartDate && reportEndDate) {
-      return `${format(reportStartDate, 'dd/MM/yyyy', { locale: ptBR })} - ${format(reportEndDate, 'dd/MM/yyyy', { locale: ptBR })}`;
+      return `${formatSaoPauloDate(reportStartDate)} - ${formatSaoPauloDate(reportEndDate)}`;
     }
     return "Selecione o período";
   }, [reportStartDate, reportEndDate]);
@@ -206,7 +206,7 @@ const InstagramInsightsDashboard = () => {
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
                     {insightDate ? (
-                      format(insightDate, "PPP", { locale: ptBR })
+                      formatSaoPauloDate(insightDate)
                     ) : (
                       <span>Selecione uma data</span>
                     )}

@@ -12,11 +12,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft, User, ListTodo, CheckCircle, AlertCircle, CalendarDays, Briefcase } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { showError } from "@/utils/toast";
-import { format, isPast, startOfMonth, subMonths, addMonths } from "date-fns";
+import { isPast, startOfMonth, subMonths, addMonths } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { formatSaoPauloTime } from "@/utils/date-utils"; // Importar utilitário de data
 
 interface EmployeeProfile {
   id: string;
@@ -46,7 +47,7 @@ const fetchEmployeeProfile = async (employeeId: string): Promise<EmployeeProfile
 const fetchAssignedTasks = async (employeeId: string, month: Date): Promise<AssignedTask[]> => {
   const { data, error } = await supabase.rpc("get_tasks_assigned_to_user_by_month", { 
     p_assigned_to_user_id: employeeId, 
-    p_month: format(month, 'yyyy-MM-dd')
+    p_month: formatSaoPauloTime(month, 'yyyy-MM-dd')
   });
   if (error) throw new Error(error.message);
   return data || [];
@@ -91,7 +92,7 @@ const EmployeeDetailsPage = () => {
     for (let i = 0; i < 12; i++) {
       options.push({
         value: current.toISOString(),
-        label: format(current, "MMMM yyyy", { locale: ptBR }),
+        label: formatSaoPauloTime(current, "MMMM yyyy"),
       });
       current = subMonths(current, 1);
     }
@@ -161,7 +162,7 @@ const EmployeeDetailsPage = () => {
         <div className="lg:col-span-1 space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Resumo de Tarefas ({format(selectedMonth, "MMMM yyyy", { locale: ptBR })})</CardTitle>
+              <CardTitle>Resumo de Tarefas ({formatSaoPauloTime(selectedMonth, "MMMM yyyy")})</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
@@ -188,7 +189,7 @@ const EmployeeDetailsPage = () => {
         <div className="lg:col-span-2 space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Tarefas Atribuídas ({format(selectedMonth, "MMMM yyyy", { locale: ptBR })})</CardTitle>
+              <CardTitle>Tarefas Atribuídas ({formatSaoPauloTime(selectedMonth, "MMMM yyyy")})</CardTitle>
               <CardDescription>Todas as tarefas atribuídas a {employee.full_name} no mês selecionado.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -214,7 +215,7 @@ const EmployeeDetailsPage = () => {
                             <span className={cn(
                               task.due_date && isPast(new Date(task.due_date)) && task.column_title !== "Aprovado" && "text-destructive font-semibold"
                             )}>
-                              {format(new Date(task.due_date), "dd MMM, yyyy", { locale: ptBR })}
+                              {formatSaoPauloTime(task.due_date, "dd MMM, yyyy")}
                             </span>
                           </div>
                         )}

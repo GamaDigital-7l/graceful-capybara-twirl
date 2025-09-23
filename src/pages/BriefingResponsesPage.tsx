@@ -12,9 +12,8 @@ import { ArrowLeft, Eye, Trash2, MoreVertical, CalendarDays, User } from "lucide
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { BriefingForm, BriefingResponse } from "@/types/briefing";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
 import { BriefingResponseViewModal } from "@/components/BriefingResponseViewModal";
+import { formatSaoPauloDateTime } from "@/utils/date-utils"; // Importar utilitário de data
 
 const fetchBriefingForm = async (formId: string): Promise<BriefingForm | null> => {
   const { data, error } = await supabase.from("briefing_forms").select("id, title, description, form_structure").eq("id", formId).single();
@@ -162,7 +161,7 @@ const BriefingResponsesPage = () => {
                     <div className="flex flex-col">
                       <CardTitle className="text-lg font-medium flex-grow pr-2">{response.client_name || "Usuário Autenticado"}</CardTitle>
                       <CardDescription className="flex items-center gap-1 text-sm text-muted-foreground mt-1">
-                        <CalendarDays className="h-3 w-3" /> {format(new Date(response.submitted_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+                        <CalendarDays className="h-3 w-3" /> {formatSaoPauloDateTime(response.submitted_at)}
                       </CardDescription>
                     </div>
                     <DropdownMenu>

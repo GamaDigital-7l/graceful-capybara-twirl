@@ -11,7 +11,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { PlusCircle, ListTodo, CheckCircle, AlertCircle } from "lucide-react";
 import { PersonalTaskCard } from "./PersonalTaskCard";
 import { PersonalTaskModal, PersonalTask } from "./PersonalTaskModal";
-import { isPast, format } from "date-fns";
+import { isPast } from "date-fns";
+import { formatSaoPauloTime } from "@/utils/date-utils"; // Importar utilitário de data
 
 // Reusing fetchPersonalTasks from PersonalTasksPage
 const fetchPersonalTasks = async (userId: string): Promise<PersonalTask[]> => {
@@ -55,7 +56,7 @@ export function PersonalTasksWidget() {
       const dataToSave = {
         ...rest,
         user_id: currentUserId,
-        due_date: format(due_date, 'yyyy-MM-dd'), // Format Date to string for Supabase
+        due_date: formatSaoPauloTime(due_date, 'yyyy-MM-dd'), // Format Date to string for Supabase
         reminder_preferences: reminder_preferences || [], // Save reminder preferences
         priority: priority || 'Medium', // Save priority
       };

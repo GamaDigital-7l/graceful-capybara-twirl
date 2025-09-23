@@ -1,13 +1,13 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
-import { format, isPast } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { isPast } from "date-fns";
 import { Pencil, Trash2, CalendarDays, Clock, Flag } from "lucide-react"; // Import Flag icon
 import { cn } from "@/lib/utils";
 import { PersonalTask } from "./PersonalTaskModal";
 import { Label } from "@/components/ui/label";
 import { Badge } from "./ui/badge"; // Import Badge
+import { formatSaoPauloDate, formatSaoPauloHour } from "@/utils/date-utils"; // Importar utilitário de data
 
 interface PersonalTaskCardProps {
   task: PersonalTask;
@@ -18,7 +18,7 @@ interface PersonalTaskCardProps {
 
 export function PersonalTaskCard({ task, onEdit, onDelete, onToggleComplete }: PersonalTaskCardProps) {
   const fullDueDateTime = task.due_time
-    ? new Date(`${format(task.due_date, 'yyyy-MM-dd')}T${task.due_time}`)
+    ? new Date(`${formatSaoPauloDate(task.due_date)}T${task.due_time}`)
     : task.due_date;
 
   const isOverdue = !task.is_completed && isPast(fullDueDateTime);
@@ -65,12 +65,12 @@ export function PersonalTaskCard({ task, onEdit, onDelete, onToggleComplete }: P
           <div className="flex items-center gap-3 text-sm text-muted-foreground mt-2">
             <div className="flex items-center gap-1">
               <CalendarDays className="h-4 w-4" />
-              <span>{format(task.due_date, "dd MMM, yyyy", { locale: ptBR })}</span>
+              <span>{formatSaoPauloDate(task.due_date)}</span>
             </div>
             {task.due_time && (
               <div className="flex items-center gap-1">
                 <Clock className="h-4 w-4" />
-                <span>{task.due_time}</span>
+                <span>{formatSaoPauloHour(new Date(`2000-01-01T${task.due_time}`))}</span>
               </div>
             )}
             {task.priority && (

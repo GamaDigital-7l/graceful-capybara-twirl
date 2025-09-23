@@ -22,7 +22,6 @@ import { useState, useEffect } from "react";
 import { Trash2, Upload, Calendar as CalendarIcon, Download, Eye, User, Clock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { showError, showSuccess } from "@/utils/toast";
-import { format, setHours, setMinutes, setSeconds, setMilliseconds } from "date-fns";
 import { ptBR } from "date-fns/locale"; // Importar ptBR
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -35,6 +34,7 @@ import { AspectRatio } from "./ui/aspect-ratio";
 import { ScrollArea } from "./ui/scroll-area";
 import { ImagePreviewModal } from "./ImagePreviewModal";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { formatSaoPauloDate, formatSaoPauloTime, formatSaoPauloHour } from "@/utils/date-utils"; // Importar utilitário de data
 
 interface UserProfile {
   id: string;
@@ -84,7 +84,7 @@ export function TaskModal({
       setAttachmentUrl(task.attachments?.[0]?.url || "");
       setActionType(task.actionType || "none");
       setDueDate(task.dueDate ? new Date(task.dueDate) : undefined);
-      setDueTime(task.due_time ? format(new Date(`2000-01-01T${task.due_time}`), 'HH:mm') : ""); // Carregar due_time
+      setDueTime(task.due_time || ""); // Carregar due_time
       setComments(task.comments || []);
       setAssignedTo(task.assignedTo || null); // Carregar assignedTo
     } else {
@@ -227,7 +227,7 @@ export function TaskModal({
                         >
                           <CalendarIcon className="mr-2 h-4 w-4" />
                           {dueDate ? (
-                            format(dueDate, "PPP", { locale: ptBR })
+                            formatSaoPauloDate(dueDate)
                           ) : (
                             <span>Escolha uma data</span>
                           )}
@@ -358,7 +358,7 @@ export function TaskModal({
                           <p className="font-semibold text-primary">{comment.author}</p>
                           <p className="text-foreground">{comment.text}</p>
                           <p className="text-xs text-muted-foreground pt-1">
-                            {format(new Date(comment.createdAt), "dd/MM/yy HH:mm")}
+                            {formatSaoPauloDateTime(comment.createdAt)}
                           </p>
                         </div>
                       ))

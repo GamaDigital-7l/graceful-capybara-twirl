@@ -1,10 +1,14 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
+import { createClient } 'https://esm.sh/@supabase/supabase-js@2.45.0';
+import { format } from "https://esm.sh/date-fns@2.30.0";
+import { formatInTimeZone } from "https://esm.sh/date-fns-tz@2.0.0"; // Importar formatInTimeZone
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+const SAO_PAULO_TIMEZONE = 'America/Sao_Paulo';
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
