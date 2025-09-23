@@ -59,29 +59,29 @@ const SortableGroupTab = ({
   group: Group;
   onDeleteGroup: (groupId: string) => void;
 }) => {
-  const { attributes, listeners, setNodeRef, transform, transition } =
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: group.id });
 
   const style = {
-    transform: CSS.Transform.toString(transform),
     transition,
+    transform: CSS.Transform.toString(transform),
+    opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 10 : 0,
   };
 
   return (
-    <div
+    <TabsTrigger
       ref={setNodeRef}
+      value={group.id}
+      className="flex items-center justify-between flex-grow cursor-grab data-[state=active]:shadow-sm flex-shrink-0 p-2 px-4 rounded-md bg-background border" // Combined styles
       style={style}
-      className="flex items-center bg-background rounded-md p-1"
+      {...attributes}
+      {...listeners}
     >
-      <TabsTrigger
-        value={group.id}
-        className="flex-grow cursor-grab data-[state=active]:shadow-sm flex-shrink-0"
-        {...attributes}
-        {...listeners}
-      >
-        <GripVertical className="h-4 w-4 mr-2 text-muted-foreground" />
+      <div className="flex items-center gap-2">
+        <GripVertical className="h-4 w-4 text-muted-foreground" />
         {group.name}
-      </TabsTrigger>
+      </div>
       <AlertDialog>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -96,7 +96,7 @@ const SortableGroupTab = ({
           </DropdownMenuTrigger>
           <DropdownMenuContent>
             <AlertDialogTrigger asChild>
-              <DropdownMenuItem className="text-destructive cursor-pointer">
+              <DropdownMenuItem className="text-destructive cursor-pointer" onSelect={(e) => e.preventDefault()}>
                 <Trash2 className="mr-2 h-4 w-4" />
                 Deletar Grupo
               </DropdownMenuItem>
@@ -122,7 +122,7 @@ const SortableGroupTab = ({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </TabsTrigger>
   );
 };
 
