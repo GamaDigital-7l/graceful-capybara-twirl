@@ -9,6 +9,7 @@ import { Badge } from "./ui/badge";
 import { Briefcase } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { ClientProgress } from "./ClientProgress";
+import { PersonalTasksWidget } from "./PersonalTasksWidget"; // Importar o novo widget
 
 interface UserTask {
   id: string;
@@ -79,14 +80,11 @@ export function MyTasks() {
 
   return (
     <div>
-      {/* Seção para os 3 cards de TaskStats */}
+      {/* Seção para os 3 cards de TaskStats, ClientProgress e PersonalTasksWidget */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         <TaskStats pendingCount={pendingTasks.length} completedCount={completedTasks.length} />
-      </div>
-
-      {/* Seção para o card de ClientProgress */}
-      <div className="mb-8">
-        <ClientProgress />
+        <ClientProgress /> {/* ClientProgress agora ocupa uma coluna */}
+        <PersonalTasksWidget /> {/* Novo widget de tarefas pessoais */}
       </div>
 
       <div className="w-full">
@@ -94,11 +92,11 @@ export function MyTasks() {
         {pendingTasks.length > 0 ? (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {Object.entries(groupedTasks).map(([workspaceId, { name, logo_url, tasks }]) => (
-              <Card key={workspaceId} className="shadow-sm hover:shadow-md transition-shadow"> {/* Adicionado shadow-sm */}
-                <CardHeader className="flex flex-row items-center gap-3 pb-4 mb-4 border-b"> {/* Adicionado border-b e ajustado padding */}
+              <Card key={workspaceId} className="shadow-sm hover:shadow-md transition-shadow">
+                <CardHeader className="flex flex-row items-center gap-3 pb-4 mb-4 border-b">
                   {logo_url ? (
                     <Avatar className="h-6 w-6">
-                      <AvatarImage src={logo_url} alt={name} loading="lazy" /> {/* Adicionado loading="lazy" */}
+                      <AvatarImage src={logo_url} alt={name} loading="lazy" />
                       <AvatarFallback>{name.charAt(0)}</AvatarFallback>
                     </Avatar>
                   ) : (
@@ -107,7 +105,7 @@ export function MyTasks() {
                   <CardTitle className="text-lg font-medium flex-grow pr-2">{name}</CardTitle>
                   <Badge variant="secondary">{tasks.length}</Badge>
                 </CardHeader>
-                <CardContent className="p-4 pt-0 space-y-3"> {/* Ajustado padding */}
+                <CardContent className="p-4 pt-0 space-y-3">
                   {tasks.map((task) => (
                     <TaskSummaryCard key={task.id} task={task} />
                   ))}
