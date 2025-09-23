@@ -1,5 +1,5 @@
 import { format, parseISO } from 'date-fns';
-import { utcToZonedTime, formatInTimeZone } from 'date-fns-tz';
+import * as dateFnsTz from 'date-fns-tz'; // Importar como namespace
 import { ptBR } from 'date-fns/locale';
 
 const SAO_PAULO_TIMEZONE = 'America/Sao_Paulo';
@@ -11,7 +11,7 @@ const SAO_PAULO_TIMEZONE = 'America/Sao_Paulo';
  */
 export const toSaoPauloTime = (date: Date | string): Date => {
   const utcDate = typeof date === 'string' ? parseISO(date) : date;
-  return utcToZonedTime(utcDate, SAO_PAULO_TIMEZONE);
+  return dateFnsTz.utcToZonedTime(utcDate, SAO_PAULO_TIMEZONE);
 };
 
 /**
@@ -22,7 +22,7 @@ export const toSaoPauloTime = (date: Date | string): Date => {
  */
 export const formatSaoPauloTime = (date: Date | string, formatStr: string): string => {
   const utcDate = typeof date === 'string' ? parseISO(date) : date;
-  return formatInTimeZone(utcDate, SAO_PAULO_TIMEZONE, formatStr, { locale: ptBR });
+  return dateFnsTz.formatInTimeZone(utcDate, SAO_PAULO_TIMEZONE, formatStr, { locale: ptBR });
 };
 
 /**
