@@ -27,7 +27,7 @@ const fetchAgencyPlaybook = async (): Promise<AgencyPlaybook | null> => {
 
 const AgencyPlaybookPage = () => {
   const [isEditorOpen, setIsEditorOpen] = useState(false);
-  const [visiblePasswords, setVisiblePasswords] = new Set<string>();
+  const [visiblePasswords, setVisiblePasswords] = useState<Set<string>>(new Set());
   const [isGenerateOnboardingModalOpen, setIsGenerateOnboardingModalOpen] = useState(false); // Novo estado para o modal
   const queryClient = useQueryClient();
 
