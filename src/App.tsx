@@ -38,8 +38,8 @@ const PersonalTasksPage = lazy(() => import("./pages/PersonalTasksPage"));
 const queryClient = new QueryClient();
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <React.Fragment> {/* Adicionado React.Fragment aqui */}
+  <React.Fragment> {/* O componente App retorna um único React.Fragment */}
+    <QueryClientProvider client={queryClient}>
       <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
         <SettingsProvider>
           <TooltipProvider>
@@ -209,11 +209,11 @@ const App = () => (
           </TooltipProvider>
         </SettingsProvider>
       </ThemeProvider>
-      {/* Toaster and Sonner are now rendered as siblings to ThemeProvider within the Fragment */}
-      <Toaster />
-      <Sonner position="top-center" duration={7000} />
-    </React.Fragment>
-  </QueryClientProvider>
+    </QueryClientProvider>
+    {/* Toaster and Sonner são agora irmãos do QueryClientProvider, dentro do React.Fragment de nível superior */}
+    <Toaster />
+    <Sonner position="top-center" duration={7000} />
+  </React.Fragment>
 );
 
 export default App;
