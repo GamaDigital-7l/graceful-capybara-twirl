@@ -1,6 +1,6 @@
 import React, { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } "@/components/ui/sonner";
+import { Toaster as Sonner } from "@/components/ui/sonner"; // 'from' keyword added here
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Routes, Route } from "react-router-dom";
