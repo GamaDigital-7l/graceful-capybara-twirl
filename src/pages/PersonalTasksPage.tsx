@@ -14,6 +14,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { isPast, format, parseISO, setHours, setMinutes } from "date-fns";
 import * as chrono from 'chrono-node'; // Import chrono-node
 import { Input } from "@/components/ui/input"; // Import Input for NLP field
+import { Label } from "@/components/ui/label"; // Import Label
 
 const fetchPersonalTasks = async (userId: string): Promise<PersonalTask[]> => {
   const { data, error } = await supabase
