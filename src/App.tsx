@@ -6,7 +6,7 @@ import { Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { SettingsProvider } from "@/contexts/SettingsContext";
 import Dashboard from "./pages/Dashboard";
-import WorkspacePage from "./pages/pages/Workspace";
+import WorkspacePage from "./pages/Workspace";
 import PlaybookPage from "./pages/Playbook";
 import AdminPage from "./pages/Admin";
 import SettingsPage from "./pages/Settings";
