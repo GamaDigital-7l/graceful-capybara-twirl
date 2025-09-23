@@ -17,7 +17,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import {
-  Dialog, // Importação adicionada
+  Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
@@ -346,7 +346,7 @@ const OnboardingTemplatesPage = () => {
           </Tabs>
           <DialogFooter>
             <DialogClose asChild><Button type="button" variant="secondary">Cancelar</Button></DialogClose>
-            <Button type="button" onClick={handleSave} disabled={isSaving}>
+            <Button type="button" onClick={handleSaveTemplate} disabled={isSaving}>
               {isSaving ? "Salvando..." : "Salvar Template"}
             </Button>
           </DialogFooter>
