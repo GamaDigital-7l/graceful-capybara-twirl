@@ -2,7 +2,7 @@ import { Link, useLocation } from "react-router-dom";
 import { AppLogo } from "./AppLogo";
 import { ThemeToggle } from "./ThemeToggle";
 import { Button } from "@/components/ui/button";
-import { LogOut, Home, Banknote, Brain, UserCog, Palette, Users, BookOpen, Menu, BarChart, FileText, LayoutTemplate } from "lucide-react"; // Adicionado LayoutTemplate
+import { LogOut, Home, Banknote, Brain, UserCog, Palette, Users, BookOpen, Menu, BarChart, FileText, LayoutTemplate, ListTodo } from "lucide-react"; // Adicionado ListTodo
 import { supabase } from "@/integrations/supabase/client";
 import { useState, useEffect } from "react";
 import { showError } from "@/utils/toast";
@@ -56,6 +56,7 @@ export function Header({ pageTitle }: HeaderProps) {
     if (pageTitle) return pageTitle;
     const path = location.pathname;
     if (path === "/") return "Dashboard";
+    if (path.startsWith("/personal-tasks")) return "Minhas Tarefas Pessoais"; // New
     if (path.startsWith("/workspace/") && !path.includes("/playbook") && !path.includes("/instagram-insights")) return "Workspace"; // Atualizado
     if (path.includes("/playbook")) return "Playbook";
     if (path.includes("/instagram-insights")) return "Insights do Instagram"; // Novo
@@ -77,6 +78,7 @@ export function Header({ pageTitle }: HeaderProps) {
 
   const navItems = [
     { name: "Dashboard", icon: Home, path: "/", roles: ["admin", "equipe", "user"] },
+    { name: "Minhas Tarefas Pessoais", icon: ListTodo, path: "/personal-tasks", roles: ["admin", "equipe"] }, // Novo item
     { name: "Financeiro", icon: Banknote, path: "/financial", roles: ["admin"] },
     { name: "Segundo Cérebro", icon: Brain, path: "/second-brain", roles: ["admin", "equipe"] },
     { name: "Briefings", icon: FileText, path: "/briefings", roles: ["admin", "equipe"] },

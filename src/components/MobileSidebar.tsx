@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "react-router-dom";
 import { AppLogo } from "./AppLogo";
 import { ThemeToggle } from "./ThemeToggle";
-import { LogOut, Home, Banknote, Brain, UserCog, Palette, Users, BookOpen, BarChart, FileText, LayoutTemplate } from "lucide-react"; // Adicionado LayoutTemplate
+import { LogOut, Home, Banknote, Brain, UserCog, Palette, Users, BookOpen, BarChart, FileText, LayoutTemplate, ListTodo } from "lucide-react"; // Adicionado ListTodo para tarefas pessoais
 import { supabase } from "@/integrations/supabase/client";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"; // Importar Accordion
 
@@ -21,6 +21,7 @@ export function MobileSidebar({ userRole, onClose }: MobileSidebarProps) {
 
   const navItems = [
     { name: "Dashboard", icon: Home, path: "/", roles: ["admin", "equipe", "user"] },
+    { name: "Minhas Tarefas Pessoais", icon: ListTodo, path: "/personal-tasks", roles: ["admin", "equipe"] }, // Novo item
     { name: "Financeiro", icon: Banknote, path: "/financial", roles: ["admin"] },
     { name: "Segundo Cérebro", icon: Brain, path: "/second-brain", roles: ["admin", "equipe"] },
     { name: "Briefings", icon: FileText, path: "/briefings", roles: ["admin", "equipe"] },

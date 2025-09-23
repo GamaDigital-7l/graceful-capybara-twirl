@@ -32,6 +32,7 @@ const BriefingResponsesPage = lazy(() => import("./pages/BriefingResponsesPage")
 const PublicClientOnboardingPage = lazy(() => import("./pages/PublicClientOnboardingPage"));
 const OnboardingTemplatesPage = lazy(() => import("./pages/OnboardingTemplatesPage"));
 const AgencyPlaybookPage = lazy(() => import("./pages/AgencyPlaybookPage"));
+const PersonalTasksPage = lazy(() => import("./pages/PersonalTasksPage")); // New: Personal Tasks Page
 
 
 const queryClient = new QueryClient();
@@ -193,6 +194,14 @@ const App = () => (
                   element={
                     <Layout pageTitle="Templates de Onboarding">
                       <OnboardingTemplatesPage />
+                    </Layout>
+                  }
+                />
+                <Route
+                  path="/personal-tasks"
+                  element={
+                    <Layout pageTitle="Minhas Tarefas Pessoais">
+                      <PersonalTasksPage />
                     </Layout>
                   }
                 />
