@@ -39,11 +39,9 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-      <SettingsProvider>
-        <React.Fragment> {/* Adicionado React.Fragment aqui */}
-          <Toaster />
-          <Sonner position="top-center" duration={7000} />
+    <React.Fragment> {/* Adicionado React.Fragment aqui */}
+      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+        <SettingsProvider>
           <TooltipProvider>
             <Suspense fallback={<div className="flex justify-center items-center min-h-screen">Carregando...</div>}>
               <Routes>
@@ -209,9 +207,12 @@ const App = () => (
               </Routes>
             </Suspense>
           </TooltipProvider>
-        </React.Fragment>
-      </SettingsProvider>
-    </ThemeProvider>
+        </SettingsProvider>
+      </ThemeProvider>
+      {/* Toaster and Sonner are now rendered as siblings to ThemeProvider within the Fragment */}
+      <Toaster />
+      <Sonner position="top-center" duration={7000} />
+    </React.Fragment>
   </QueryClientProvider>
 );
 
