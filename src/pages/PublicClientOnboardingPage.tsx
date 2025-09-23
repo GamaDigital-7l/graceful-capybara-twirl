@@ -50,8 +50,16 @@ const fetchOnboardingPageData = async (publicToken: string): Promise<FullOnboard
       .select("*")
       .eq("id", clientOnboarding.onboarding_template_id)
       .single();
-    if (templateError) console.error("Erro ao buscar template de onboarding:", templateError);
-    template = templateData as OnboardingTemplate;
+    // Handle PGRST116 (no rows found) gracefully
+    if (templateError && templateError.code === 'PGRST116') {
+      console.warn("Template de onboarding referenciado não encontrado.");
+      template = null;
+    } else if (templateError) {
+      console.error("Erro ao buscar template de onboarding:", templateError);
+      throw templateError; // Re-throw other errors
+    } else {
+      template = templateData as OnboardingTemplate;
+    }
   }
 
   return {
