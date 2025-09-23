@@ -158,7 +158,7 @@ export function KanbanColumn({
           </DropdownMenuContent>
         </DropdownMenu>
       </CardHeader>
-      <CardContent className="flex flex-col gap-4 flex-grow">
+      <CardContent className="flex flex-col gap-4 flex-grow overflow-y-auto"> {/* Adicionado overflow-y-auto */}
         <SortableContext items={tasksIds}>
           {tasks.map((task) => (
             <KanbanCard

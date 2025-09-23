@@ -243,7 +243,7 @@ export function KanbanBoard({ groupId }: KanbanBoardProps) {
       invalidateKanbanData();
       // Usar a mesma mensagem de sucesso aprimorada
       showSuccess("Sua solicitação de edição foi enviada com sucesso! Nossa equipe fará as alterações necessárias e entraremos em contato em breve com a versão atualizada. Agradecemos a sua paciência!");
-      triggerNotification(`*${currentUser?.full_name}* solicitou edição para a tarefa "${taskTitle}" no workspace *${workspaceName}*.\nComentário: _${comment}_`);
+      triggerNotification(`*${currentUser?.full_name}* solicitou edição para a tarefa "${taskTitle}" no workspace *${workspaceName}*.`);
     },
     onError: (e: Error) => showError(e.message),
   });
@@ -375,7 +375,7 @@ export function KanbanBoard({ groupId }: KanbanBoardProps) {
     <div>
       <DndContext sensors={sensors} onDragStart={onDragStart} onDragEnd={onDragEnd}>
         <div className="w-full overflow-x-auto pb-4">
-          <div className="inline-flex gap-6">
+          <div className="inline-flex gap-6 items-start"> {/* Adicionado items-start */}
             <SortableContext items={columnsId}>
               {columns.map((col) => (
                 <KanbanColumn
