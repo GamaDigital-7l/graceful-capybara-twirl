@@ -15,7 +15,7 @@ export const toSaoPauloTime = (date: Date | string): Date => {
     console.warn("Invalid date provided to toSaoPauloTime:", date);
     return new Date('Invalid Date'); // Retorna um objeto Date inválido para propagar o problema de forma clara
   }
-  return dateFnsTz.utcToZonedTime(utcDate, SAO_PAULO_TIMEZONE);
+  return dateFnsTz.toZonedTime(utcDate, SAO_PAULO_TIMEZONE); // Corrigido para toZonedTime
 };
 
 /**
