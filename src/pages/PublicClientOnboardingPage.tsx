@@ -24,7 +24,7 @@ interface FullOnboardingData {
   template: OnboardingTemplate | null;
 }
 
-const fetchOnboardingPageData = async (publicToken: string): Promise<FullOnboardingData> => {
+const fetchOnboardingPageData = async (publicToken: string): Promise<FullOnboardingData | null> => {
   // Check for preview data in localStorage first
   if (publicToken === 'preview') {
     const previewData = localStorage.getItem('onboardingPreviewData');
@@ -40,8 +40,19 @@ const fetchOnboardingPageData = async (publicToken: string): Promise<FullOnboard
     .eq("public_token", publicToken)
     .single();
   
-  if (clientOnboardingError) throw new Error(clientOnboardingError.message);
-  if (!clientOnboarding) throw new Error("Página de onboarding do cliente não encontrada.");
+  if (clientOnboardingError) {
+    if (clientOnboardingError.code === 'PGRST116') {
+      console.warn("Página de onboarding do cliente não encontrada (PGRST116). Retornando null.");
+      return null; // Retorna null se a página de onboarding do cliente não for encontrada
+    } else {
+      console.error("Erro ao buscar página de onboarding do cliente:", clientOnboardingError);
+      throw clientOnboardingError; // Relança outros erros
+    }
+  }
+  if (!clientOnboarding) { // Salvaguarda, deve ser coberto pelo bloco acima
+    console.warn("Página de onboarding do cliente não encontrada (clientOnboarding é null). Retornando null.");
+    return null;
+  }
 
   let template: OnboardingTemplate | null = null;
   if (clientOnboarding.onboarding_template_id) {
@@ -107,7 +118,7 @@ const MarkdownVideoRenderer = ({ node, ...props }: any) => {
 const PublicClientOnboardingPage = () => {
   const { publicToken } = useParams<{ publicToken: string }>();
 
-  const { data, isLoading, error } = useQuery<FullOnboardingData, Error>({
+  const { data, isLoading, error } = useQuery<FullOnboardingData | null, Error>({
     queryKey: ["publicOnboardingPage", publicToken],
     queryFn: () => fetchOnboardingPageData(publicToken!),
     enabled: !!publicToken,
