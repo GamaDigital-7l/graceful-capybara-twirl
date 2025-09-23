@@ -469,7 +469,7 @@ const Dashboard = () => {
                         <AlertDialogTitle>Tem certeza?</AlertDialogTitle>
                         <AlertDialogDescription>
                           Esta ação não pode ser desfeita. Isso excluirá
-                          permanentemente sua tarefa personal.
+                          permanentemente sua tarefa pessoal.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
