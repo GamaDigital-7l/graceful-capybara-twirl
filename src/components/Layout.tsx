@@ -2,6 +2,8 @@ import { ReactNode } from "react";
 import { Header } from "./Header";
 import { Footer } from "./Footer";
 import ProtectedRoute from "./ProtectedRoute";
+import { Toaster } from "@/components/ui/toaster"; // Import here
+import { Toaster as Sonner } from "@/components/ui/sonner"; // Import here
 
 interface LayoutProps {
   children: ReactNode;
@@ -17,6 +19,8 @@ export function Layout({ children, pageTitle }: LayoutProps) {
           {children}
         </main>
         <Footer />
+        <Toaster /> {/* Moved here */}
+        <Sonner position="top-center" duration={7000} /> {/* Moved here */}
       </div>
     </ProtectedRoute>
   );
