@@ -12,10 +12,11 @@ export default defineConfig(() => ({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      'date-fns-tz': 'date-fns-tz/dist/index.js', // Força a versão CommonJS
     },
   },
   optimizeDeps: {
-    include: ['date-fns'], // Removido 'date-fns-tz' daqui
+    include: ['date-fns', 'date-fns-tz'], // Inclui date-fns-tz para otimização
     exclude: [],
   },
   build: {
@@ -23,7 +24,7 @@ export default defineConfig(() => ({
       include: [/node_modules/],
     },
     rollupOptions: {
-      external: ['date-fns-tz'], // Adicionado 'date-fns-tz' como externo
+      // Removido 'date-fns-tz' de external
     },
   },
 }));
