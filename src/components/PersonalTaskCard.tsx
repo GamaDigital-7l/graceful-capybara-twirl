@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 import { PersonalTask } from "./PersonalTaskModal";
 import { Label } from "@/components/ui/label";
 import { Badge } from "./ui/badge";
-import { formatSaoPauloDate, formatSaoPauloHour, toSaoPauloTime } from "@/utils/date-utils";
+import { formatSaoPauloDate, formatSaoPauloHour, toSaoPauloTime, formatSaoPauloTime } from "@/utils/date-utils"; // Adicionadas importações
 
 interface PersonalTaskCardProps {
   task: PersonalTask;
