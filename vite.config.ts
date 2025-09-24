@@ -24,7 +24,7 @@ export default defineConfig(() => ({
       include: [/node_modules/],
     },
     rollupOptions: {
-      external: ['date-fns-tz'], // Adiciona 'date-fns-tz' como externo na build
+      // Removido 'date-fns-tz' de external
     },
   },
 }));
