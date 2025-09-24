@@ -12,6 +12,7 @@ export default defineConfig(() => ({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      'date-fns-tz': 'date-fns-tz/dist/index.js', // Força a versão CommonJS
     },
   },
   optimizeDeps: {
@@ -23,7 +24,7 @@ export default defineConfig(() => ({
       include: [/node_modules/],
     },
     rollupOptions: {
-      external: ['date-fns-tz'], // Trata 'date-fns-tz' como externo na build
+      // Removido 'date-fns-tz' de external, pois o alias deve resolver
     },
   },
 }));
