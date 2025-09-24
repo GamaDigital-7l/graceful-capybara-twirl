@@ -12,20 +12,20 @@ export default defineConfig(() => ({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
-      "date-fns-tz": "date-fns-tz/dist/index.js", // Adicionado alias para forçar a resolução
+      // Removido o alias explícito para "date-fns-tz"
     },
   },
   optimizeDeps: {
-    include: ['date-fns'],
-    exclude: ['date-fns-tz'], // Excluir novamente para que o alias seja respeitado e não haja pré-bundling conflitante
+    include: ['date-fns', 'date-fns-tz'], // Incluído "date-fns-tz" para forçar o pré-empacotamento
+    exclude: [], // Removido "date-fns-tz" da exclusão
   },
   build: {
     commonjsOptions: {
       include: [/node_modules/],
-      esmExternals: true, // Manter esta opção para melhor interoperação CJS/ESM
+      esmExternals: true,
     },
     rollupOptions: {
-      // Removido 'date-fns-tz' de external
+      // Nenhuma alteração necessária aqui
     },
   },
 }));
