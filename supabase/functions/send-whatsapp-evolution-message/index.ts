@@ -53,9 +53,7 @@ serve(async (req) => {
       options: {
         delay: 1200,
       },
-      textMessage: {
-        text: message,
-      },
+      text: message, // Alterado: Tentando enviar 'text' diretamente no nível raiz
     };
 
     console.log("EF: Sending request to Evolution API with endpoint:", evolutionApiEndpoint);
