@@ -17,19 +17,19 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; // Import Select
-import { formatSaoPauloDate } from "@/utils/date-utils"; // Importar utilitário de data
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { formatSaoPauloDate, parseSaoPauloDateString } from "@/utils/date-utils";
 
 export interface PersonalTask {
   id?: string;
-  user_id?: string; // Will be set by the backend
+  user_id?: string;
   title: string;
   description?: string;
   due_date: Date;
-  due_time?: string; // HH:mm format
+  due_time?: string;
   is_completed?: boolean;
-  reminder_preferences?: string[]; // New field for reminder preferences
-  priority?: 'Highest' | 'High' | 'Medium' | 'Low'; // New field for priority
+  reminder_preferences?: string[];
+  priority?: 'Highest' | 'High' | 'Medium' | 'Low';
 }
 
 interface PersonalTaskModalProps {
@@ -48,23 +48,23 @@ export function PersonalTaskModal({
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [dueDate, setDueDate] = useState<Date | undefined>(undefined);
-  const [dueTime, setDueTime] = useState(""); // HH:mm format
-  const [reminderPreferences, setReminderPreferences] = useState<string[]>([]); // State for reminder preferences
-  const [priority, setPriority] = useState<'Highest' | 'High' | 'Medium' | 'Low'>('Medium'); // State for priority
+  const [dueTime, setDueTime] = useState("");
+  const [reminderPreferences, setReminderPreferences] = useState<string[]>([]);
+  const [priority, setPriority] = useState<'Highest' | 'High' | 'Medium' | 'Low'>('Medium');
 
   useEffect(() => {
     if (existingTask) {
       setTitle(existingTask.title);
       setDescription(existingTask.description || "");
       // Ao carregar, trate a string YYYY-MM-DD como data local de São Paulo
-      setDueDate(existingTask.due_date ? new Date(existingTask.due_date.toISOString().split('T')[0] + 'T00:00:00') : undefined);
+      setDueDate(existingTask.due_date ? parseSaoPauloDateString(existingTask.due_date.toISOString().split('T')[0]) : undefined);
       setDueTime(existingTask.due_time || "");
       setReminderPreferences(existingTask.reminder_preferences || []);
       setPriority(existingTask.priority || 'Medium');
     } else {
       setTitle("");
       setDescription("");
-      setDueDate(new Date()); // Default to today
+      setDueDate(new Date());
       setDueTime("");
       setReminderPreferences([]);
       setPriority('Medium');
@@ -91,12 +91,11 @@ export function PersonalTaskModal({
       id: existingTask?.id,
       title: title.trim(),
       description: description.trim() || undefined,
-      // Ao salvar, formate a data para YYYY-MM-DD no fuso horário de São Paulo
-      due_date: dueDate, // A formatação para string YYYY-MM-DD será feita na mutation da página
+      due_date: dueDate,
       due_time: dueTime || undefined,
       is_completed: existingTask?.is_completed || false,
       reminder_preferences: reminderPreferences,
-      priority: priority, // Save priority
+      priority: priority,
     };
     onSave(taskToSave);
     onClose();

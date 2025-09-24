@@ -22,7 +22,7 @@ import { useState, useEffect } from "react";
 import { Trash2, Upload, Calendar as CalendarIcon, Download, Eye, User, Clock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { showError, showSuccess } from "@/utils/toast";
-import { ptBR } from "date-fns/locale"; // Importar ptBR
+import { ptBR } from "date-fns/locale";
 import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
@@ -34,7 +34,7 @@ import { AspectRatio } from "./ui/aspect-ratio";
 import { ScrollArea } from "./ui/scroll-area";
 import { ImagePreviewModal } from "./ImagePreviewModal";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { formatSaoPauloDate, formatSaoPauloTime, formatSaoPauloHour, formatSaoPauloDateTime } from "@/utils/date-utils"; // Importar utilitário de data
+import { formatSaoPauloDate, formatSaoPauloTime, formatSaoPauloHour, formatSaoPauloDateTime, parseSaoPauloDateString } from "@/utils/date-utils";
 
 interface UserProfile {
   id: string;
@@ -51,7 +51,7 @@ interface TaskModalProps {
   task: Task | null;
   columnId?: string;
   currentUser: { full_name: string, role: string } | null;
-  usersForAssignment: UserProfile[]; // Novo prop para usuários
+  usersForAssignment: UserProfile[];
 }
 
 export function TaskModal({
@@ -71,11 +71,11 @@ export function TaskModal({
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [dueDate, setDueDate] = useState<Date | undefined>(undefined);
-  const [dueTime, setDueTime] = useState<string>(""); // Novo estado para a hora de entrega
+  const [dueTime, setDueTime] = useState<string>("");
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState("");
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
-  const [assignedTo, setAssignedTo] = useState<string | null>(null); // Novo estado para assignedTo
+  const [assignedTo, setAssignedTo] = useState<string | null>(null);
 
   useEffect(() => {
     if (task) {
@@ -84,19 +84,19 @@ export function TaskModal({
       setAttachmentUrl(task.attachments?.[0]?.url || "");
       setActionType(task.actionType || "none");
       // Ao carregar, trate a string YYYY-MM-DD como data local de São Paulo
-      setDueDate(task.dueDate ? new Date(task.dueDate + 'T00:00:00') : undefined);
-      setDueTime(task.due_time || ""); // Carregar due_time
+      setDueDate(task.dueDate ? parseSaoPauloDateString(task.dueDate) : undefined);
+      setDueTime(task.due_time || "");
       setComments(task.comments || []);
-      setAssignedTo(task.assignedTo || null); // Carregar assignedTo
+      setAssignedTo(task.assignedTo || null);
     } else {
       setTitle("");
       setDescription("");
       setAttachmentUrl("");
       setActionType("none");
       setDueDate(undefined);
-      setDueTime(""); // Resetar due_time
+      setDueTime("");
       setComments([]);
-      setAssignedTo(null); // Resetar assignedTo
+      setAssignedTo(null);
     }
     setSelectedFile(null);
     setNewComment("");
@@ -168,9 +168,9 @@ export function TaskModal({
         : [],
       // Ao salvar, formate a data para YYYY-MM-DD no fuso horário de São Paulo
       dueDate: dueDate ? formatSaoPauloTime(dueDate, 'yyyy-MM-dd') : undefined,
-      due_time: dueTime || null, // Salvar due_time
+      due_time: dueTime || null,
       comments: comments,
-      assignedTo: assignedTo, // Salvar assignedTo
+      assignedTo: assignedTo,
     };
     onSave(savedTask);
     onClose();
@@ -215,7 +215,7 @@ export function TaskModal({
                     rows={5}
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-4"> {/* Grid para Data e Hora */}
+                <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="dueDate">Data de Entrega</Label>
                     <Popover>
@@ -294,7 +294,7 @@ export function TaskModal({
                           <SelectItem key={user.id} value={user.id}>
                             <div className="flex items-center gap-2">
                               <Avatar className="h-6 w-6">
-                                <AvatarImage src={user.avatar_url || undefined} loading="lazy" /> {/* Adicionado loading="lazy" */}
+                                <AvatarImage src={user.avatar_url || undefined} loading="lazy" />
                                 <AvatarFallback>{user.full_name?.charAt(0) || <User className="h-4 w-4" />}</AvatarFallback>
                               </Avatar>
                               {user.full_name}
@@ -314,7 +314,7 @@ export function TaskModal({
                   {attachmentUrl && (
                     <div className="space-y-2">
                       <AspectRatio ratio={16 / 9} className="bg-muted rounded-md group relative">
-                        <img src={attachmentUrl} alt="Pré-visualização" className="rounded-md object-cover w-full h-full" loading="lazy" /> {/* Adicionado loading="lazy" */}
+                        <img src={attachmentUrl} alt="Pré-visualização" className="rounded-md object-cover w-full h-full" loading="lazy" />
                         <div 
                           className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
                           onClick={() => setIsPreviewModalOpen(true)}

@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { CheckCircle, Edit, Send, Eye } from "lucide-react";
 import { ImagePreviewModal } from "@/components/ImagePreviewModal";
 import { AppLogo } from "@/components/AppLogo";
+import { formatSaoPauloTime } from "@/utils/date-utils";
 
 const fetchApprovalData = async (token: string) => {
   const { data, error } = await supabase.functions.invoke("get-tasks-for-approval", {

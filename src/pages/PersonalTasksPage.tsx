@@ -12,23 +12,23 @@ import { PersonalTaskCard } from "@/components/PersonalTaskCard";
 import { PersonalTaskModal, PersonalTask } from "@/components/PersonalTaskModal";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { isPast } from "date-fns";
-import * as chrono from 'chrono-node'; // Import chrono-node
-import { Input } from "@/components/ui/input"; // Import Input for NLP field
-import { Label } from "@/components/ui/label"; // Import Label
-import { correctGrammar } from "@/utils/grammar"; // Import new grammar utility
-import { formatSaoPauloTime } from "@/utils/date-utils"; // Importar utilitário de data
+import * as chrono from 'chrono-node';
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { correctGrammar } from "@/utils/grammar";
+import { formatSaoPauloTime } from "@/utils/date-utils";
 
 const fetchPersonalTasks = async (userId: string): Promise<PersonalTask[]> => {
   const { data, error } = await supabase
     .from("personal_tasks")
-    .select("*, reminder_preferences, priority") // Select new columns
+    .select("*, reminder_preferences, priority")
     .eq("user_id", userId)
     .order("due_date", { ascending: true })
     .order("due_time", { ascending: true });
   if (error) throw new Error(error.message);
   return data.map(task => ({
     ...task,
-    due_date: new Date(task.due_date), // Convert string to Date object
+    due_date: new Date(task.due_date),
   })) as PersonalTask[];
 };
 
@@ -37,7 +37,7 @@ const PersonalTasksPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<PersonalTask | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-  const [nlpInput, setNlpInput] = useState(""); // State for NLP input
+  const [nlpInput, setNlpInput] = useState("");
 
   useEffect(() => {
     const getUserId = async () => {
@@ -56,13 +56,13 @@ const PersonalTasksPage = () => {
   const saveTaskMutation = useMutation({
     mutationFn: async (task: PersonalTask) => {
       if (!currentUserId) throw new Error("Usuário não autenticado.");
-      const { id, due_date, reminder_preferences, priority, ...rest } = task; // Destructure reminder_preferences and priority
+      const { id, due_date, reminder_preferences, priority, ...rest } = task;
       const dataToSave = {
         ...rest,
         user_id: currentUserId,
-        due_date: formatSaoPauloTime(due_date, 'yyyy-MM-dd'), // Format Date to string for Supabase
-        reminder_preferences: reminder_preferences || [], // Save reminder preferences
-        priority: priority || 'Medium', // Save priority
+        due_date: formatSaoPauloTime(due_date, 'yyyy-MM-dd'),
+        reminder_preferences: reminder_preferences || [],
+        priority: priority || 'Medium',
       };
 
       if (id) {
@@ -76,7 +76,7 @@ const PersonalTasksPage = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["personalTasks", currentUserId] });
       showSuccess("Tarefa pessoal salva com sucesso!");
-      setNlpInput(""); // Clear NLP input after saving
+      setNlpInput("");
     },
     onError: (e: Error) => showError(e.message),
   });
@@ -132,8 +132,8 @@ const PersonalTasksPage = () => {
       const parsedResult = chrono.parse(correctedText, new Date(), { forwardDate: true });
 
       let newTask: Partial<PersonalTask> = {
-        title: correctedText.trim(), // Usar o texto corrigido como título inicial
-        due_date: new Date(), // Default to today
+        title: correctedText.trim(),
+        due_date: new Date(),
         priority: 'Medium',
         reminder_preferences: [],
       };
@@ -144,17 +144,13 @@ const PersonalTasksPage = () => {
         
         newTask.due_date = startDate;
         
-        // Extract time if available
         if (firstResult.start.isCertain('hour') || firstResult.start.isCertain('minute')) {
           newTask.due_time = formatSaoPauloTime(startDate, 'HH:mm');
-          // Set default reminder for 30 min before if time is certain
           newTask.reminder_preferences = ['30m_before'];
         } else {
           newTask.due_time = undefined;
         }
 
-        // Attempt to extract title by removing the date/time part
-        // Prioritize removing the *exact* matched text from chrono-node
         const titleCandidate = correctedText.replace(firstResult.text, '').trim();
         if (titleCandidate) {
           newTask.title = titleCandidate;

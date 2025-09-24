@@ -22,7 +22,7 @@ import {
   Tooltip,
   Legend,
 } from "recharts";
-import { formatSaoPauloTime, formatSaoPauloDate } from "@/utils/date-utils"; // Importar utilitário de data
+import { formatSaoPauloTime, formatSaoPauloDate } from "@/utils/date-utils";
 
 interface PublicDashboardData {
   workspace: {
@@ -37,7 +37,7 @@ interface PublicDashboardData {
     impressions: number;
     profile_views: number;
     posts_count: number;
-    interactions?: number; // Adicionado
+    interactions?: number;
     raw_data: any;
   } | null;
   kanbanTasks: {
@@ -99,7 +99,7 @@ const PublicClientDashboardPage = () => {
       Impressões: insights.impressions,
       Visualizações: insights.profile_views,
       Posts: insights.posts_count,
-      Interações: insights.interactions || 0, // Incluído
+      Interações: insights.interactions || 0,
     }];
   }, [data?.instagramInsights]);
 
@@ -140,7 +140,7 @@ const PublicClientDashboardPage = () => {
       <header className="text-center mb-8">
         {workspace.logo_url && (
           <Avatar className="h-24 w-24 mx-auto mb-4">
-            <AvatarImage src={workspace.logo_url} alt={workspace.name} loading="lazy" /> {/* Adicionado loading="lazy" */}
+            <AvatarImage src={workspace.logo_url} alt={workspace.name} loading="lazy" />
             <AvatarFallback className="text-4xl">{workspace.name.charAt(0)}</AvatarFallback>
           </Avatar>
         )}
@@ -158,7 +158,7 @@ const PublicClientDashboardPage = () => {
                 <CardTitle>Métricas Recentes ({formatSaoPauloDate(instagramInsights.insight_date)})</CardTitle>
                 <CardDescription>Visão geral do desempenho do Instagram.</CardDescription>
               </CardHeader>
-              <CardContent className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"> {/* Ajustado para 4 colunas */}
+              <CardContent className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="p-4 border rounded-lg bg-muted/20 flex flex-col items-center justify-center text-center">
                   <Users className="h-8 w-8 text-primary mb-2" />
                   <p className="text-sm font-medium text-muted-foreground">Seguidores</p>
@@ -170,7 +170,7 @@ const PublicClientDashboardPage = () => {
                   <p className="text-2xl font-bold">{instagramInsights.engagement_rate.toFixed(2)}%</p>
                 </div>
                 <div className="p-4 border rounded-lg bg-muted/20 flex flex-col items-center justify-center text-center">
-                  <Sparkles className="h-8 w-8 text-purple-500 mb-2" /> {/* Ícone para Interações */}
+                  <Sparkles className="h-8 w-8 text-purple-500 mb-2" />
                   <p className="text-sm font-medium text-muted-foreground">Interações</p>
                   <p className="text-2xl font-bold">{(instagramInsights.interactions || 0).toLocaleString('pt-BR')}</p>
                 </div>
@@ -213,7 +213,7 @@ const PublicClientDashboardPage = () => {
                       <Legend />
                       <Bar dataKey="Seguidores" fill="#8884d8" />
                       <Bar dataKey="Engajamento" fill="#82ca9d" />
-                      <Bar dataKey="Interações" fill="#6a0dad" /> {/* Nova barra para Interações */}
+                      <Bar dataKey="Interações" fill="#6a0dad" />
                       <Bar dataKey="Alcance" fill="#ffc658" />
                       <Bar dataKey="Impressões" fill="#ff7300" />
                       <Bar dataKey="Visualizações" fill="#0088FE" />
@@ -243,7 +243,7 @@ const PublicClientDashboardPage = () => {
                         <CardContent className="p-4">
                           {task.attachments?.[0]?.url && (
                             <AspectRatio ratio={16 / 9} className="bg-muted rounded-md mb-2 group relative">
-                              <img src={task.attachments[0].url} alt={task.title} className="rounded-md object-cover w-full h-full" loading="lazy" /> {/* Adicionado loading="lazy" */}
+                              <img src={task.attachments[0].url} alt={task.title} className="rounded-md object-cover w-full h-full" loading="lazy" />
                               <div 
                                 className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
                                 onClick={() => handleImageClick(task.attachments[0].url)}
@@ -260,7 +260,7 @@ const PublicClientDashboardPage = () => {
                             </span>
                             {task.due_date && (
                               <span className="flex items-center gap-1">
-                                <CalendarDays className="h-3 w-3" /> {formatSaoPauloTime(task.due_date, 'dd MMM')}
+                                <CalendarDays className="h-3 w-3" /> {formatSaoPauloDate(task.due_date)}
                               </span>
                             )}
                           </div>
@@ -281,7 +281,7 @@ const PublicClientDashboardPage = () => {
                         <CardContent className="p-4">
                           {task.attachments?.[0]?.url && (
                             <AspectRatio ratio={16 / 9} className="bg-muted rounded-md mb-2 group relative">
-                              <img src={task.attachments[0].url} alt={task.title} className="rounded-md object-cover w-full h-full" loading="lazy" /> {/* Adicionado loading="lazy" */}
+                              <img src={task.attachments[0].url} alt={task.title} className="rounded-md object-cover w-full h-full" loading="lazy" />
                               <div 
                                 className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
                                 onClick={() => handleImageClick(task.attachments[0].url)}
@@ -296,7 +296,7 @@ const PublicClientDashboardPage = () => {
                             <span className="font-semibold text-green-600">{task.column_title}</span>
                             {task.due_date && (
                               <span className="flex items-center gap-1">
-                                <CalendarDays className="h-3 w-3" /> {formatSaoPauloTime(task.due_date, 'dd MMM')}
+                                <CalendarDays className="h-3 w-3" /> {formatSaoPauloDate(task.due_date)}
                               </span>
                             )}
                           </div>

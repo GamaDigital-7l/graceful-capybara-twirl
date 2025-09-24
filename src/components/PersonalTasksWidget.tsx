@@ -12,20 +12,20 @@ import { PlusCircle, ListTodo, CheckCircle, AlertCircle } from "lucide-react";
 import { PersonalTaskCard } from "./PersonalTaskCard";
 import { PersonalTaskModal, PersonalTask } from "./PersonalTaskModal";
 import { isPast } from "date-fns";
-import { formatSaoPauloTime } from "@/utils/date-utils"; // Importar utilitário de data
+import { formatSaoPauloTime } from "@/utils/date-utils";
 
 // Reusing fetchPersonalTasks from PersonalTasksPage
 const fetchPersonalTasks = async (userId: string): Promise<PersonalTask[]> => {
   const { data, error } = await supabase
     .from("personal_tasks")
-    .select("*, reminder_preferences, priority") // Select new columns
+    .select("*, reminder_preferences, priority")
     .eq("user_id", userId)
     .order("due_date", { ascending: true })
     .order("due_time", { ascending: true });
   if (error) throw new Error(error.message);
   return data.map(task => ({
     ...task,
-    due_date: new Date(task.due_date), // Convert string to Date object
+    due_date: new Date(task.due_date),
   })) as PersonalTask[];
 };
 
@@ -52,13 +52,13 @@ export function PersonalTasksWidget() {
   const saveTaskMutation = useMutation({
     mutationFn: async (task: PersonalTask) => {
       if (!currentUserId) throw new Error("Usuário não autenticado.");
-      const { id, due_date, reminder_preferences, priority, ...rest } = task; // Destructure reminder_preferences and priority
+      const { id, due_date, reminder_preferences, priority, ...rest } = task;
       const dataToSave = {
         ...rest,
         user_id: currentUserId,
-        due_date: formatSaoPauloTime(due_date, 'yyyy-MM-dd'), // Format Date to string for Supabase
-        reminder_preferences: reminder_preferences || [], // Save reminder preferences
-        priority: priority || 'Medium', // Save priority
+        due_date: formatSaoPauloTime(due_date, 'yyyy-MM-dd'),
+        reminder_preferences: reminder_preferences || [],
+        priority: priority || 'Medium',
       };
 
       if (id) {
@@ -128,7 +128,7 @@ export function PersonalTasksWidget() {
 
   const urgentTasks = useMemo(() => {
     const allPending = [...overdueTasks, ...upcomingTasks];
-    return allPending.slice(0, 3); // Show up to 3 most urgent tasks
+    return allPending.slice(0, 3);
   }, [overdueTasks, upcomingTasks]);
 
   if (isLoading) {

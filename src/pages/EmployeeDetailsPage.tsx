@@ -17,7 +17,7 @@ import { ptBR } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { formatSaoPauloTime } from "@/utils/date-utils"; // Importar utilitário de data
+import { formatSaoPauloTime } from "@/utils/date-utils";
 
 interface EmployeeProfile {
   id: string;
@@ -130,7 +130,7 @@ const EmployeeDetailsPage = () => {
           </Button>
           <div className="flex items-center gap-4">
             <Avatar className="h-16 w-16">
-              <AvatarImage src={employee.avatar_url || undefined} loading="lazy" /> {/* Adicionado loading="lazy" */}
+              <AvatarImage src={employee.avatar_url || undefined} loading="lazy" />
               <AvatarFallback className="text-2xl">{employee.full_name?.charAt(0) || <User className="h-8 w-8" />}</AvatarFallback>
             </Avatar>
             <div>
@@ -215,7 +215,7 @@ const EmployeeDetailsPage = () => {
                             <span className={cn(
                               task.due_date && isPast(new Date(task.due_date)) && task.column_title !== "Aprovado" && "text-destructive font-semibold"
                             )}>
-                              {formatSaoPauloTime(task.due_date, "dd MMM, yyyy")}
+                              {formatSaoPauloDate(task.due_date)}
                             </span>
                           </div>
                         )}
@@ -232,6 +232,6 @@ const EmployeeDetailsPage = () => {
       </div>
     </div>
   );
-}
+};
 
 export default EmployeeDetailsPage;

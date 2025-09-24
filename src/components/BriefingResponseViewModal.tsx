@@ -6,15 +6,15 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogFooter, // Importar DialogFooter
-  DialogClose, // Importar DialogClose
+  DialogFooter,
+  DialogClose,
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { BriefingForm, BriefingResponse, BriefingFormField } from "@/types/briefing";
-import { Button } from "@/components/ui/button"; // Importar Button
-import { Copy } from "lucide-react"; // Importar ícone Copy
-import { showSuccess } from "@/utils/toast"; // Importar showSuccess
-import { formatSaoPauloDateTime } from "@/utils/date-utils"; // Importar utilitário de data
+import { Button } from "@/components/ui/button";
+import { Copy } from "lucide-react";
+import { showSuccess } from "@/utils/toast";
+import { formatSaoPauloDateTime } from "@/utils/date-utils";
 
 interface BriefingResponseViewModalProps {
   isOpen: boolean;
@@ -91,7 +91,7 @@ export function BriefingResponseViewModal({ isOpen, onClose, response, form }: B
           <DialogTitle>Resposta do Briefing: {form.title}</DialogTitle>
         </DialogHeader>
         <ScrollArea className="max-h-[70vh] pr-4">
-          <div className="py-4 space-y-6 p-4 sm:p-6"> {/* Ajustado padding */}
+          <div className="py-4 space-y-6 p-4 sm:p-6">
             <div className="space-y-2">
               <p className="text-sm font-medium text-muted-foreground">Enviado por:</p>
               <p className="text-lg font-semibold">{response.client_name || "Usuário Autenticado"}</p>

@@ -29,7 +29,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { formatSaoPauloDate, formatSaoPauloTime } from "@/utils/date-utils"; // Importar utilitário de data
+import { formatSaoPauloDate, formatSaoPauloTime } from "@/utils/date-utils";
 
 interface InstagramInsightData {
   id?: string;
@@ -41,7 +41,7 @@ interface InstagramInsightData {
   impressions: number;
   profile_views: number;
   posts_count: number;
-  interactions?: number; // Adicionado
+  interactions?: number;
   raw_data: any;
 }
 
@@ -75,7 +75,7 @@ const InstagramInsightsDashboard = () => {
   const [impressions, setImpressions] = useState<number | string>("");
   const [profileViews, setProfileViews] = useState<number | string>("");
   const [postsCount, setPostsCount] = useState<number | string>("");
-  const [interactions, setInteractions] = useState<number | string>(""); // Novo estado
+  const [interactions, setInteractions] = useState<number | string>("");
 
   const [reportStartDate, setReportStartDate] = useState<Date | undefined>(new Date());
   const [reportEndDate, setReportEndDate] = useState<Date | undefined>(new Date());
@@ -116,12 +116,11 @@ const InstagramInsightsDashboard = () => {
         impressions: Number(impressions),
         profile_views: Number(profileViews),
         posts_count: Number(postsCount),
-        interactions: Number(interactions), // Incluído
+        interactions: Number(interactions),
       };
       
       const insights = await generateInstagramInsights(instagramData, aiPrompt);
       
-      // Garantir que posts_count e interactions estejam nas key_metrics se a IA não os incluiu
       if (insights && insights.key_metrics) {
         if (!insights.key_metrics.some(m => m.name === "Número de Posts")) {
           insights.key_metrics.push({ name: "Número de Posts", value: String(instagramData.posts_count) });
@@ -153,7 +152,7 @@ const InstagramInsightsDashboard = () => {
       Impressões: Number(impressions),
       Visualizações: Number(profileViews),
       Posts: Number(postsCount),
-      Interações: Number(interactions), // Incluído
+      Interações: Number(interactions),
     }];
   }, [geminiOutput, insightDate, followers, engagementRate, reach, impressions, profileViews, postsCount, interactions]);
 
@@ -183,7 +182,6 @@ const InstagramInsightsDashboard = () => {
             <p className="text-sm text-muted-foreground">{isLoadingDetails ? <Skeleton className="h-4 w-32 mt-1" /> : workspaceDetails?.name}</p>
           </div>
         </div>
-        {/* O botão de Exportar PDF foi removido */}
       </div>
 
       <Card>
@@ -191,8 +189,8 @@ const InstagramInsightsDashboard = () => {
           <CardTitle>Inserir Dados do Instagram</CardTitle>
           <CardDescription>Preencha as métricas mais recentes do Instagram para gerar insights.</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4 p-4 sm:p-6"> {/* Ajustado padding */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"> {/* Ajustado para 3 colunas */}
+        <CardContent className="space-y-4 p-4 sm:p-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label htmlFor="insight-date">Data do Insight</Label>
               <Popover>
@@ -247,7 +245,7 @@ const InstagramInsightsDashboard = () => {
               <Label htmlFor="posts-count">Número de Posts</Label>
               <Input id="posts-count" type="number" value={postsCount} onChange={(e) => setPostsCount(e.target.value)} placeholder="Ex: 15" />
             </div>
-            <div className="space-y-2"> {/* Novo campo para Interações */}
+            <div className="space-y-2">
               <Label htmlFor="interactions">Interações</Label>
               <Input id="interactions" type="number" value={interactions} onChange={(e) => setInteractions(e.target.value)} placeholder="Ex: 800" />
             </div>
@@ -271,7 +269,7 @@ const InstagramInsightsDashboard = () => {
         <header className="text-center mb-8">
           {workspaceDetails?.logo_url && (
             <Avatar className="h-24 w-24 mx-auto mb-4">
-              <AvatarImage src={workspaceDetails.logo_url} alt={workspaceDetails.name} loading="lazy" /> {/* Adicionado loading="lazy" */}
+              <AvatarImage src={workspaceDetails.logo_url} alt={workspaceDetails.name} loading="lazy" />
               <AvatarFallback className="text-4xl">{workspaceDetails.name.charAt(0)}</AvatarFallback>
             </Avatar>
           )}
@@ -287,7 +285,7 @@ const InstagramInsightsDashboard = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2"><FileText className="h-5 w-5" /> Resumo da IA</CardTitle>
               </CardHeader>
-              <CardContent className="p-4 sm:p-6"> {/* Ajustado padding */}
+              <CardContent className="p-4 sm:p-6">
                 <p className="whitespace-pre-wrap text-muted-foreground">{geminiOutput.summary}</p>
               </CardContent>
             </Card>
@@ -297,7 +295,7 @@ const InstagramInsightsDashboard = () => {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2"><BarChart className="h-5 w-5" /> Métricas Chave</CardTitle>
                 </CardHeader>
-                <CardContent className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-4 sm:p-6"> {/* Ajustado padding */}
+                <CardContent className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-4 sm:p-6">
                   {geminiOutput.key_metrics.map((metric, index) => (
                     <div key={index} className="p-4 border rounded-lg bg-muted/20">
                       <p className="text-sm font-medium text-muted-foreground">{metric.name}</p>
@@ -313,7 +311,7 @@ const InstagramInsightsDashboard = () => {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2"><TrendingUp className="h-5 w-5" /> Tendências</CardTitle>
                 </CardHeader>
-                <CardContent className="p-4 sm:p-6"> {/* Ajustado padding */}
+                <CardContent className="p-4 sm:p-6">
                   <ul className="list-disc list-inside space-y-1 text-muted-foreground">
                     {geminiOutput.trends.map((trend, index) => (
                       <li key={index}>{trend}</li>
@@ -328,7 +326,7 @@ const InstagramInsightsDashboard = () => {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2"><Sparkles className="h-5 w-5" /> Recomendações</CardTitle>
                 </CardHeader>
-                <CardContent className="p-4 sm:p-6"> {/* Ajustado padding */}
+                <CardContent className="p-4 sm:p-6">
                   <ul className="list-disc list-inside space-y-1 text-muted-foreground">
                     {geminiOutput.recommendations.map((rec, index) => (
                       <li key={index}>{rec}</li>
@@ -343,7 +341,7 @@ const InstagramInsightsDashboard = () => {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2"><FileText className="h-5 w-5" /> Saída Bruta da IA (Debug)</CardTitle>
                 </CardHeader>
-                <CardContent className="p-4 sm:p-6"> {/* Ajustado padding */}
+                <CardContent className="p-4 sm:p-6">
                   <pre className="whitespace-pre-wrap text-xs bg-muted p-4 rounded-md overflow-x-auto">{geminiOutput.raw_output}</pre>
                 </CardContent>
               </Card>
@@ -357,7 +355,7 @@ const InstagramInsightsDashboard = () => {
               <CardTitle className="flex items-center gap-2"><BarChart className="h-5 w-5" /> Gráfico de Métricas</CardTitle>
               <CardDescription>Visão geral das métricas inseridas.</CardDescription>
             </CardHeader>
-            <CardContent className="h-[400px] p-4 sm:p-6"> {/* Ajustado padding */}
+            <CardContent className="h-[400px] p-4 sm:p-6">
               <ResponsiveContainer width="100%" height="100%">
                 <RechartsBarChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" />
@@ -371,7 +369,7 @@ const InstagramInsightsDashboard = () => {
                   <Bar dataKey="Impressões" fill="#ff7300" />
                   <Bar dataKey="Visualizações" fill="#0088FE" />
                   <Bar dataKey="Posts" fill="#FF0054" />
-                  <Bar dataKey="Interações" fill="#6a0dad" /> {/* Nova barra para Interações */}
+                  <Bar dataKey="Interações" fill="#6a0dad" />
                 </RechartsBarChart>
               </ResponsiveContainer>
             </CardContent>

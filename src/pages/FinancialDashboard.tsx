@@ -18,7 +18,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { startOfMonth, subMonths, addMonths } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { formatSaoPauloTime } from "@/utils/date-utils"; // Importar utilitário de data
+import { formatSaoPauloTime } from "@/utils/date-utils";
 
 const fetchFinancialData = async (period?: Date) => {
   let query = supabase.from("financial_control").select("*, workspace:workspaces(name)");
@@ -230,7 +230,7 @@ const FinancialDashboard = () => {
             <CardTitle className="text-sm font-medium">Faturamento do Mês (Ativos)</CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent className="p-4 sm:p-6"> {/* Ajustado padding */}
+          <CardContent className="p-4 sm:p-6">
             {isLoadingFinancial ? <Skeleton className="h-8 w-3/4" /> : <div className="text-2xl font-bold">{formatCurrency(totalRevenue)}</div>}
           </CardContent>
         </Card>
@@ -239,7 +239,7 @@ const FinancialDashboard = () => {
             <CardTitle className="text-sm font-medium">Clientes Ativos no Mês</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent className="p-4 sm:p-6"> {/* Ajustado padding */}
+          <CardContent className="p-4 sm:p-6">
             {isLoadingFinancial ? <Skeleton className="h-8 w-1/4" /> : <div className="text-2xl font-bold">{activeClients}</div>}
           </CardContent>
         </Card>
@@ -248,7 +248,7 @@ const FinancialDashboard = () => {
             <CardTitle className="text-sm font-medium">Total de Gastos</CardTitle>
             <MinusCircle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent className="p-4 sm:p-6"> {/* Ajustado padding */}
+          <CardContent className="p-4 sm:p-6">
             {isLoadingExpenses ? <Skeleton className="h-8 w-3/4" /> : <div className="text-2xl font-bold text-destructive">{formatCurrency(totalExpenses)}</div>}
           </CardContent>
         </Card>
@@ -257,7 +257,7 @@ const FinancialDashboard = () => {
             <CardTitle className="text-sm font-medium">Lucro Líquido</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent className="p-4 sm:p-6"> {/* Ajustado padding */}
+          <CardContent className="p-4 sm:p-6">
             {(isLoadingFinancial || isLoadingExpenses) ? <Skeleton className="h-8 w-3/4" /> : <div className="text-2xl font-bold">{formatCurrency(netProfit)}</div>}
           </CardContent>
         </Card>
@@ -286,7 +286,7 @@ const FinancialDashboard = () => {
             <CardHeader>
               <CardTitle>Controle de Recebimentos do Mês ({formatSaoPauloTime(selectedPeriod, "MMMM yyyy")})</CardTitle>
             </CardHeader>
-            <CardContent className="p-4 sm:p-6"> {/* Ajustado padding */}
+            <CardContent className="p-4 sm:p-6">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -353,7 +353,7 @@ const FinancialDashboard = () => {
             <CardHeader>
               <CardTitle>Controle de Gastos do Mês ({formatSaoPauloTime(selectedPeriod, "MMMM yyyy")})</CardTitle>
             </CardHeader>
-            <CardContent className="p-4 sm:p-6"> {/* Ajustado padding */}
+            <CardContent className="p-4 sm:p-6">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -377,7 +377,7 @@ const FinancialDashboard = () => {
                         <TableCell className="font-medium">{item.description}</TableCell>
                         <TableCell>{item.category || 'N/A'}</TableCell>
                         <TableCell className="text-destructive">{formatCurrency(Number(item.amount))}</TableCell>
-                        <TableCell>{formatSaoPauloTime(item.expense_date, "dd/MM/yyyy")}</TableCell>
+                        <TableCell>{formatSaoPauloDate(item.expense_date)}</TableCell>
                         <TableCell className="text-right">
                           <AlertDialog>
                             <DropdownMenu>

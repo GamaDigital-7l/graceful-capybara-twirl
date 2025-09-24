@@ -2,12 +2,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { isPast } from "date-fns";
-import { Pencil, Trash2, CalendarDays, Clock, Flag } from "lucide-react"; // Import Flag icon
+import { Pencil, Trash2, CalendarDays, Clock, Flag } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PersonalTask } from "./PersonalTaskModal";
 import { Label } from "@/components/ui/label";
-import { Badge } from "./ui/badge"; // Import Badge
-import { formatSaoPauloDate, formatSaoPauloHour } from "@/utils/date-utils"; // Importar utilitário de data
+import { Badge } from "./ui/badge";
+import { formatSaoPauloDate, formatSaoPauloHour, toSaoPauloTime } from "@/utils/date-utils";
 
 interface PersonalTaskCardProps {
   task: PersonalTask;
@@ -17,16 +17,17 @@ interface PersonalTaskCardProps {
 }
 
 export function PersonalTaskCard({ task, onEdit, onDelete, onToggleComplete }: PersonalTaskCardProps) {
-  const fullDueDateTime = task.due_time
-    ? new Date(`${formatSaoPauloDate(task.due_date)}T${task.due_time}`)
-    : task.due_date;
+  // Combine due_date and due_time into a single Date object in São Paulo timezone for comparison
+  const fullDueDateTimeSaoPaulo = task.due_time
+    ? toSaoPauloTime(`${formatSaoPauloTime(task.due_date, 'yyyy-MM-dd')}T${task.due_time}:00`)
+    : toSaoPauloTime(task.due_date);
 
-  const isOverdue = !task.is_completed && isPast(fullDueDateTime);
+  const isOverdue = !task.is_completed && isPast(fullDueDateTimeSaoPaulo);
 
   const getPriorityBadgeVariant = (priority: PersonalTask['priority']) => {
     switch (priority) {
       case 'Highest': return 'destructive';
-      case 'High': return 'default'; // You might want a specific 'high' color
+      case 'High': return 'default';
       case 'Medium': return 'secondary';
       case 'Low': return 'outline';
       default: return 'outline';
@@ -45,8 +46,8 @@ export function PersonalTaskCard({ task, onEdit, onDelete, onToggleComplete }: P
 
   return (
     <Card className={cn(
-      "flex items-center justify-between p-4 transition-all duration-300 ease-in-out", // Added transition
-      task.is_completed && "opacity-70 line-through bg-green-50/20 dark:bg-green-900/10", // Visual feedback
+      "flex items-center justify-between p-4 transition-all duration-300 ease-in-out",
+      task.is_completed && "opacity-70 line-through bg-green-50/20 dark:bg-green-900/10",
       isOverdue && "border-destructive ring-1 ring-destructive"
     )}>
       <div className="flex items-center space-x-4 flex-grow">

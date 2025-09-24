@@ -9,7 +9,7 @@ import { ptBR } from "date-fns/locale";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
-import { formatSaoPauloDate } from "@/utils/date-utils"; // Importar utilitário de data
+import { formatSaoPauloDate, parseSaoPauloDateString } from "@/utils/date-utils";
 
 export interface ExpenseData {
   id?: string;
@@ -38,7 +38,7 @@ export function ExpenseModal({ isOpen, onClose, onSave, existingData }: ExpenseM
       setAmount(existingData.amount || "");
       setCategory(existingData.category || "");
       // Ao carregar, trate a string YYYY-MM-DD como data local de São Paulo
-      setExpenseDate(existingData.expense_date ? new Date(existingData.expense_date.toISOString().split('T')[0] + 'T00:00:00') : new Date());
+      setExpenseDate(existingData.expense_date ? parseSaoPauloDateString(existingData.expense_date.toISOString().split('T')[0]) : new Date());
     } else {
       setDescription("");
       setAmount("");
@@ -57,8 +57,7 @@ export function ExpenseModal({ isOpen, onClose, onSave, existingData }: ExpenseM
       description: description.trim(),
       amount: parseFloat(amount as string),
       category: category.trim() || undefined,
-      // Ao salvar, formate a data para YYYY-MM-DD no fuso horário de São Paulo
-      expense_date: expenseDate, // A formatação para string YYYY-MM-DD será feita na mutation da página
+      expense_date: expenseDate,
     });
     onClose();
   };
@@ -69,7 +68,7 @@ export function ExpenseModal({ isOpen, onClose, onSave, existingData }: ExpenseM
         <DialogHeader>
           <DialogTitle>{existingData?.id ? "Editar Gasto" : "Adicionar Novo Gasto"}</DialogTitle>
         </DialogHeader>
-        <div className="py-4 space-y-4 p-4 sm:p-6"> {/* Ajustado padding */}
+        <div className="py-4 space-y-4 p-4 sm:p-6">
           <div className="space-y-2">
             <Label htmlFor="description">Descrição</Label>
             <Textarea

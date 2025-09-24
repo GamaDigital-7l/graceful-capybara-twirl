@@ -6,9 +6,9 @@ import { cn } from "@/lib/utils";
 import { CalendarDays, MessageSquare, Eye, User } from "lucide-react";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { useState } from "react";
-import { ImagePreviewModal } from "./ImagePreviewModal"; // Importar o modal de pré-visualização
+import { ImagePreviewModal } from "./ImagePreviewModal";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { formatSaoPauloDate } from "@/utils/date-utils"; // Importar utilitário de data
+import { formatSaoPauloDate } from "@/utils/date-utils";
 
 export interface Attachment {
   id: string;
@@ -31,14 +31,14 @@ export interface Task {
   title: string;
   description?: string;
   dueDate?: string;
-  due_time?: string; // Novo campo adicionado
+  due_time?: string;
   attachments?: Attachment[];
   actionType?: TaskActionType;
   comments?: Comment[];
   position: number;
-  assignedTo?: string; // Novo campo para o ID do usuário atribuído
-  assignedToName?: string; // Novo campo para o nome do usuário atribuído (para exibição)
-  assignedToAvatar?: string; // Novo campo para o avatar do usuário atribuído (para exibição)
+  assignedTo?: string;
+  assignedToName?: string;
+  assignedToAvatar?: string;
 }
 
 interface KanbanCardProps {
@@ -106,7 +106,7 @@ export function KanbanCard({
         style={style}
         {...attributes}
         {...listeners}
-        onClick={onClick} // Este onClick abre o TaskModal quando clicado em outras partes do card
+        onClick={onClick}
         className="cursor-pointer hover:ring-2 hover:ring-primary transition-shadow"
       >
         {coverImage && (
@@ -116,12 +116,12 @@ export function KanbanCard({
                 src={coverImage}
                 alt={task.title}
                 className="w-full h-full object-cover"
-                loading="lazy" // Adicionado loading="lazy"
+                loading="lazy"
               />
               <div 
                 className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
-                onClick={(e) => { // Este onClick é para o modal de pré-visualização da imagem
-                  e.stopPropagation(); // Impede que o clique no overlay da imagem ative o onClick do card pai
+                onClick={(e) => {
+                  e.stopPropagation();
                   if (coverImage) {
                     setPreviewImageUrl(coverImage);
                     setIsPreviewModalOpen(true);
@@ -138,7 +138,7 @@ export function KanbanCard({
           {task.assignedTo && (
             <div className="flex items-center gap-2 text-xs text-muted-foreground mt-2">
               <Avatar className="h-5 w-5">
-                <AvatarImage src={task.assignedToAvatar || undefined} loading="lazy" /> {/* Adicionado loading="lazy" */}
+                <AvatarImage src={task.assignedToAvatar || undefined} loading="lazy" />
                 <AvatarFallback className="text-xs">{task.assignedToName?.charAt(0) || <User className="h-3 w-3" />}</AvatarFallback>
               </Avatar>
               <span>{task.assignedToName}</span>

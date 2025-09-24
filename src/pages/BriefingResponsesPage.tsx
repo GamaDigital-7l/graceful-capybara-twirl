@@ -13,12 +13,12 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { BriefingForm, BriefingResponse } from "@/types/briefing";
 import { BriefingResponseViewModal } from "@/components/BriefingResponseViewModal";
-import { formatSaoPauloDateTime } from "@/utils/date-utils"; // Importar utilitário de data
+import { formatSaoPauloDateTime } from "@/utils/date-utils";
 
 const fetchBriefingForm = async (formId: string): Promise<BriefingForm | null> => {
   const { data, error } = await supabase.from("briefing_forms").select("id, title, description, form_structure").eq("id", formId).single();
   if (error) {
-    if (error.code === 'PGRST116') return null; // No rows found
+    if (error.code === 'PGRST116') return null;
     throw new Error(error.message);
   }
   return data as BriefingForm;
@@ -84,7 +84,7 @@ const BriefingResponsesPage = () => {
 
   useEffect(() => {
     if (!isProfileLoading && userRole !== 'admin' && userRole !== 'equipe') {
-      navigate("/"); // Redirect non-staff users
+      navigate("/");
     }
   }, [isProfileLoading, userRole, navigate]);
 
@@ -152,7 +152,7 @@ const BriefingResponsesPage = () => {
           <CardTitle>Respostas Recebidas</CardTitle>
           <CardDescription>Visualize e gerencie as respostas enviadas para este formulário.</CardDescription>
         </CardHeader>
-        <CardContent className="p-4 sm:p-6"> {/* Ajustado padding */}
+        <CardContent className="p-4 sm:p-6">
           {responses && responses.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {responses.map((response) => (
@@ -200,9 +200,8 @@ const BriefingResponsesPage = () => {
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </CardHeader>
-                  <CardContent className="flex-grow p-4 pt-0"> {/* Ajustado padding */}
+                  <CardContent className="flex-grow p-4 pt-0">
                     <p className="text-sm text-muted-foreground line-clamp-3">
-                      {/* Exibir um resumo das primeiras respostas */}
                       {Object.entries(response.response_data).slice(0, 2).map(([fieldId, value]) => {
                         const field = form.form_structure.find(f => f.id === fieldId);
                         if (!field) return null;
