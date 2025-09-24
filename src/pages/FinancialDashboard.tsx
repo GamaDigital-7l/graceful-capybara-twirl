@@ -18,7 +18,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { startOfMonth, subMonths, addMonths } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { formatSaoPauloTime } from "@/utils/date-utils";
+import { formatSaoPauloTime, formatSaoPauloDate } from "@/utils/date-utils";
 
 const fetchFinancialData = async (period?: Date) => {
   let query = supabase.from("financial_control").select("*, workspace:workspaces(name)");

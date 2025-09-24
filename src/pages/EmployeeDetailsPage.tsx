@@ -17,7 +17,7 @@ import { ptBR } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { formatSaoPauloTime } from "@/utils/date-utils";
+import { formatSaoPauloTime, formatSaoPauloDate } from "@/utils/date-utils";
 
 interface EmployeeProfile {
   id: string;
