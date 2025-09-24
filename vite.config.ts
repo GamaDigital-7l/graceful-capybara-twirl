@@ -24,7 +24,7 @@ export default defineConfig(() => ({
       include: [/node_modules/],
     },
     rollupOptions: {
-      // Removido 'date-fns-tz' de external, pois o alias deve resolver
+      external: ['date-fns-tz'], // Adiciona 'date-fns-tz' como externo na build
     },
   },
 }));
