@@ -1,5 +1,5 @@
 import { format, parseISO, isValid, parse } from 'date-fns';
-import * as dateFnsTz from 'date-fns-tz'; // Importa como namespace
+import { toZonedTime, formatInTimeZone, zonedTimeToUtc } from 'date-fns-tz'; // Imports nomeados diretos
 import { ptBR } from 'date-fns/locale';
 
 const SAO_PAULO_TIMEZONE = 'America/Sao_Paulo';
@@ -15,7 +15,7 @@ export const toSaoPauloTime = (date: Date | string): Date => {
     console.warn("Invalid date provided to toSaoPauloTime:", date);
     return new Date('Invalid Date');
   }
-  return dateFnsTz.toZonedTime(utcDate, SAO_PAULO_TIMEZONE);
+  return toZonedTime(utcDate, SAO_PAULO_TIMEZONE);
 };
 
 /**
@@ -30,7 +30,7 @@ export const formatSaoPauloTime = (date: Date | string, formatStr: string): stri
     console.warn("Invalid date provided to formatSaoPauloTime:", date);
     return 'Data Inválida';
   }
-  return dateFnsTz.formatInTimeZone(utcDate, SAO_PAULO_TIMEZONE, formatStr, { locale: ptBR });
+  return formatInTimeZone(utcDate, SAO_PAULO_TIMEZONE, formatStr, { locale: ptBR });
 };
 
 /**
@@ -50,7 +50,7 @@ export const parseSaoPauloDateString = (dateString: string): Date => {
     return new Date('Invalid Date');
   }
   // Use zonedTimeToUtc para criar um Date object cujo valor UTC corresponde ao início do dia em SP
-  return dateFnsTz.zonedTimeToUtc(parsedDate, SAO_PAULO_TIMEZONE);
+  return zonedTimeToUtc(parsedDate, SAO_PAULO_TIMEZONE);
 };
 
 /**
