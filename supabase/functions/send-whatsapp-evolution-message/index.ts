@@ -12,7 +12,12 @@ serve(async (req) => {
   }
 
   try {
-    const { to, message } = await req.json();
+    const { to, message: rawMessage } = await req.json();
+    const message = String(rawMessage || '').trim(); // Garante que 'message' é uma string e remove espaços
+
+    console.log("EF: Received 'to':", to);
+    console.log("EF: Received 'rawMessage':", rawMessage);
+    console.log("EF: Processed 'message':", message);
 
     if (!to || !message) {
       throw new Error("O número de telefone 'to' e a 'message' são obrigatórios.");
@@ -43,21 +48,26 @@ serve(async (req) => {
 
     const evolutionApiEndpoint = `${evolution_api_url}/message/sendText/${evolution_api_instance}`;
     
+    const requestBody = {
+      number: formattedTo,
+      options: {
+        delay: 1200,
+      },
+      textMessage: {
+        text: message,
+      },
+    };
+
+    console.log("EF: Sending request to Evolution API with endpoint:", evolutionApiEndpoint);
+    console.log("EF: Request Body:", JSON.stringify(requestBody, null, 2)); // Loga o corpo completo da requisição
+
     const evolutionResponse = await fetch(evolutionApiEndpoint, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "apikey": evolution_api_token, // O token da Evolution API geralmente vai no header 'apikey'
       },
-      body: JSON.stringify({
-        number: formattedTo,
-        options: {
-          delay: 1200,
-        },
-        textMessage: {
-          text: message, // A propriedade 'text' deve estar aqui
-        },
-      }),
+      body: JSON.stringify(requestBody),
     });
 
     if (!evolutionResponse.ok) {
