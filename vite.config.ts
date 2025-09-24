@@ -12,11 +12,11 @@ export default defineConfig(() => ({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
-      'date-fns-tz': 'date-fns-tz/dist/index.js', // Força a versão CommonJS
+      // Removido o alias específico para 'date-fns-tz'
     },
   },
   optimizeDeps: {
-    include: ['date-fns', 'date-fns-tz'], // Inclui date-fns-tz para otimização
+    include: ['date-fns', 'date-fns-tz'], // Mantido 'date-fns-tz' aqui
     exclude: [],
   },
   build: {
