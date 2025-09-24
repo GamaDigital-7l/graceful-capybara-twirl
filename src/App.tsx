@@ -31,6 +31,7 @@ const PublicClientOnboardingPage = lazy(() => import("./pages/PublicClientOnboar
 const OnboardingTemplatesPage = lazy(() => import("./pages/OnboardingTemplatesPage"));
 const AgencyPlaybookPage = lazy(() => import("./pages/AgencyPlaybookPage"));
 const PersonalTasksPage = lazy(() => import("./pages/PersonalTasksPage"));
+const CRMPage = lazy(() => import("./pages/CRMPage")); // Importar a nova página de CRM
 
 
 const queryClient = new QueryClient();
@@ -197,6 +198,14 @@ const App = () => (
                 element={
                   <Layout pageTitle="Todoist">
                     <PersonalTasksPage />
+                  </Layout>
+                }
+              />
+              <Route
+                path="/crm"
+                element={
+                  <Layout pageTitle="CRM - WhatsApp">
+                    <CRMPage />
                   </Layout>
                 }
               />

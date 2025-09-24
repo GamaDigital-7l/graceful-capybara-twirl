@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "react-router-dom";
 import { AppLogo } from "./AppLogo";
 import { ThemeToggle } from "./ThemeToggle";
-import { LogOut, Home, Banknote, Brain, UserCog, Palette, Users, BookOpen, BarChart, FileText, LayoutTemplate, ListTodo } from "lucide-react";
+import { LogOut, Home, Banknote, Brain, UserCog, Palette, Users, BookOpen, BarChart, FileText, LayoutTemplate, ListTodo, MessageSquareText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
@@ -26,6 +26,7 @@ export function MobileSidebar({ userRole, onClose }: MobileSidebarProps) {
     { name: "Segundo Cérebro", icon: Brain, path: "/second-brain", roles: ["admin", "equipe"] },
     { name: "Briefings", icon: FileText, path: "/briefings", roles: ["admin", "equipe"] },
     { name: "Playbook da Agência", icon: BookOpen, path: "/agency-playbook", roles: ["admin", "equipe"] },
+    { name: "CRM", icon: MessageSquareText, path: "/crm", roles: ["admin", "equipe"] }, // Novo item de navegação
   ];
 
   const settingsItems = [

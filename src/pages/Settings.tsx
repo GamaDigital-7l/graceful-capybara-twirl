@@ -41,6 +41,9 @@ const SettingsPage = () => {
   const [whatsappApiToken, setWhatsappApiToken] = useState("");
   const [whatsappPhoneNumberId, setWhatsappPhoneNumberId] = useState("");
   const [geminiApiKey, setGeminiApiKey] = useState("");
+  const [evolutionApiUrl, setEvolutionApiUrl] = useState(""); // Novo estado
+  const [evolutionApiToken, setEvolutionApiToken] = useState(""); // Novo estado
+  const [evolutionApiInstance, setEvolutionApiInstance] = useState(""); // Novo estado
   const [isSaving, setIsSaving] = useState(false);
 
   const { data: settings } = useQuery({
@@ -62,6 +65,9 @@ const SettingsPage = () => {
       setWhatsappApiToken(settings.whatsapp_api_token || "");
       setWhatsappPhoneNumberId(settings.whatsapp_phone_number_id || "");
       setGeminiApiKey(settings.gemini_api_key || "");
+      setEvolutionApiUrl(settings.evolution_api_url || ""); // Inicializar novo estado
+      setEvolutionApiToken(settings.evolution_api_token || ""); // Inicializar novo estado
+      setEvolutionApiInstance(settings.evolution_api_instance || ""); // Inicializar novo estado
     }
   }, [settings]);
 
@@ -95,6 +101,9 @@ const SettingsPage = () => {
       whatsapp_api_token: whatsappApiToken,
       whatsapp_phone_number_id: whatsappPhoneNumberId,
       gemini_api_key: geminiApiKey,
+      evolution_api_url: evolutionApiUrl, // Salvar novo campo
+      evolution_api_token: evolutionApiToken, // Salvar novo campo
+      evolution_api_instance: evolutionApiInstance, // Salvar novo campo
     });
     setIsSaving(false);
   };
@@ -140,7 +149,7 @@ const SettingsPage = () => {
             <p className="text-xs text-muted-foreground">Esta mensagem será usada ao gerar links de aprovação.</p>
           </div>
           <div className="border-t pt-6 space-y-4">
-              <h3 className="text-lg font-medium">Integração WhatsApp Business API</h3>
+              <h3 className="text-lg font-medium">Integração WhatsApp Business API (Meta)</h3>
               <p className="text-sm text-muted-foreground">Preencha as credenciais da sua conta WhatsApp Business API para enviar notificações reais.</p>
               <div className="space-y-2">
                   <Label htmlFor="whatsapp-api-token">Token da API do WhatsApp</Label>
@@ -149,6 +158,22 @@ const SettingsPage = () => {
               <div className="space-y-2">
                   <Label htmlFor="whatsapp-phone-number-id">ID do Número de Telefone do WhatsApp</Label>
                   <Input id="whatsapp-phone-number-id" value={whatsappPhoneNumberId} onChange={(e) => setWhatsappPhoneNumberId(e.target.value)} />
+              </div>
+          </div>
+          <div className="border-t pt-6 space-y-4">
+              <h3 className="text-lg font-medium">Integração Evolution API (WhatsApp)</h3>
+              <p className="text-sm text-muted-foreground">Conecte sua instância da Evolution API para enviar mensagens WhatsApp.</p>
+              <div className="space-y-2">
+                  <Label htmlFor="evolution-api-url">URL da Evolution API</Label>
+                  <Input id="evolution-api-url" value={evolutionApiUrl} onChange={(e) => setEvolutionApiUrl(e.target.value)} placeholder="Ex: https://api.evolution-api.com" />
+              </div>
+              <div className="space-y-2">
+                  <Label htmlFor="evolution-api-token">Token da Evolution API</Label>
+                  <PasswordInput id="evolution-api-token" value={evolutionApiToken} onChange={(e) => setEvolutionApiToken(e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                  <Label htmlFor="evolution-api-instance">Nome da Instância da Evolution API</Label>
+                  <Input id="evolution-api-instance" value={evolutionApiInstance} onChange={(e) => setEvolutionApiInstance(e.target.value)} placeholder="Ex: minha-instancia-whatsapp" />
               </div>
           </div>
           <div className="border-t pt-6 space-y-4">
