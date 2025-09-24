@@ -1,5 +1,5 @@
 import { format, parseISO, isValid, parse } from 'date-fns';
-import { toZonedTime, formatInTimeZone, zonedTimeToUtc } from 'date-fns-tz'; // Imports nomeados diretos
+import { toZonedTime, formatInTimeZone } from 'date-fns-tz'; // Removido zonedTimeToUtc daqui
 import { ptBR } from 'date-fns/locale';
 
 const SAO_PAULO_TIMEZONE = 'America/Sao_Paulo';
@@ -44,13 +44,16 @@ export const parseSaoPauloDateString = (dateString: string): Date => {
   if (!dateString) {
     return new Date('Invalid Date');
   }
-  const parsedDate = parse(dateString, 'yyyy-MM-dd', new Date());
-  if (!isValid(parsedDate)) {
+  const [year, month, day] = dateString.split('-').map(Number);
+  // Cria uma data UTC que, quando convertida para SP, será o início do dia desejado.
+  // Subtraímos 1 do mês porque Date.UTC usa meses de 0 a 11.
+  const utcDate = new Date(Date.UTC(year, month - 1, day));
+  if (!isValid(utcDate)) {
     console.warn("Invalid date string provided to parseSaoPauloDateString:", dateString);
     return new Date('Invalid Date');
   }
-  // Use zonedTimeToUtc para criar um Date object cujo valor UTC corresponde ao início do dia em SP
-  return zonedTimeToUtc(parsedDate, SAO_PAULO_TIMEZONE);
+  // Converte a data UTC para o fuso horário de São Paulo
+  return toZonedTime(utcDate, SAO_PAULO_TIMEZONE);
 };
 
 /**
