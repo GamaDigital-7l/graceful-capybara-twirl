@@ -51,8 +51,11 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         number: formattedTo,
+        options: {
+          delay: 1200,
+        },
         textMessage: {
-          text: message,
+          text: message, // A propriedade 'text' deve estar aqui
         },
       }),
     });
@@ -60,7 +63,7 @@ serve(async (req) => {
     if (!evolutionResponse.ok) {
       const errorData = await evolutionResponse.json();
       console.error("Erro na API da Evolution:", errorData);
-      throw new Error(`Erro ao enviar mensagem via Evolution API: ${errorData.message || 'Erro desconhecido'}`);
+      throw new Error(`Erro ao enviar mensagem via Evolution API: ${errorData.message || JSON.stringify(errorData) || 'Erro desconhecido'}`);
     }
 
     const responseData = await evolutionResponse.json();
