@@ -69,9 +69,15 @@ serve(async (req) => {
     });
 
     if (!evolutionResponse.ok) {
-      const errorData = await evolutionResponse.json();
-      console.error("Erro na API da Evolution:", errorData);
-      throw new Error(`Erro ao enviar mensagem via Evolution API: ${errorData.message || JSON.stringify(errorData) || 'Erro desconhecido'}`);
+      let errorBody;
+      const contentType = evolutionResponse.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        errorBody = await evolutionResponse.json();
+      } else {
+        errorBody = await evolutionResponse.text();
+      }
+      console.error("Erro na API da Evolution:", errorBody);
+      throw new Error(`Erro ao enviar mensagem via Evolution API (Status: ${evolutionResponse.status}): ${typeof errorBody === 'string' ? errorBody : errorBody.message || JSON.stringify(errorBody) || 'Erro desconhecido'}`);
     }
 
     const responseData = await evolutionResponse.json();
