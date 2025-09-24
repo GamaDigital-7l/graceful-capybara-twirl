@@ -17,11 +17,12 @@ export default defineConfig(() => ({
   },
   optimizeDeps: {
     include: ['date-fns'],
-    exclude: ['date-fns-tz'], // Manter para evitar pré-bundling problemático
+    // Removido 'exclude: ['date-fns-tz']' para permitir otimização
   },
   build: {
     commonjsOptions: {
       include: [/node_modules/],
+      esmExternals: true, // Adicionado para melhor interoperação CJS/ESM
     },
     rollupOptions: {
       // Removido 'date-fns-tz' de external
