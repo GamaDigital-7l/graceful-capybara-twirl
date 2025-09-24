@@ -12,16 +12,18 @@ export default defineConfig(() => ({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
-      // 'date-fns-tz': 'date-fns-tz/dist/esm', // Removido o alias explícito
     },
   },
   optimizeDeps: {
-    include: ['date-fns-tz', 'date-fns'],
+    include: ['date-fns'], // Removido 'date-fns-tz' daqui
     exclude: [],
   },
   build: {
     commonjsOptions: {
       include: [/node_modules/],
+    },
+    rollupOptions: {
+      external: ['date-fns-tz'], // Adicionado 'date-fns-tz' como externo
     },
   },
 }));
