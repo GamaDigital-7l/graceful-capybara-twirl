@@ -1,6 +1,8 @@
 import { format, parseISO, isValid, parse } from 'date-fns';
-import { toZonedTime, formatInTimeZone, zonedTimeToUtc } from 'date-fns-tz'; // Importação corrigida
+import * as dateFnsTz from 'date-fns-tz'; // Importa como namespace
 import { ptBR } from 'date-fns/locale';
+
+const { toZonedTime, formatInTimeZone, zonedTimeToUtc } = dateFnsTz; // Desestrutura do namespace
 
 const SAO_PAULO_TIMEZONE = 'America/Sao_Paulo';
 
