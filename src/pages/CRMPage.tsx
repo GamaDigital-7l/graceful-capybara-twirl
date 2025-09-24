@@ -1,85 +1,79 @@
 "use client";
 
-import React, { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import React, { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { showError, showSuccess, showLoading, dismissToast } from "@/utils/toast";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Send } from "lucide-react";
+import { showError } from "@/utils/toast";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CRMKanbanBoard } from "@/components/CRMKanbanBoard";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useNavigate } from "react-router-dom";
 
 const CRMPage = () => {
-  const [phoneNumber, setPhoneNumber] = useState("");
-  const [message, setMessage] = useState("");
+  const navigate = useNavigate();
+  const [userRole, setUserRole] = useState<string | undefined>(undefined);
+  const [isProfileLoading, setProfileLoading] = useState(true);
 
-  const sendMessageMutation = useMutation({
-    mutationFn: async ({ to, message }: { to: string; message: string }) => {
-      const { data, error } = await supabase.functions.invoke("send-whatsapp-evolution-message", {
-        body: { to, message },
-      });
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: (data) => {
-      showSuccess(data.message || "Mensagem WhatsApp enviada com sucesso!");
-      setPhoneNumber("");
-      setMessage("");
-    },
-    onError: (e: Error) => showError(`Erro ao enviar mensagem: ${e.message}`),
-    onMutate: () => showLoading("Enviando mensagem WhatsApp..."),
-    onSettled: () => dismissToast(),
-  });
+  useEffect(() => {
+    const fetchUserRole = async () => {
+      setProfileLoading(true);
+      try {
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        if (userError) throw userError;
 
-  const handleSendMessage = () => {
-    if (!phoneNumber.trim() || !message.trim()) {
-      showError("Por favor, preencha o número de telefone e a mensagem.");
-      return;
+        if (user) {
+          const { data: profile, error: profileError } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+          if (profileError) throw profileError;
+          setUserRole(profile?.role || null);
+        } else {
+          setUserRole(null);
+        }
+      } catch (error: any) {
+        console.error("Error fetching user role:", error.message);
+        showError(`Erro ao carregar perfil: ${error.message}`);
+        setUserRole(null);
+      } finally {
+        setProfileLoading(false);
+      }
+    };
+    fetchUserRole();
+  }, []);
+
+  useEffect(() => {
+    if (!isProfileLoading && userRole !== 'admin' && userRole !== 'equipe') {
+      navigate("/");
     }
-    sendMessageMutation.mutate({ to: phoneNumber.trim(), message: message.trim() });
-  };
+  }, [isProfileLoading, userRole, navigate]);
+
+  if (isProfileLoading || userRole === undefined) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <Skeleton className="h-96 w-full max-w-4xl" />
+      </div>
+    );
+  }
+
+  if (userRole !== 'admin' && userRole !== 'equipe') {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <Card className="w-full max-w-md text-center">
+          <CardHeader><CardTitle>Acesso Negado</CardTitle></CardHeader>
+          <CardContent><p>Você não tem permissão para acessar esta página.</p></CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">CRM - Enviar WhatsApp</h1>
+      <h1 className="text-2xl font-bold">CRM - Funil de Vendas</h1>
       <Card>
         <CardHeader>
-          <CardTitle>Enviar Mensagem WhatsApp (Evolution API)</CardTitle>
-          <CardDescription>Envie mensagens diretas para seus clientes via WhatsApp.</CardDescription>
+          <CardTitle>Gerenciamento de Leads</CardTitle>
+          <CardDescription>Acompanhe seus leads através das etapas do funil de vendas.</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4 p-4 sm:p-6">
-          <div className="space-y-2">
-            <Label htmlFor="phone-number">Número de Telefone (com DDD, ex: 5511987654321)</Label>
-            <Input
-              id="phone-number"
-              type="tel"
-              value={phoneNumber}
-              onChange={(e) => setPhoneNumber(e.target.value)}
-              placeholder="Ex: 5511987654321"
-              disabled={sendMessageMutation.isPending}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="message">Mensagem</Label>
-            <Textarea
-              id="message"
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              placeholder="Digite sua mensagem aqui..."
-              rows={5}
-              disabled={sendMessageMutation.isPending}
-            />
-          </div>
-          <Button
-            onClick={handleSendMessage}
-            disabled={sendMessageMutation.isPending || !phoneNumber.trim() || !message.trim()}
-            className="w-full"
-          >
-            <Send className="h-4 w-4 mr-2" />
-            {sendMessageMutation.isPending ? "Enviando..." : "Enviar Mensagem"}
-          </Button>
+        <CardContent className="p-4 sm:p-6">
+          <CRMKanbanBoard />
         </CardContent>
       </Card>
     </div>

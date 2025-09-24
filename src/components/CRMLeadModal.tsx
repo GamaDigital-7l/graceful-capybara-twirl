@@ -1,0 +1,215 @@
+"use client";
+
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogClose,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { CRMLead } from "./CRMLeadCard";
+import { useState, useEffect } from "react";
+import { Trash2, User } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { showError, showSuccess } from "@/utils/toast";
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+
+interface UserProfile {
+  id: string;
+  full_name: string;
+  avatar_url: string | null;
+  role: string;
+}
+
+interface CRMLeadModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSave: (lead: Partial<CRMLead>) => void;
+  onDelete?: (leadId: string) => void;
+  lead: CRMLead | null;
+  stageId?: string; // Initial stage for new leads
+  usersForAssignment: UserProfile[];
+}
+
+export function CRMLeadModal({
+  isOpen,
+  onClose,
+  onSave,
+  onDelete,
+  lead,
+  stageId,
+  usersForAssignment,
+}: CRMLeadModalProps) {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [source, setSource] = useState("");
+  const [notes, setNotes] = useState("");
+  const [assignedTo, setAssignedTo] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (lead) {
+      setName(lead.name);
+      setEmail(lead.email || "");
+      setPhone(lead.phone || "");
+      setSource(lead.source || "");
+      setNotes(lead.notes || "");
+      setAssignedTo(lead.assignedTo || null);
+    } else {
+      setName("");
+      setEmail("");
+      setPhone("");
+      setSource("");
+      setNotes("");
+      setAssignedTo(null);
+    }
+  }, [lead, isOpen]);
+
+  const handleSave = async () => {
+    if (!name.trim()) {
+      showError("O nome do lead é obrigatório.");
+      return;
+    }
+
+    const savedLead: Partial<CRMLead> = {
+      id: lead?.id,
+      stageId: lead?.stageId || stageId,
+      name: name.trim(),
+      email: email.trim() || undefined,
+      phone: phone.trim() || undefined,
+      source: source.trim() || undefined,
+      notes: notes.trim() || undefined,
+      assignedTo: assignedTo,
+    };
+    onSave(savedLead);
+    onClose();
+  };
+
+  const handleDelete = () => {
+    if (lead && onDelete) {
+      onDelete(lead.id);
+      onClose();
+    }
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>{lead ? "Editar Lead" : "Adicionar Novo Lead"}</DialogTitle>
+        </DialogHeader>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="name">Nome do Lead</Label>
+              <Input
+                id="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Ex: João da Silva"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="exemplo@email.com"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="phone">Telefone</Label>
+              <Input
+                id="phone"
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="Ex: 5511987654321"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="source">Origem</Label>
+              <Input
+                id="source"
+                value={source}
+                onChange={(e) => setSource(e.target.value)}
+                placeholder="Ex: Indicação, Anúncio, Site"
+              />
+            </div>
+          </div>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="notes">Notas</Label>
+              <Textarea
+                id="notes"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="Adicione detalhes importantes sobre o lead..."
+                rows={5}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="assignedTo">Atribuir a</Label>
+              <Select
+                value={assignedTo || ""}
+                onValueChange={(value) => setAssignedTo(value === "unassigned" ? null : value)}
+              >
+                <SelectTrigger id="assignedTo">
+                  <SelectValue placeholder="Ninguém" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="unassigned">Ninguém</SelectItem>
+                  {usersForAssignment.map((user) => (
+                    <SelectItem key={user.id} value={user.id}>
+                      <div className="flex items-center gap-2">
+                        <Avatar className="h-6 w-6">
+                          <AvatarImage src={user.avatar_url || undefined} loading="lazy" />
+                          <AvatarFallback className="text-xs">{user.full_name?.charAt(0) || <User className="h-4 w-4" />}</AvatarFallback>
+                        </Avatar>
+                        {user.full_name}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </div>
+        <DialogFooter className="justify-between pt-4">
+          <div>
+            {lead && onDelete && (
+              <Button variant="destructive" onClick={handleDelete} size="icon">
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
+          <div className="space-x-2">
+            <DialogClose asChild>
+              <Button type="button" variant="secondary">
+                Cancelar
+              </Button>
+            </DialogClose>
+            <Button type="button" onClick={handleSave}>
+              Salvar
+            </Button>
+          </div>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}

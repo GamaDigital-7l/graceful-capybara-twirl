@@ -26,7 +26,7 @@ export function MobileSidebar({ userRole, onClose }: MobileSidebarProps) {
     { name: "Segundo Cérebro", icon: Brain, path: "/second-brain", roles: ["admin", "equipe"] },
     { name: "Briefings", icon: FileText, path: "/briefings", roles: ["admin", "equipe"] },
     { name: "Playbook da Agência", icon: BookOpen, path: "/agency-playbook", roles: ["admin", "equipe"] },
-    { name: "CRM", icon: MessageSquareText, path: "/crm", roles: ["admin", "equipe"] }, // Novo item de navegação
+    { name: "CRM", icon: MessageSquareText, path: "/crm", roles: ["admin", "equipe"] },
   ];
 
   const settingsItems = [

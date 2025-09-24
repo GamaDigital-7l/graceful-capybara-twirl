@@ -73,7 +73,7 @@ export function Header({ pageTitle }: HeaderProps) {
     if (path.startsWith("/briefings/") && path.includes("/responses")) return "Respostas do Briefing";
     if (path.startsWith("/briefings")) return "Gerenciar Briefings";
     if (path.startsWith("/onboarding-templates")) return "Templates de Onboarding";
-    if (path.startsWith("/crm")) return "CRM - WhatsApp"; // Novo título para a página de CRM
+    if (path.startsWith("/crm")) return "CRM - Funil de Vendas"; // Título atualizado para a página de CRM
     return "Gama Creative Flow";
   };
 
@@ -84,7 +84,7 @@ export function Header({ pageTitle }: HeaderProps) {
     { name: "Segundo Cérebro", icon: Brain, path: "/second-brain", roles: ["admin", "equipe"] },
     { name: "Briefings", icon: FileText, path: "/briefings", roles: ["admin", "equipe"] },
     { name: "Playbook da Agência", icon: BookOpen, path: "/agency-playbook", roles: ["admin", "equipe"] },
-    { name: "CRM", icon: MessageSquareText, path: "/crm", roles: ["admin", "equipe"] }, // Novo item de navegação
+    { name: "CRM", icon: MessageSquareText, path: "/crm", roles: ["admin", "equipe"] },
   ];
 
   if (isProfileLoading) {
