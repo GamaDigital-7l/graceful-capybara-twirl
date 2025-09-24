@@ -12,7 +12,7 @@ export default defineConfig(() => ({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
-      'date-fns-tz': 'date-fns-tz/dist/esm', // Alterado o alias para o diretório ESM
+      // 'date-fns-tz': 'date-fns-tz/dist/esm', // Removido o alias explícito
     },
   },
   optimizeDeps: {
