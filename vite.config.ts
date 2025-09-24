@@ -1,5 +1,5 @@
 import { defineConfig } from "vite";
-import dyadComponentTagger from "@dyad-sh/react-vite-component-tagger";
+import dyadTagger from "@dyad-sh/react-vite-component-tagger";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 
@@ -8,23 +8,22 @@ export default defineConfig(() => ({
     host: "::",
     port: 8080,
   },
-  plugins: [dyadComponentTagger(), react()],
+  plugins: [dyadTagger(), react()],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
-      // Removido o alias específico para 'date-fns-tz'
     },
   },
   optimizeDeps: {
-    include: ['date-fns', 'date-fns-tz'], // Mantido 'date-fns-tz' aqui
-    exclude: [],
+    include: ['date-fns'], // Mantido apenas 'date-fns' aqui
+    exclude: ['date-fns-tz'], // Exclui 'date-fns-tz' da otimização
   },
   build: {
     commonjsOptions: {
       include: [/node_modules/],
     },
     rollupOptions: {
-      // Removido 'date-fns-tz' de external
+      external: ['date-fns-tz'], // Trata 'date-fns-tz' como externo na build
     },
   },
 }));
