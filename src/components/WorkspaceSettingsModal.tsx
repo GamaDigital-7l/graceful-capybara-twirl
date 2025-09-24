@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -30,6 +32,7 @@ const fetchUsers = async () => {
 export function WorkspaceSettingsModal({ isOpen, onClose, workspace }: WorkspaceSettingsModalProps) {
   const queryClient = useQueryClient();
   const [name, setName] = useState("");
+  const [clientPhoneNumber, setClientPhoneNumber] = useState(""); // Novo estado para o número de telefone
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
@@ -49,6 +52,7 @@ export function WorkspaceSettingsModal({ isOpen, onClose, workspace }: Workspace
   useEffect(() => {
     if (workspace) {
       setName(workspace.name);
+      setClientPhoneNumber(workspace.client_phone_number || ""); // Inicializar o número de telefone
       refetchMembers();
     }
     setSelectedFile(null);
@@ -125,7 +129,7 @@ export function WorkspaceSettingsModal({ isOpen, onClose, workspace }: Workspace
       logoUrl = publicUrlData.publicUrl;
       setIsUploading(false);
     }
-    updateWorkspaceMutation.mutate({ name, logo_url: logoUrl });
+    updateWorkspaceMutation.mutate({ name, logo_url: logoUrl, client_phone_number: clientPhoneNumber }); // Incluir o número de telefone
   };
 
   const memberIds = members?.map(m => m.user_id) || [];
@@ -149,6 +153,11 @@ export function WorkspaceSettingsModal({ isOpen, onClose, workspace }: Workspace
             <div className="space-y-2">
               <Label htmlFor="workspace-name">Nome do Cliente</Label>
               <Input id="workspace-name" value={name} onChange={(e) => setName(e.target.value)} disabled={isInternalWorkspace} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="client-phone-number">Número de Telefone do Cliente (WhatsApp)</Label>
+              <Input id="client-phone-number" value={clientPhoneNumber} onChange={(e) => setClientPhoneNumber(e.target.value)} placeholder="Ex: 5511987654321" disabled={isInternalWorkspace} />
+              <p className="text-xs text-muted-foreground">Formato: Código do País + DDD + Número (sem espaços ou caracteres especiais).</p>
             </div>
             <div className="space-y-2">
               <Label htmlFor="logo-upload">Logo do Cliente</Label>
@@ -198,7 +207,7 @@ export function WorkspaceSettingsModal({ isOpen, onClose, workspace }: Workspace
                   <div key={member.user_id} className="flex items-center justify-between text-sm p-2 border rounded">
                     <div className="flex items-center gap-2">
                       <Avatar className="h-6 w-6">
-                        <AvatarImage src={user.avatar_url} loading="lazy" /> {/* Adicionado loading="lazy" */}
+                        <AvatarImage src={user.avatar_url} loading="lazy" />
                         <AvatarFallback>{user.full_name?.charAt(0) || 'U'}</AvatarFallback>
                       </Avatar>
                       <span>{user.full_name || user.email}</span>

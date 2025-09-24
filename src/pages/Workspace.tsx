@@ -22,14 +22,14 @@ const fetchGroups = async (workspaceId: string) => {
   return data;
 };
 
-const fetchWorkspaceName = async (workspaceId: string): Promise<string> => {
+const fetchWorkspaceDetails = async (workspaceId: string): Promise<{ name: string; client_phone_number: string | null }> => {
     const { data, error } = await supabase
         .from("workspaces")
-        .select("name")
+        .select("name, client_phone_number")
         .eq("id", workspaceId)
         .single();
     if (error) throw new Error(error.message);
-    return data.name;
+    return data;
 };
 
 interface WorkspacePageProps {
@@ -48,10 +48,12 @@ const WorkspacePage = ({ initialWorkspaceId }: WorkspacePageProps) => {
   const [isApprovalModalOpen, setIsApprovalModalOpen] = useState(false);
   const [generatedApprovalLink, setGeneratedApprovalLink] = useState("");
   const [whatsappApprovalTemplate, setWhatsappApprovalTemplate] = useState("");
+  const [clientPhoneNumberForApproval, setClientPhoneNumberForApproval] = useState<string | null>(null);
 
   const [isDashboardLinkModalOpen, setIsDashboardLinkModalOpen] = useState(false);
   const [generatedDashboardLink, setGeneratedDashboardLink] = useState("");
   const [dashboardMessageTemplate, setDashboardMessageTemplate] = useState("");
+  const [clientPhoneNumberForDashboard, setClientPhoneNumberForDashboard] = useState<string | null>(null);
 
   const { data: groups, isLoading: isLoadingGroups } = useQuery<Group[]>({
     queryKey: ["groups", workspaceId],
@@ -59,9 +61,9 @@ const WorkspacePage = ({ initialWorkspaceId }: WorkspacePageProps) => {
     enabled: !!workspaceId,
   });
 
-  const { data: workspaceName, isLoading: isLoadingName } = useQuery({
-    queryKey: ["workspaceName", workspaceId],
-    queryFn: () => fetchWorkspaceName(workspaceId!),
+  const { data: workspaceDetails, isLoading: isLoadingDetails } = useQuery({
+    queryKey: ["workspaceDetails", workspaceId],
+    queryFn: () => fetchWorkspaceDetails(workspaceId!),
     enabled: !!workspaceId,
   });
 
@@ -168,6 +170,7 @@ const WorkspacePage = ({ initialWorkspaceId }: WorkspacePageProps) => {
       if (settingsError || !settings?.site_url) throw new Error("URL do site não configurada. Por favor, adicione em Configurações.");
 
       setWhatsappApprovalTemplate(settings.whatsapp_message_template || 'Olá! Seus posts estão prontos para aprovação. Por favor, acesse o link a seguir para revisar e aprovar:');
+      setClientPhoneNumberForApproval(workspaceDetails?.client_phone_number || null);
 
       const { data: { user }, error: getUserError } = await supabase.auth.getUser();
       if (getUserError || !user) {
@@ -181,7 +184,6 @@ const WorkspacePage = ({ initialWorkspaceId }: WorkspacePageProps) => {
       }
       
       const approvalUrl = `${settings.site_url}/approve/${tokenData.token}`;
-      // Revertendo para a URL longa original
       return approvalUrl;
     },
     onSuccess: (link) => {
@@ -203,7 +205,8 @@ const WorkspacePage = ({ initialWorkspaceId }: WorkspacePageProps) => {
       const { data: settings, error: settingsError } = await supabase.from("app_settings").select("site_url").eq("id", 1).single();
       if (settingsError || !settings?.site_url) throw new Error("URL do site não configurada. Por favor, adicione em Configurações.");
 
-      setDashboardMessageTemplate(`Olá! Aqui está o dashboard de acompanhamento do seu projeto com a ${workspaceName || 'Gama Creative'}. Acesse para ver os insights do Instagram e o status das tarefas do Kanban:\n\n`);
+      setDashboardMessageTemplate(`Olá! Aqui está o dashboard de acompanhamento do seu projeto com a ${workspaceDetails?.name || 'Gama Creative'}. Acesse para ver os insights do Instagram e o status das tarefas do Kanban:\n\n`);
+      setClientPhoneNumberForDashboard(workspaceDetails?.client_phone_number || null);
 
       const { data: { user }, error: getUserError } = await supabase.auth.getUser();
       if (getUserError || !user) {
@@ -217,7 +220,6 @@ const WorkspacePage = ({ initialWorkspaceId }: WorkspacePageProps) => {
       }
       
       const dashboardUrl = `${settings.site_url}/client-dashboard/${tokenData.token}`;
-      // Revertendo para a URL longa original
       return dashboardUrl;
     },
     onSuccess: (link) => {
@@ -328,7 +330,7 @@ const WorkspacePage = ({ initialWorkspaceId }: WorkspacePageProps) => {
                 </Link>
             </Button>
             <div>
-                <h1 className="text-xl sm:text-2xl font-bold whitespace-nowrap">{isLoadingName ? <Skeleton className="h-6 w-32" /> : workspaceName}</h1>
+                <h1 className="text-xl sm:text-2xl font-bold whitespace-nowrap">{isLoadingDetails ? <Skeleton className="h-6 w-32" /> : workspaceDetails?.name}</h1>
             </div>
         </div>
         {renderActions()}
@@ -355,6 +357,7 @@ const WorkspacePage = ({ initialWorkspaceId }: WorkspacePageProps) => {
         title="Link de Aprovação Gerado"
         description="Copie a mensagem abaixo e envie para o seu cliente via WhatsApp."
         buttonText="Copiar Mensagem para WhatsApp"
+        clientPhoneNumber={clientPhoneNumberForApproval} // Passar o número do cliente
       />
       <PublicLinkModal
         isOpen={isDashboardLinkModalOpen}
@@ -365,6 +368,7 @@ const WorkspacePage = ({ initialWorkspaceId }: WorkspacePageProps) => {
         title="Link do Dashboard do Cliente Gerado"
         description="Copie a mensagem abaixo e envie para o seu cliente."
         buttonText="Copiar Mensagem"
+        clientPhoneNumber={clientPhoneNumberForDashboard} // Passar o número do cliente
       />
     </div>
   );
