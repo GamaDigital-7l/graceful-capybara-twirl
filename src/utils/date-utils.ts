@@ -1,6 +1,5 @@
 import { format, parseISO, isValid, parse } from 'date-fns';
-import { toZonedTime, formatInTimeZone } from 'date-fns-tz';
-import zonedTimeToUtc from 'date-fns-tz/zonedTimeToUtc';
+import { toZonedTime, formatInTimeZone, zonedTimeToUtc } from 'date-fns-tz'; // Importação corrigida
 import { ptBR } from 'date-fns/locale';
 
 const SAO_PAULO_TIMEZONE = 'America/Sao_Paulo';
@@ -60,7 +59,7 @@ export const parseSaoPauloDateString = (dateString: string): Date => {
  * @returns A data formatada como string.
  */
 export const formatSaoPauloDate = (date: Date | string): string => {
-  return formatSaoPauloTime(date, 'dd/MM/yyyy'); // Alterado para dd/MM/yyyy
+  return formatSaoPauloTime(date, 'dd/MM/yyyy');
 };
 
 /**
