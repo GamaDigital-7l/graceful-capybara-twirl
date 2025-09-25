@@ -13,6 +13,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { PersonalNoteModal, PersonalNote } from "./PersonalNoteModal";
 import { formatSaoPauloDateTime } from "@/utils/date-utils";
 import { Input } from "@/components/ui/input"; // Importado Input
+import { PersonalNoteViewModal } from "./PersonalNoteViewModal"; // Importar o novo modal de visualização
 
 const fetchPersonalNotes = async (userId: string): Promise<PersonalNote[]> => {
   const { data, error } = await supabase.from("personal_notes").select("*").eq("user_id", userId).order("updated_at", { ascending: false });
@@ -27,6 +28,8 @@ export function PersonalNotesTab() {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [isUserLoading, setIsUserLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState(""); // Novo estado para o termo de pesquisa
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false); // Estado para o modal de visualização
+  const [viewingNote, setViewingNote] = useState<PersonalNote | null>(null); // Estado para a nota sendo visualizada
 
   useEffect(() => {
     const getUserId = async () => {
@@ -95,6 +98,11 @@ export function PersonalNotesTab() {
     deleteNoteMutation.mutate(noteId);
   };
 
+  const handleViewNote = (note: PersonalNote) => {
+    setViewingNote(note);
+    setIsViewModalOpen(true);
+  };
+
   // Filtrar notas com base no termo de pesquisa
   const filteredNotes = useMemo(() => {
     if (!notes) return [];
@@ -154,23 +162,23 @@ export function PersonalNotesTab() {
           {filteredNotes && filteredNotes.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredNotes.map((note) => (
-                <Card key={note.id} className="flex flex-col hover:shadow-lg transition-shadow">
+                <Card key={note.id} className="flex flex-col cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleViewNote(note)}>
                   <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
                     <CardTitle className="text-lg font-medium flex-grow pr-2">{note.title}</CardTitle>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 -mt-2 -mr-2 flex-shrink-0">
+                        <Button variant="ghost" size="icon" className="h-8 w-8 -mt-2 -mr-2 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
                           <MoreVertical className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handleEditNote(note)}>
+                        <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleEditNote(note); }}>
                           <Edit className="h-4 w-4 mr-2" />
                           Editar Nota
                         </DropdownMenuItem>
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
-                            <DropdownMenuItem className="text-destructive">
+                            <DropdownMenuItem className="text-destructive" onClick={(e) => e.stopPropagation()}>
                               <Trash2 className="h-4 w-4 mr-2" />
                               Deletar Nota
                             </DropdownMenuItem>
@@ -184,7 +192,7 @@ export function PersonalNotesTab() {
                             </AlertDialogHeader>
                             <AlertDialogFooter>
                               <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                              <AlertDialogAction onClick={() => handleDeleteNote(note.id!)} className="bg-destructive hover:bg-destructive/90">
+                              <AlertDialogAction onClick={(e) => { e.stopPropagation(); handleDeleteNote(note.id!); }} className="bg-destructive hover:bg-destructive/90">
                                 Deletar
                               </AlertDialogAction>
                             </AlertDialogFooter>
@@ -212,6 +220,11 @@ export function PersonalNotesTab() {
         onClose={() => setIsModalOpen(false)}
         onSave={saveNoteMutation.mutate}
         existingNote={selectedNote}
+      />
+      <PersonalNoteViewModal
+        isOpen={isViewModalOpen}
+        onClose={() => setIsViewModalOpen(false)}
+        note={viewingNote}
       />
     </div>
   );
