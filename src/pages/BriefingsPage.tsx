@@ -37,6 +37,8 @@ const BriefingsPage = () => {
   const [generatedPublicLink, setGeneratedPublicLink] = useState("");
   const [selectedFormTitle, setSelectedFormTitle] = useState("");
   const [isGeneratingLink, setIsGeneratingLink] = useState(false);
+  const [clientPhoneNumberForApproval, setClientPhoneNumberForApproval] = useState<string | null>(null); // Adicionado
+  const [whatsappGroupIdForApproval, setWhatsappGroupIdForApproval] = useState<string | null>(null); // Adicionado
 
   const { data: forms, isLoading: isLoadingForms } = useQuery<BriefingForm[]>({
     queryKey: ["briefingForms"],
@@ -86,7 +88,7 @@ const BriefingsPage = () => {
     onError: (e: Error) => showError(e.message),
   });
 
-  const handleGeneratePublicLink = async (formId: string, formTitle: string) => {
+  const handleGeneratePublicLink = async (formId: string, formTitle: string, workspaceId: string | null) => {
     if (!settings?.site_url) {
       showError("URL do site não configurada. Por favor, adicione em Configurações.");
       return;
@@ -94,9 +96,28 @@ const BriefingsPage = () => {
     setIsGeneratingLink(true);
     try {
       const longUrl = `${settings.site_url}/briefings/public/${formId}`;
-      // Revertendo para a URL longa original
       setGeneratedPublicLink(longUrl);
       setSelectedFormTitle(formTitle);
+
+      // Fetch workspace details to get client phone number and whatsapp group ID
+      if (workspaceId) {
+        const { data: workspaceDetails, error: wsError } = await supabase
+          .from("workspaces")
+          .select("client_phone_number, whatsapp_group_id")
+          .eq("id", workspaceId)
+          .single();
+        if (wsError) {
+          console.error("Error fetching workspace details:", wsError);
+          // Don't throw, just proceed without phone number/group ID
+        } else {
+          setClientPhoneNumberForApproval(workspaceDetails?.client_phone_number || null);
+          setWhatsappGroupIdForApproval(workspaceDetails?.whatsapp_group_id || null);
+        }
+      } else {
+        setClientPhoneNumberForApproval(null);
+        setWhatsappGroupIdForApproval(null);
+      }
+
       setIsPublicLinkModalOpen(true);
     } catch (error: any) {
       showError(`Erro ao gerar link público: ${error.message}`);
@@ -122,9 +143,9 @@ const BriefingsPage = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"> {/* Ajustado para responsividade */}
         <h1 className="text-2xl font-bold">Gerenciar Briefings</h1>
-        <Button asChild>
+        <Button asChild className="w-full sm:w-auto"> {/* Ajustado para responsividade */}
           <Link to="/briefings/new">
             <PlusCircle className="h-4 w-4 mr-2" />
             Criar Novo Formulário
@@ -136,7 +157,7 @@ const BriefingsPage = () => {
           <CardTitle>Meus Formulários de Briefing</CardTitle>
           <CardDescription>Crie e gerencie formulários para coletar informações de clientes.</CardDescription>
         </CardHeader>
-        <CardContent className="p-4 sm:p-6"> {/* Ajustado padding */}
+        <CardContent className="p-4 sm:p-6">
           {isLoadingForms ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-48 w-full" />)}
@@ -174,7 +195,7 @@ const BriefingsPage = () => {
                             )}
                           </Link>
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleGeneratePublicLink(form.id, form.title)}>
+                        <DropdownMenuItem onClick={() => handleGeneratePublicLink(form.id, form.title, form.workspace_id)}> {/* Passar workspace_id */}
                           <Share2 className="h-4 w-4 mr-2" />
                           Gerar Link Público
                         </DropdownMenuItem>
@@ -203,7 +224,7 @@ const BriefingsPage = () => {
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </CardHeader>
-                  <CardContent className="flex-grow p-4 pt-0"> {/* Ajustado padding */}
+                  <CardContent className="flex-grow p-4 pt-0">
                     <p className="text-sm text-muted-foreground line-clamp-3">{form.description || "Nenhuma descrição."}</p>
                     {form.response_count !== undefined && (
                       <div className="flex items-center gap-1 text-sm text-muted-foreground mt-2">
@@ -227,6 +248,8 @@ const BriefingsPage = () => {
         title={`Link Público para: ${selectedFormTitle}`}
         description="Copie o link abaixo para compartilhar o formulário publicamente."
         buttonText="Copiar Link"
+        clientPhoneNumber={clientPhoneNumberForApproval}
+        whatsappGroupId={whatsappGroupIdForApproval}
       />
     </div>
   );

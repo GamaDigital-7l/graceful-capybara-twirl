@@ -95,11 +95,11 @@ export function CRMStageColumn({
   }
 
   return (
-    <Card ref={setNodeRef} style={style} className="flex flex-col w-[300px] flex-shrink-0">
+    <Card ref={setNodeRef} style={style} className="flex flex-col w-[300px] flex-shrink-0 h-full"> {/* Adicionado h-full */}
       <CardHeader
         {...attributes}
         {...listeners}
-        className="flex flex-row items-center justify-between cursor-grab p-4"
+        className="flex flex-row items-center justify-between cursor-grab p-4 border-b" // Adicionado border-b
       >
         <div className="flex items-center gap-2 flex-grow" onClick={() => setIsEditing(true)}>
           <GripVertical className="h-4 w-4 text-muted-foreground" />
@@ -113,10 +113,11 @@ export function CRMStageColumn({
               }}
               autoFocus
               onClick={(e) => e.stopPropagation()}
+              className="h-8 text-base" // Ajustado altura e tamanho da fonte
             />
           ) : (
             <div className="flex items-center gap-2">
-              <h3 className="font-bold">{stage.title}</h3>
+              <h3 className="font-bold text-lg">{stage.title}</h3> {/* Ajustado tamanho da fonte */}
               <Badge variant="secondary" className="h-5">{leads.length}</Badge>
             </div>
           )}
@@ -156,7 +157,7 @@ export function CRMStageColumn({
           </DropdownMenuContent>
         </DropdownMenu>
       </CardHeader>
-      <CardContent className="flex flex-col gap-4 flex-grow overflow-y-auto">
+      <CardContent className="flex flex-col gap-4 flex-grow overflow-y-auto p-4"> {/* Adicionado p-4 */}
         <SortableContext items={leadsIds}>
           {leads.map((lead) => (
             <CRMLeadCard

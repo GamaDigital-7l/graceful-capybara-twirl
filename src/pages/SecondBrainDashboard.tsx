@@ -129,9 +129,9 @@ const SecondBrainDashboard = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"> {/* Ajustado para responsividade */}
         <h1 className="text-2xl font-bold">Segundo Cérebro</h1>
-        <Button onClick={() => { setSelectedClient(null); setIsClientModalOpen(true); }}>
+        <Button onClick={() => { setSelectedClient(null); setIsClientModalOpen(true); }} className="w-full sm:w-auto"> {/* Ajustado para responsividade */}
           <PlusCircle className="h-4 w-4 mr-2" />
           Adicionar Cliente
         </Button>
@@ -141,7 +141,7 @@ const SecondBrainDashboard = () => {
           <CardTitle>Meus Clientes</CardTitle>
           <CardDescription>Gerencie os clientes e seus prompts personalizados.</CardDescription>
         </CardHeader>
-        <CardContent className="p-4 sm:p-6"> {/* Ajustado padding */}
+        <CardContent className="p-4 sm:p-6">
           {isLoadingClients ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-48 w-full" />)}
@@ -189,7 +189,7 @@ const SecondBrainDashboard = () => {
                     </DropdownMenu>
                   </CardHeader>
                   <Link to={`/second-brain/${client.id}`} className="flex flex-col flex-grow">
-                    <CardContent className="flex-grow flex items-end justify-center p-4 pt-0"> {/* Ajustado padding */}
+                    <CardContent className="flex-grow flex items-end justify-center p-4 pt-0">
                       <Button variant="outline" className="w-full">Ver Prompts</Button>
                     </CardContent>
                   </Link>

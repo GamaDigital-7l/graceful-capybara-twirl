@@ -203,7 +203,7 @@ const PublicClientDashboardPage = () => {
                   <CardTitle className="flex items-center gap-2"><BarChart className="h-5 w-5" /> Gráfico de Métricas</CardTitle>
                   <CardDescription>Visão geral das métricas inseridas.</CardDescription>
                 </CardHeader>
-                <CardContent className="h-[400px]">
+                <CardContent className="h-[400px] p-4 sm:p-6">
                   <ResponsiveContainer width="100%" height="100%">
                     <RechartsBarChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                       <CartesianGrid strokeDasharray="3 3" />

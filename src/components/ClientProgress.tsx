@@ -88,11 +88,11 @@ export function ClientProgress() {
   const sortedWorkspaces = Object.values(progressByWorkspace).sort((a, b) => a.name.localeCompare(b.name));
 
   return (
-    <Card>
+    <Card className="flex flex-col"> {/* Adicionado flex-col */}
       <CardHeader>
         <CardTitle>Progresso por Cliente</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-6 flex-grow overflow-y-auto max-h-[300px]"> {/* Adicionado flex-grow, overflow-y-auto e max-h */}
         {sortedWorkspaces.length > 0 ? (
           sortedWorkspaces.map((ws) => (
             <div key={ws.id}>
@@ -100,7 +100,7 @@ export function ClientProgress() {
                 <div className="flex items-center gap-2">
                   {ws.logo_url ? (
                     <Avatar className="h-6 w-6">
-                      <AvatarImage src={ws.logo_url} alt={ws.name} loading="lazy" /> {/* Adicionado loading="lazy" */}
+                      <AvatarImage src={ws.logo_url} alt={ws.name} loading="lazy" />
                       <AvatarFallback>{ws.name.charAt(0)}</AvatarFallback>
                     </Avatar>
                   ) : (

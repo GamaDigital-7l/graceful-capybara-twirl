@@ -38,7 +38,7 @@ export function TaskStats({ pendingCount, completedCount }: TaskStatsProps) {
           </p>
         </CardContent>
       </Card>
-      <Card> {/* Removido lg:col-span-1 para que o pai controle o layout */}
+      <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">Progresso Geral</CardTitle>
           <Target className="h-4 w-4 text-muted-foreground" />

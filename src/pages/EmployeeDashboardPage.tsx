@@ -117,7 +117,7 @@ const EmployeeDashboardPage = () => {
             <Card key={employee.id} className="hover:shadow-lg transition-shadow flex flex-col">
               <CardHeader className="flex flex-row items-center gap-4 pb-2">
                 <Avatar className="h-12 w-12">
-                  <AvatarImage src={employee.avatar_url || undefined} loading="lazy" /> {/* Adicionado loading="lazy" */}
+                  <AvatarImage src={employee.avatar_url || undefined} loading="lazy" />
                   <AvatarFallback>{employee.full_name?.charAt(0) || <User className="h-6 w-6" />}</AvatarFallback>
                 </Avatar>
                 <div>

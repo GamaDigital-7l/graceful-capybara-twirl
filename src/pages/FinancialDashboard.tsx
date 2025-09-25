@@ -264,17 +264,17 @@ const FinancialDashboard = () => {
       </div>
 
       <Tabs defaultValue="income">
-        <div className="flex justify-between items-center mb-4">
-          <TabsList>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4"> {/* Ajustado para responsividade */}
+          <TabsList className="w-full sm:w-auto grid grid-cols-2 sm:grid-cols-auto"> {/* Ajustado para responsividade */}
             <TabsTrigger value="income">Recebimentos</TabsTrigger>
             <TabsTrigger value="expenses">Gastos</TabsTrigger>
           </TabsList>
-          <div className="flex gap-2">
-            <Button onClick={() => { setSelectedIncomeData(null); setIsIncomeModalOpen(true); }}>
+          <div className="flex gap-2 w-full sm:w-auto"> {/* Ajustado para responsividade */}
+            <Button onClick={() => { setSelectedIncomeData(null); setIsIncomeModalOpen(true); }} className="w-full sm:w-auto"> {/* Ajustado para responsividade */}
               <PlusCircle className="h-4 w-4 mr-2" />
               Adicionar Recebimento
             </Button>
-            <Button onClick={() => { setSelectedExpenseData(null); setIsExpenseModalOpen(true); }} variant="outline">
+            <Button onClick={() => { setSelectedExpenseData(null); setIsExpenseModalOpen(true); }} variant="outline" className="w-full sm:w-auto"> {/* Ajustado para responsividade */}
               <MinusCircle className="h-4 w-4 mr-2" />
               Adicionar Gasto
             </Button>
@@ -286,64 +286,66 @@ const FinancialDashboard = () => {
             <CardHeader>
               <CardTitle>Controle de Recebimentos do Mês ({formatSaoPauloTime(selectedPeriod, "MMMM yyyy")})</CardTitle>
             </CardHeader>
-            <CardContent className="p-4 sm:p-6">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Cliente</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Valor</TableHead>
-                    <TableHead>Dia Pgto.</TableHead>
-                    <TableHead>Tipo Contrato</TableHead>
-                    <TableHead>Tipo Cliente</TableHead>
-                    <TableHead className="text-right">Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {isLoadingFinancial ? (
-                    [...Array(3)].map((_, i) => (
-                      <TableRow key={i}>
-                        <TableCell colSpan={7}><Skeleton className="h-8 w-full" /></TableCell>
-                      </TableRow>
-                    ))
-                  ) : (
-                    currentPeriodIncomeData?.map(item => (
-                      <TableRow key={item.id}>
-                        <TableCell className="font-medium flex items-center gap-2">
-                          {item.workspace ? item.workspace.name : item.client_name}
-                          {!item.workspace_id && <Badge variant="outline">Avulso</Badge>}
-                        </TableCell>
-                        <TableCell><Badge variant={item.status === 'Ativo' ? 'default' : 'destructive'}>{item.status}</Badge></TableCell>
-                        <TableCell>{formatCurrency(Number(item.amount))}</TableCell>
-                        <TableCell>{item.payment_day}</TableCell>
-                        <TableCell>{item.contract_type}</TableCell>
-                        <TableCell>{item.client_type}</TableCell>
-                        <TableCell className="text-right">
-                          <AlertDialog>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild><Button variant="ghost" size="icon"><MoreVertical className="h-4 w-4" /></Button></DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={() => { setSelectedIncomeData(item); setIsIncomeModalOpen(true); }}><Edit className="mr-2 h-4 w-4" />Editar</DropdownMenuItem>
-                                <AlertDialogTrigger asChild><DropdownMenuItem className="text-destructive"><Trash2 className="mr-2 h-4 w-4" />Deletar</DropdownMenuItem></AlertDialogTrigger>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
-                                <AlertDialogDescription>Tem certeza que deseja deletar este registro? Esta ação é irreversível.</AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => deleteIncomeMutation.mutate(item.id!)} className="bg-destructive hover:bg-destructive/90">Deletar</AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
+            <CardContent className="p-0"> {/* Removido padding para a tabela */}
+              <div className="overflow-x-auto"> {/* Adicionado overflow-x-auto para tabelas */}
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="min-w-[120px]">Cliente</TableHead> {/* Adicionado min-w */}
+                      <TableHead className="min-w-[80px]">Status</TableHead>
+                      <TableHead className="min-w-[100px]">Valor</TableHead>
+                      <TableHead className="min-w-[80px]">Dia Pgto.</TableHead>
+                      <TableHead className="min-w-[100px]">Tipo Contrato</TableHead>
+                      <TableHead className="min-w-[100px]">Tipo Cliente</TableHead>
+                      <TableHead className="text-right min-w-[60px]">Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {isLoadingFinancial ? (
+                      [...Array(3)].map((_, i) => (
+                        <TableRow key={i}>
+                          <TableCell colSpan={7}><Skeleton className="h-8 w-full" /></TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      currentPeriodIncomeData?.map(item => (
+                        <TableRow key={item.id}>
+                          <TableCell className="font-medium flex items-center gap-2">
+                            {item.workspace ? item.workspace.name : item.client_name}
+                            {!item.workspace_id && <Badge variant="outline">Avulso</Badge>}
+                          </TableCell>
+                          <TableCell><Badge variant={item.status === 'Ativo' ? 'default' : 'destructive'}>{item.status}</Badge></TableCell>
+                          <TableCell>{formatCurrency(Number(item.amount))}</TableCell>
+                          <TableCell>{item.payment_day}</TableCell>
+                          <TableCell>{item.contract_type}</TableCell>
+                          <TableCell>{item.client_type}</TableCell>
+                          <TableCell className="text-right">
+                            <AlertDialog>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild><Button variant="ghost" size="icon"><MoreVertical className="h-4 w-4" /></Button></DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem onClick={() => { setSelectedIncomeData(item); setIsIncomeModalOpen(true); }}><Edit className="mr-2 h-4 w-4" />Editar</DropdownMenuItem>
+                                  <AlertDialogTrigger asChild><DropdownMenuItem className="text-destructive"><Trash2 className="mr-2 h-4 w-4" />Deletar</DropdownMenuItem></AlertDialogTrigger>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+                                  <AlertDialogDescription>Tem certeza que deseja deletar este registro? Esta ação é irreversível.</AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                  <AlertDialogAction onClick={() => deleteIncomeMutation.mutate(item.id!)} className="bg-destructive hover:bg-destructive/90">Deletar</AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -353,57 +355,59 @@ const FinancialDashboard = () => {
             <CardHeader>
               <CardTitle>Controle de Gastos do Mês ({formatSaoPauloTime(selectedPeriod, "MMMM yyyy")})</CardTitle>
             </CardHeader>
-            <CardContent className="p-4 sm:p-6">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Descrição</TableHead>
-                    <TableHead>Categoria</TableHead>
-                    <TableHead>Valor</TableHead>
-                    <TableHead>Data</TableHead>
-                    <TableHead className="text-right">Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {isLoadingExpenses ? (
-                    [...Array(3)].map((_, i) => (
-                      <TableRow key={i}>
-                        <TableCell colSpan={5}><Skeleton className="h-8 w-full" /></TableCell>
-                      </TableRow>
-                    ))
-                  ) : (
-                    currentPeriodExpenseData?.map(item => (
-                      <TableRow key={item.id}>
-                        <TableCell className="font-medium">{item.description}</TableCell>
-                        <TableCell>{item.category || 'N/A'}</TableCell>
-                        <TableCell className="text-destructive">{formatCurrency(Number(item.amount))}</TableCell>
-                        <TableCell>{formatSaoPauloDate(item.expense_date)}</TableCell>
-                        <TableCell className="text-right">
-                          <AlertDialog>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild><Button variant="ghost" size="icon"><MoreVertical className="h-4 w-4" /></Button></DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={() => { setSelectedExpenseData(item); setIsExpenseModalOpen(true); }}><Edit className="mr-2 h-4 w-4" />Editar</DropdownMenuItem>
-                                <AlertDialogTrigger asChild><DropdownMenuItem className="text-destructive"><Trash2 className="mr-2 h-4 w-4" />Deletar</DropdownMenuItem></AlertDialogTrigger>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
-                                <AlertDialogDescription>Tem certeza que deseja deletar este registro de gasto? Esta ação é irreversível.</AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => deleteExpenseMutation.mutate(item.id!)} className="bg-destructive hover:bg-destructive/90">Deletar</AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
+            <CardContent className="p-0"> {/* Removido padding para a tabela */}
+              <div className="overflow-x-auto"> {/* Adicionado overflow-x-auto para tabelas */}
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="min-w-[120px]">Descrição</TableHead>
+                      <TableHead className="min-w-[100px]">Categoria</TableHead>
+                      <TableHead className="min-w-[100px]">Valor</TableHead>
+                      <TableHead className="min-w-[100px]">Data</TableHead>
+                      <TableHead className="text-right min-w-[60px]">Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {isLoadingExpenses ? (
+                      [...Array(3)].map((_, i) => (
+                        <TableRow key={i}>
+                          <TableCell colSpan={5}><Skeleton className="h-8 w-full" /></TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      currentPeriodExpenseData?.map(item => (
+                        <TableRow key={item.id}>
+                          <TableCell className="font-medium">{item.description}</TableCell>
+                          <TableCell>{item.category || 'N/A'}</TableCell>
+                          <TableCell className="text-destructive">{formatCurrency(Number(item.amount))}</TableCell>
+                          <TableCell>{formatSaoPauloDate(item.expense_date)}</TableCell>
+                          <TableCell className="text-right">
+                            <AlertDialog>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild><Button variant="ghost" size="icon"><MoreVertical className="h-4 w-4" /></Button></DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem onClick={() => { setSelectedExpenseData(item); setIsExpenseModalOpen(true); }}><Edit className="mr-2 h-4 w-4" />Editar</DropdownMenuItem>
+                                  <AlertDialogTrigger asChild><DropdownMenuItem className="text-destructive"><Trash2 className="mr-2 h-4 w-4" />Deletar</DropdownMenuItem></AlertDialogTrigger>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+                                  <AlertDialogDescription>Tem certeza que deseja deletar este registro de gasto? Esta ação é irreversível.</AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                  <AlertDialogAction onClick={() => deleteExpenseMutation.mutate(item.id!)} className="bg-destructive hover:bg-destructive/90">Deletar</AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>

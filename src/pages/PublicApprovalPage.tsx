@@ -103,7 +103,7 @@ const PublicApprovalPage = () => {
         <div className="mb-4">
           <AppLogo className="h-12 w-auto mx-auto" />
         </div>
-        <div className="flex justify-center items-center gap-4 mb-2">
+        <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mb-2"> {/* Ajustado para responsividade */}
           {data.workspace.logo_url && <Avatar><AvatarImage src={data.workspace.logo_url} loading="lazy" /><AvatarFallback>{data.workspace.name.charAt(0)}</AvatarFallback></Avatar>}
           <h1 className="text-3xl font-bold">{data.workspace.name}</h1>
         </div>
@@ -135,15 +135,15 @@ const PublicApprovalPage = () => {
               )}
               {task.description && <p className="text-sm text-muted-foreground whitespace-pre-wrap">{task.description}</p>}
             </CardContent>
-            <CardFooter className="flex gap-4">
+            <CardFooter className="flex flex-col sm:flex-row gap-4"> {/* Ajustado para responsividade */}
               {processedTasks.has(task.id) ? (
                 <p className="text-sm font-medium text-green-600">Tarefa já revisada.</p>
               ) : (
                 <>
-                  <Button className="w-full bg-green-600 hover:bg-green-700" onClick={() => processApprovalMutation.mutate({ taskId: task.id, action: 'approve' })}>
+                  <Button className="w-full sm:w-1/2 bg-green-600 hover:bg-green-700" onClick={() => processApprovalMutation.mutate({ taskId: task.id, action: 'approve' })}> {/* Ajustado para responsividade */}
                     <CheckCircle className="h-4 w-4 mr-2" /> Aprovar
                   </Button>
-                  <Button variant="outline" className="w-full" onClick={() => handleEditRequest(task)}>
+                  <Button variant="outline" className="w-full sm:w-1/2" onClick={() => handleEditRequest(task)}> {/* Ajustado para responsividade */}
                     <Edit className="h-4 w-4 mr-2" /> Solicitar Edição
                   </Button>
                 </>
@@ -157,13 +157,13 @@ const PublicApprovalPage = () => {
           <DialogHeader>
             <DialogTitle>Solicitar Edição para: {selectedTask?.title}</DialogTitle>
           </DialogHeader>
-          <div className="py-4 space-y-2">
+          <div className="py-4 space-y-2 p-4 sm:p-6"> {/* Adicionado p-4 sm:p-6 */}
             <Label htmlFor="edit-comment">O que precisa ser alterado?</Label>
             <Textarea id="edit-comment" value={editComment} onChange={(e) => setEditComment(e.target.value)} rows={4} />
           </div>
-          <DialogFooter>
-            <DialogClose asChild><Button variant="secondary">Cancelar</Button></DialogClose>
-            <Button onClick={handleConfirmEdit} disabled={!editComment.trim()}>
+          <DialogFooter className="flex-col sm:flex-row gap-2"> {/* Ajustado para responsividade */}
+            <DialogClose asChild><Button variant="secondary" className="w-full sm:w-auto">Cancelar</Button></DialogClose> {/* Ajustado para responsividade */}
+            <Button onClick={handleConfirmEdit} disabled={!editComment.trim()} className="w-full sm:w-auto"> {/* Ajustado para responsividade */}
               <Send className="h-4 w-4 mr-2" /> Enviar Solicitação
             </Button>
           </DialogFooter>

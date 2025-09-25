@@ -273,7 +273,7 @@ export function CRMKanbanBoard() {
     <div>
       <DndContext sensors={sensors} onDragStart={onDragStart} onDragEnd={onDragEnd}>
         <div className="w-full overflow-x-auto pb-4">
-          <div className="inline-flex gap-6 items-start">
+          <div className="inline-flex gap-6 items-start min-h-[500px]"> {/* Adicionado min-h-[500px] e items-start */}
             <SortableContext items={stageIds}>
               {stages.map((stage) => (
                 <CRMStageColumn

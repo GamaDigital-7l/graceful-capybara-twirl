@@ -316,7 +316,7 @@ const PublicBriefingPage = () => {
           )}
         </CardHeader>
         <form onSubmit={isTypeformMode ? (e) => e.preventDefault() : handleSubmit}>
-          <CardContent className="space-y-6 pt-4">
+          <CardContent className="space-y-6 pt-4 p-4 sm:p-6"> {/* Adicionado p-4 sm:p-6 */}
             {isTypeformMode ? (
               <div className="min-h-[200px] flex flex-col justify-center items-center text-center">
                 {currentField && (
@@ -352,15 +352,15 @@ const PublicBriefingPage = () => {
               </>
             )}
           </CardContent>
-          <CardContent className="pt-0">
+          <CardContent className="pt-0 p-4 sm:p-6"> {/* Adicionado p-4 sm:p-6 */}
             {isTypeformMode ? (
-              <div className="flex justify-between gap-4 mt-6">
+              <div className="flex flex-col sm:flex-row justify-between gap-4 mt-6"> {/* Ajustado para responsividade */}
                 <Button
                   type="button"
                   variant="outline"
                   onClick={handlePreviousStep}
                   disabled={currentStep === 0 || isSubmitting}
-                  className="w-1/2"
+                  className="w-full sm:w-1/2" {/* Ajustado para responsividade */}
                 >
                   <ArrowLeft className="h-4 w-4 mr-2" /> Voltar
                 </Button>
@@ -368,7 +368,7 @@ const PublicBriefingPage = () => {
                   type="button"
                   onClick={handleNextStep}
                   disabled={isSubmitting}
-                  className="w-1/2"
+                  className="w-full sm:w-1/2" {/* Ajustado para responsividade */}
                 >
                   {isLastStep ? (isSubmitting ? "Enviando..." : "Enviar Resposta") : "Próximo"} <ArrowRight className="h-4 w-4 ml-2" />
                 </Button>

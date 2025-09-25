@@ -4,9 +4,10 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { User, Mail, Phone, CalendarDays } from "lucide-react";
+import { User, Mail, Phone, CalendarDays, Tag } from "lucide-react"; // Adicionado Tag para a origem
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { formatSaoPauloDate } from "@/utils/date-utils";
+import { Badge } from "./ui/badge"; // Importar Badge
 
 export interface CRMLead {
   id: string;
@@ -71,16 +72,19 @@ export function CRMLeadCard({
       onClick={onClick}
       className="cursor-pointer hover:ring-2 hover:ring-primary transition-shadow"
     >
-      <CardContent className="p-4">
-        <p className="font-medium text-lg">{lead.name}</p>
+      <CardContent className="p-4 space-y-2"> {/* Ajustado padding e adicionado space-y */}
+        <div className="flex items-center justify-between">
+          <p className="font-medium text-lg truncate pr-2">{lead.name}</p>
+          {lead.source && <Badge variant="secondary" className="flex-shrink-0"><Tag className="h-3 w-3 mr-1" /> {lead.source}</Badge>}
+        </div>
         {lead.email && (
-          <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Mail className="h-4 w-4" />
-            <span>{lead.email}</span>
+            <span className="truncate">{lead.email}</span>
           </div>
         )}
         {lead.phone && (
-          <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Phone className="h-4 w-4" />
             <span>{lead.phone}</span>
           </div>

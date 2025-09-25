@@ -20,6 +20,8 @@ export interface Workspace {
   id: string;
   name: string;
   logo_url: string | null;
+  client_phone_number: string | null; // Adicionado
+  whatsapp_group_id: string | null; // Adicionado
 }
 
 const INTERNAL_WORKSPACE_NAME = "Tarefas";
@@ -35,7 +37,7 @@ const fetchWorkspaces = async (userRole: string | null, userId: string | undefin
     // para o ClientDashboard que fará a busca específica.
     return []; 
   } else {
-    query = supabase.from("workspaces").select("id, name, logo_url");
+    query = supabase.from("workspaces").select("id, name, logo_url, client_phone_number, whatsapp_group_id"); // Incluído novos campos
   }
 
   const { data, error } = await query;
@@ -228,8 +230,8 @@ const Dashboard = () => {
                   <Link to={`/workspace/${ws.id}`} className="flex flex-col flex-grow">
                     <CardContent className="flex flex-col items-center justify-center pt-4 flex-grow">
                       <Avatar className="h-24 w-24 mb-4">
-                        <AvatarImage src={ws.logo_url || undefined} alt={ws.name} loading="lazy" /> {/* Adicionado loading="lazy" */}
-                        <AvatarFallback>{ws.name.charAt(0).toUpperCase()}</AvatarFallback>
+                        <AvatarImage src={ws.logo_url || undefined} alt={ws.name} loading="lazy" />
+                        <AvatarFallback className="text-4xl">{ws.name.charAt(0).toUpperCase()}</AvatarFallback>
                       </Avatar>
                       <Button variant="outline" className="w-full mt-auto">Ver Quadro</Button>
                     </CardContent>

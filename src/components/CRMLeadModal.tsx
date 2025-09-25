@@ -151,7 +151,7 @@ export function CRMLeadModal({
             <TabsTrigger value="details">Detalhes do Lead</TabsTrigger>
             <TabsTrigger value="whatsapp" disabled={!lead}>Mensagens WhatsApp</TabsTrigger>
           </TabsList>
-          <TabsContent value="details" className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
+          <TabsContent value="details" className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 p-4 sm:p-6"> {/* Adicionado p-4 sm:p-6 */}
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Nome do Lead</Label>
@@ -231,7 +231,7 @@ export function CRMLeadModal({
               </div>
             </div>
           </TabsContent>
-          <TabsContent value="whatsapp" className="pt-4 space-y-4">
+          <TabsContent value="whatsapp" className="pt-4 space-y-4 p-4 sm:p-6"> {/* Adicionado p-4 sm:p-6 */}
             {lead && phone ? (
               <>
                 <p className="text-sm text-muted-foreground">Enviar mensagem para: <span className="font-semibold">{phone}</span></p>
@@ -245,7 +245,7 @@ export function CRMLeadModal({
                     rows={6}
                   />
                 </div>
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2"> {/* Ajustado para flex-col em mobile */}
                   <Button onClick={handleSendWhatsApp} disabled={isSendingWhatsapp || !whatsappMessage.trim()} className="flex-grow">
                     {isSendingWhatsapp ? "Enviando..." : <><Send className="h-4 w-4 mr-2" /> Enviar via Evolution AI</>}
                   </Button>
@@ -261,7 +261,7 @@ export function CRMLeadModal({
             )}
           </TabsContent>
         </Tabs>
-        <DialogFooter className="justify-between pt-4">
+        <DialogFooter className="justify-between pt-4 flex-col sm:flex-row gap-2"> {/* Ajustado para flex-col em mobile */}
           <div>
             {lead && onDelete && (
               <Button variant="destructive" onClick={handleDelete} size="icon">
@@ -269,13 +269,13 @@ export function CRMLeadModal({
               </Button>
             )}
           </div>
-          <div className="space-x-2">
+          <div className="flex gap-2 w-full sm:w-auto"> {/* Ajustado para w-full em mobile */}
             <DialogClose asChild>
-              <Button type="button" variant="secondary">
+              <Button type="button" variant="secondary" className="w-full sm:w-auto"> {/* Ajustado para w-full em mobile */}
                 Cancelar
               </Button>
             </DialogClose>
-            <Button type="button" onClick={handleSave}>
+            <Button type="button" onClick={handleSave} className="w-full sm:w-auto"> {/* Ajustado para w-full em mobile */}
               Salvar
             </Button>
           </div>

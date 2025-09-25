@@ -335,9 +335,9 @@ const OnboardingTemplatesPage = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"> {/* Ajustado para responsividade */}
         <h1 className="text-2xl font-bold">Gerenciar Templates de Onboarding</h1>
-        <Button onClick={() => { setSelectedTemplate(null); setIsModalOpen(true); }}>
+        <Button onClick={() => { setSelectedTemplate(null); setIsModalOpen(true); }} className="w-full sm:w-auto"> {/* Ajustado para responsividade */}
           <PlusCircle className="h-4 w-4 mr-2" />
           Novo Template
         </Button>
@@ -347,7 +347,7 @@ const OnboardingTemplatesPage = () => {
           <CardTitle>Templates Existentes</CardTitle>
           <CardDescription>Crie modelos de páginas de boas-vindas para diferentes serviços ou clientes.</CardDescription>
         </CardHeader>
-        <CardContent className="p-4 sm:p-6"> {/* Ajustado padding */}
+        <CardContent className="p-4 sm:p-6">
           {isLoadingTemplates ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-48 w-full" />)}
@@ -394,7 +394,7 @@ const OnboardingTemplatesPage = () => {
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </CardHeader>
-                  <CardContent className="flex-grow p-4 pt-0"> {/* Ajustado padding */}
+                  <CardContent className="flex-grow p-4 pt-0">
                     <p className="text-sm text-muted-foreground line-clamp-3">{template.welcome_message || "Nenhuma mensagem de boas-vindas."}</p>
                     <div className="flex items-center gap-2 text-xs text-muted-foreground mt-2">
                       {template.briefing_links?.length > 0 && <><FileText className="h-3 w-3" /> {template.briefing_links.length} Briefings</>}
@@ -417,15 +417,15 @@ const OnboardingTemplatesPage = () => {
             <DialogTitle>{selectedTemplate ? "Editar Template de Onboarding" : "Criar Novo Template de Onboarding"}</DialogTitle>
           </DialogHeader>
           <Tabs defaultValue="welcome" className="py-4">
-            <TabsList className="grid w-full grid-cols-6"> {/* Adicionada nova coluna para 'Layout' */}
+            <TabsList className="grid w-full grid-cols-2 sm:grid-cols-6"> {/* Ajustado para responsividade */}
               <TabsTrigger value="welcome">Boas-Vindas</TabsTrigger>
               <TabsTrigger value="main-content">Conteúdo Principal</TabsTrigger>
               <TabsTrigger value="briefings">Briefings</TabsTrigger>
               <TabsTrigger value="processes">Processos</TabsTrigger>
               <TabsTrigger value="apps">Apps & Vídeos</TabsTrigger>
-              <TabsTrigger value="layout">Layout</TabsTrigger> {/* Nova aba */}
+              <TabsTrigger value="layout">Layout</TabsTrigger>
             </TabsList>
-            <TabsContent value="welcome" className="pt-4 space-y-4">
+            <TabsContent value="welcome" className="pt-4 space-y-4 p-4 sm:p-6"> {/* Adicionado p-4 sm:p-6 */}
               <div className="space-y-2">
                 <Label htmlFor="template-name">Nome do Template</Label>
                 <Input id="template-name" value={templateName} onChange={(e) => setTemplateName(e.target.value)} placeholder="Ex: Onboarding Social Media" />
@@ -436,25 +436,25 @@ const OnboardingTemplatesPage = () => {
                 <p className="text-xs text-muted-foreground">Use **negrito**, *itálico*, [links](url) e imagens `![alt](url)`.</p>
               </div>
             </TabsContent>
-            <TabsContent value="main-content" className="pt-4">
+            <TabsContent value="main-content" className="pt-4 p-4 sm:p-6"> {/* Adicionado p-4 sm:p-6 */}
               <Label htmlFor="main-content">Conteúdo Principal (suporta Markdown)</Label>
               <Textarea id="main-content" value={mainContent} onChange={(e) => setMainContent(e.target.value)} rows={15} placeholder="Descreva os serviços contratados, prazos, o que está incluído no pacote, etc. Use Markdown para formatar o texto, adicionar imagens e vídeos." />
               <p className="text-xs text-muted-foreground">
                 Use **negrito**, *itálico*, `código`, [links](url), listas (`- item`), imagens `![alt](url)` e vídeos `![alt](https://www.youtube.com/watch?v=VIDEO_ID)`.
               </p>
             </TabsContent>
-            <TabsContent value="briefings" className="pt-4 space-y-4">
+            <TabsContent value="briefings" className="pt-4 space-y-4 p-4 sm:p-6"> {/* Adicionado p-4 sm:p-6 */}
               <Label className="text-lg font-semibold">Links de Briefings</Label>
               {briefingLinks.map((link, index) => (
-                <div key={index} className="flex items-center gap-2 mt-2">
-                  <Input placeholder="Nome do Briefing" value={link.name} onChange={(e) => updateBriefingLink(index, 'name', e.target.value)} />
-                  <Input placeholder="URL" value={link.url} onChange={(e) => updateBriefingLink(index, 'url', e.target.value)} />
+                <div key={index} className="flex flex-col sm:flex-row items-center gap-2 mt-2"> {/* Ajustado para responsividade */}
+                  <Input placeholder="Nome do Briefing" value={link.name} onChange={(e) => updateBriefingLink(index, 'name', e.target.value)} className="w-full sm:w-auto" /> {/* Ajustado para responsividade */}
+                  <Input placeholder="URL" value={link.url} onChange={(e) => updateBriefingLink(index, 'url', e.target.value)} className="w-full sm:w-auto" /> {/* Ajustado para responsividade */}
                   <Button variant="ghost" size="icon" onClick={() => removeBriefingLink(index)}><Trash2 className="h-4 w-4" /></Button>
                 </div>
               ))}
-              <Button variant="outline" onClick={addBriefingLink} className="mt-2">Adicionar Link de Briefing</Button>
+              <Button variant="outline" onClick={addBriefingLink} className="mt-2 w-full sm:w-auto">Adicionar Link de Briefing</Button> {/* Ajustado para responsividade */}
             </TabsContent>
-            <TabsContent value="processes" className="pt-4 space-y-4">
+            <TabsContent value="processes" className="pt-4 space-y-4 p-4 sm:p-6"> {/* Adicionado p-4 sm:p-6 */}
               <Label className="text-lg font-semibold">Nossos Processos</Label>
               {processesContent.map((item, index) => (
                 <div key={index} className="space-y-2 border p-3 rounded-md bg-muted/50">
@@ -463,10 +463,10 @@ const OnboardingTemplatesPage = () => {
                   <Button variant="destructive" size="sm" onClick={() => removeProcessItem(index)}><Trash2 className="h-4 w-4 mr-2" /> Remover Processo</Button>
                 </div>
               ))}
-              <Button variant="outline" onClick={addProcessItem} className="mt-2">Adicionar Item de Processo</Button>
+              <Button variant="outline" onClick={addProcessItem} className="mt-2 w-full sm:w-auto">Adicionar Item de Processo</Button> {/* Ajustado para responsividade */}
               <p className="text-xs text-muted-foreground mt-2">Use **negrito**, *itálico*, [links](url) e imagens `![alt](url)` no conteúdo.</p>
             </TabsContent>
-            <TabsContent value="apps" className="pt-4 space-y-4">
+            <TabsContent value="apps" className="pt-4 space-y-4 p-4 sm:p-6"> {/* Adicionado p-4 sm:p-6 */}
               <div>
                 <Label className="text-lg font-semibold">Informações de Acesso aos Apps</Label>
                 {appsAccessInfo.map((item, index) => (
@@ -476,22 +476,21 @@ const OnboardingTemplatesPage = () => {
                     <Button variant="destructive" size="sm" onClick={() => removeAppAccessItem(index)}><Trash2 className="h-4 w-4 mr-2" /> Remover Acesso</Button>
                   </div>
                 ))}
-                <Button variant="outline" onClick={addAppAccessItem} className="mt-2">Adicionar Item de Acesso</Button>
-                <p className="text-xs text-muted-foreground mt-2">Use **negrito**, *itálico*, [links](url) e imagens `![alt](url)` no conteúdo.</p>
+                <Button variant="outline" onClick={addAppAccessItem} className="mt-2 w-full sm:w-auto">Adicionar Item de Acesso</Button> {/* Ajustado para responsividade */}
               </div>
               <div>
                 <Label className="text-lg font-semibold">Vídeos Tutoriais</Label>
                 {tutorialVideos.map((video, index) => (
-                  <div key={index} className="flex items-center gap-2 mt-2">
-                    <Input placeholder="Título do Vídeo" value={video.name} onChange={(e) => updateTutorialVideo(index, 'name', e.target.value)} />
-                    <Input placeholder="URL do YouTube/Vimeo" value={video.url} onChange={(e) => updateTutorialVideo(index, 'url', e.target.value)} />
+                  <div key={index} className="flex flex-col sm:flex-row items-center gap-2 mt-2"> {/* Ajustado para responsividade */}
+                    <Input placeholder="Título do Vídeo" value={video.name} onChange={(e) => updateTutorialVideo(index, 'name', e.target.value)} className="w-full sm:w-auto" /> {/* Ajustado para responsividade */}
+                    <Input placeholder="URL do YouTube/Vimeo" value={video.url} onChange={(e) => updateTutorialVideo(index, 'url', e.target.value)} className="w-full sm:w-auto" /> {/* Ajustado para responsividade */}
                     <Button variant="ghost" size="icon" onClick={() => removeTutorialVideo(index)}><Trash2 className="h-4 w-4" /></Button>
                   </div>
                 ))}
-                <Button variant="outline" onClick={addTutorialVideo} className="mt-2">Adicionar Vídeo Tutorial</Button>
+                <Button variant="outline" onClick={addTutorialVideo} className="mt-2 w-full sm:w-auto">Adicionar Vídeo Tutorial</Button> {/* Ajustado para responsividade */}
               </div>
             </TabsContent>
-            <TabsContent value="layout" className="pt-4 space-y-4"> {/* Nova aba de Layout */}
+            <TabsContent value="layout" className="pt-4 space-y-4 p-4 sm:p-6"> {/* Adicionado p-4 sm:p-6 */}
               <Label className="text-lg font-semibold">Reorganizar Seções da Página</Label>
               <p className="text-sm text-muted-foreground mb-4">Arraste e solte para mudar a ordem de exibição das seções na página de boas-vindas do cliente.</p>
               <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
