@@ -73,7 +73,7 @@ export function Header({ pageTitle }: HeaderProps) {
     if (path.startsWith("/briefings/") && path.includes("/responses")) return "Respostas do Briefing";
     if (path.startsWith("/briefings")) return "Gerenciar Briefings";
     if (path.startsWith("/onboarding-templates")) return "Templates de Onboarding";
-    if (path.startsWith("/crm")) return "CRM - Funil de Vendas"; // Título atualizado para a página de CRM
+    if (path.startsWith("/crm")) return "CRM - Funil de Vendas";
     return "Gama Creative Flow";
   };
 
@@ -129,7 +129,7 @@ export function Header({ pageTitle }: HeaderProps) {
                 size="sm"
               >
                 <Link to={item.path}>
-                  <span> {/* Adicionado span para envolver os filhos do Link */}
+                  <span>
                     <item.icon className="mr-2 h-4 w-4" />
                     {item.name}
                   </span>
@@ -150,12 +150,16 @@ export function Header({ pageTitle }: HeaderProps) {
                   <>
                     <DropdownMenuItem asChild>
                       <Link to="/admin">
-                        <Users className="mr-2 h-4 w-4" /> Gerenciar Usuários
+                        <span>
+                          <Users className="mr-2 h-4 w-4" /> Gerenciar Usuários
+                        </span>
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
                       <Link to="/employees">
-                        <Users className="mr-2 h-4 w-4" /> Visão Geral da Equipe
+                        <span>
+                          <Users className="mr-2 h-4 w-4" /> Visão Geral da Equipe
+                        </span>
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
@@ -163,13 +167,17 @@ export function Header({ pageTitle }: HeaderProps) {
                 )}
                 <DropdownMenuItem asChild>
                   <Link to="/settings">
-                    <Palette className="mr-2 h-4 w-4" /> Configurações do App
+                    <span>
+                      <Palette className="mr-2 h-4 w-4" /> Configurações do App
+                    </span>
                   </Link>
                 </DropdownMenuItem>
                 {(userRole === 'admin' || userRole === 'equipe') && (
                   <DropdownMenuItem asChild>
                     <Link to="/onboarding-templates">
-                      <LayoutTemplate className="mr-2 h-4 w-4" /> Templates de Onboarding
+                      <span>
+                        <LayoutTemplate className="mr-2 h-4 w-4" /> Templates de Onboarding
+                      </span>
                     </Link>
                   </DropdownMenuItem>
                 )}

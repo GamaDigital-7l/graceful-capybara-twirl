@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client"; // Remover shortenUrl
+import { supabase } from "@/integrations/supabase/client";
 import { showError, showSuccess } from "@/utils/toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -37,8 +37,8 @@ const BriefingsPage = () => {
   const [generatedPublicLink, setGeneratedPublicLink] = useState("");
   const [selectedFormTitle, setSelectedFormTitle] = useState("");
   const [isGeneratingLink, setIsGeneratingLink] = useState(false);
-  const [clientPhoneNumberForApproval, setClientPhoneNumberForApproval] = useState<string | null>(null); // Adicionado
-  const [whatsappGroupIdForApproval, setWhatsappGroupIdForApproval] = useState<string | null>(null); // Adicionado
+  const [clientPhoneNumberForApproval, setClientPhoneNumberForApproval] = useState<string | null>(null);
+  const [whatsappGroupIdForApproval, setWhatsappGroupIdForApproval] = useState<string | null>(null);
 
   const { data: forms, isLoading: isLoadingForms } = useQuery<BriefingForm[]>({
     queryKey: ["briefingForms"],
@@ -99,7 +99,6 @@ const BriefingsPage = () => {
       setGeneratedPublicLink(longUrl);
       setSelectedFormTitle(formTitle);
 
-      // Fetch workspace details to get client phone number and whatsapp group ID
       if (workspaceId) {
         const { data: workspaceDetails, error: wsError } = await supabase
           .from("workspaces")
@@ -108,7 +107,6 @@ const BriefingsPage = () => {
           .single();
         if (wsError) {
           console.error("Error fetching workspace details:", wsError);
-          // Don't throw, just proceed without phone number/group ID
         } else {
           setClientPhoneNumberForApproval(workspaceDetails?.client_phone_number || null);
           setWhatsappGroupIdForApproval(workspaceDetails?.whatsapp_group_id || null);
@@ -143,11 +141,11 @@ const BriefingsPage = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"> {/* Ajustado para responsividade */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h1 className="text-2xl font-bold">Gerenciar Briefings</h1>
-        <Button asChild className="w-full sm:w-auto"> {/* Ajustado para responsividade */}
+        <Button asChild className="w-full sm:w-auto">
           <Link to="/briefings/new">
-            <span> {/* Adicionado span para envolver os filhos do Link */}
+            <span>
               <PlusCircle className="h-4 w-4 mr-2" />
               Criar Novo Formulário
             </span>
@@ -184,20 +182,24 @@ const BriefingsPage = () => {
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem asChild>
                           <Link to={`/briefings/${form.id}/edit`}>
-                            <Edit className="h-4 w-4 mr-2" />
-                            Editar Formulário
+                            <span>
+                              <Edit className="h-4 w-4 mr-2" />
+                              Editar Formulário
+                            </span>
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
                           <Link to={`/briefings/${form.id}/responses`}>
-                            <Eye className="h-4 w-4 mr-2" />
-                            Ver Respostas
-                            {form.response_count !== undefined && form.response_count > 0 && (
-                              <Badge variant="secondary" className="ml-2">{form.response_count}</Badge>
-                            )}
+                            <span>
+                              <Eye className="h-4 w-4 mr-2" />
+                              Ver Respostas
+                              {form.response_count !== undefined && form.response_count > 0 && (
+                                <Badge variant="secondary" className="ml-2">{form.response_count}</Badge>
+                              )}
+                            </span>
                           </Link>
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleGeneratePublicLink(form.id, form.title, form.workspace_id)}> {/* Passar workspace_id */}
+                        <DropdownMenuItem onClick={() => handleGeneratePublicLink(form.id, form.title, form.workspace_id)}>
                           <Share2 className="h-4 w-4 mr-2" />
                           Gerar Link Público
                         </DropdownMenuItem>

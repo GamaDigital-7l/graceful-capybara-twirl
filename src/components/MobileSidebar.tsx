@@ -53,7 +53,7 @@ export function MobileSidebar({ userRole, onClose }: MobileSidebarProps) {
               onClick={onClose}
             >
               <Link to={item.path}>
-                <span> {/* Adicionado span para envolver os filhos do Link */}
+                <span>
                   <item.icon className="mr-2 h-4 w-4" />
                   {item.name}
                 </span>
@@ -81,7 +81,7 @@ export function MobileSidebar({ userRole, onClose }: MobileSidebarProps) {
                       onClick={onClose}
                     >
                       <Link to={item.path}>
-                        <span> {/* Adicionado span para envolver os filhos do Link */}
+                        <span>
                           <item.icon className="mr-2 h-4 w-4" />
                           {item.name}
                         </span>
