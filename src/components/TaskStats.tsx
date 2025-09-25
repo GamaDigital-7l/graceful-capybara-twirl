@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { CheckCircle, ListTodo, Target } from "lucide-react";
-import React from "react"; // Importar React para usar React.Fragment
+// Removido o import de React, pois React.Fragment não será mais usado diretamente.
 
 interface TaskStatsProps {
   pendingCount: number;
@@ -13,7 +13,9 @@ export function TaskStats({ pendingCount, completedCount }: TaskStatsProps) {
   const progressPercentage = totalTasks > 0 ? (completedCount / totalTasks) * 100 : 0;
 
   return (
-    <React.Fragment> {/* Usar Fragment para retornar múltiplos elementos sem um div pai */}
+    // Envolvendo os três Cards em uma única div para garantir um único elemento raiz.
+    // Adicionei um layout de grid interno para os cards dentro desta div.
+    <div className="grid gap-6"> 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">Tarefas a Fazer</CardTitle>
@@ -51,6 +53,6 @@ export function TaskStats({ pendingCount, completedCount }: TaskStatsProps) {
           <Progress value={progressPercentage} className="w-full" />
         </CardContent>
       </Card>
-    </React.Fragment>
+    </div>
   );
 }
