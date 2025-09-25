@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react"; // Adicionado useCallback
+import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -112,6 +112,7 @@ const SortableField = ({ field, index, onUpdateField, onRemoveField }: SortableF
               <SelectItem value="select">Seleção (Dropdown)</SelectItem>
               <SelectItem value="radio">Múltipla Escolha (Rádio)</SelectItem>
               <SelectItem value="checkbox">Caixas de Seleção (Checkbox)</SelectItem>
+              <SelectItem value="file">Upload de Arquivo</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -319,7 +320,7 @@ export default function BriefingFormEditor() {
   return (
     <>
       <div className="space-y-6">
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div className="flex items-center gap-4">
             <Button asChild variant="outline" size="icon">
               <Link to="/briefings">
@@ -328,7 +329,7 @@ export default function BriefingFormEditor() {
             </Button>
             <h1 className="text-2xl font-bold">{isEditing ? "Editar Formulário de Briefing" : "Criar Novo Formulário de Briefing"}</h1>
           </div>
-          <Button onClick={handleSave} disabled={isSaving}>
+          <Button onClick={handleSave} disabled={isSaving} className="w-full sm:w-auto">
             {isSaving ? "Salvando..." : "Salvar Formulário"}
           </Button>
         </div>
@@ -338,7 +339,7 @@ export default function BriefingFormEditor() {
             <CardTitle className="mb-2">Detalhes do Formulário</CardTitle>
             <CardDescription>Informações básicas e cliente associado.</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 p-4 sm:p-6">
             <div className="space-y-2">
               <Label htmlFor="form-title">Título do Formulário</Label>
               <Input
@@ -405,7 +406,7 @@ export default function BriefingFormEditor() {
             <CardTitle className="mb-2">Estrutura do Formulário</CardTitle>
             <CardDescription>Arraste e solte para reordenar os campos.</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 p-4 sm:p-6">
             <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
               <SortableContext items={formStructure.map(f => f.id)} strategy={verticalListSortingStrategy}>
                 {formStructure.map((field, index) => (

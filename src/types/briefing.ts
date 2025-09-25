@@ -1,4 +1,4 @@
-export type BriefingFieldType = "text" | "textarea" | "select" | "radio" | "checkbox";
+export type BriefingFieldType = "text" | "textarea" | "select" | "radio" | "checkbox" | "file";
 
 export interface BriefingFieldOption {
   value: string;

@@ -12,7 +12,7 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { BriefingForm, BriefingResponse, BriefingFormField } from "@/types/briefing";
 import { Button } from "@/components/ui/button";
-import { Copy } from "lucide-react";
+import { Copy, Link as LinkIcon, FileText } from "lucide-react"; // Adicionado LinkIcon e FileText
 import { showSuccess } from "@/utils/toast";
 import { formatSaoPauloDateTime } from "@/utils/date-utils";
 
@@ -43,6 +43,12 @@ export function BriefingResponseViewModal({ isOpen, onClose, response, form }: B
       case "select":
       case "radio":
         return <span className="text-sm text-foreground">{field.options?.find(opt => opt.value === value)?.label || value}</span>;
+      case "file": // NEW: Render file link
+        return (
+          <a href={value} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline flex items-center gap-2">
+            <LinkIcon className="h-4 w-4" /> Abrir Arquivo
+          </a>
+        );
       case "text":
       case "textarea":
       default:
@@ -63,6 +69,8 @@ export function BriefingResponseViewModal({ isOpen, onClose, response, form }: B
       case "select":
       case "radio":
         return field.options?.find(opt => opt.value === value)?.label || value;
+      case "file": // NEW: Return file URL
+        return value;
       case "text":
       case "textarea":
       default:

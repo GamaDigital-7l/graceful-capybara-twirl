@@ -16,7 +16,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { BriefingForm, BriefingFormField, BriefingFieldType } from "@/types/briefing";
 import { AppLogo } from "@/components/AppLogo";
-import { ArrowLeft, ArrowRight } from "lucide-react";
+import { ArrowLeft, ArrowRight, Upload, File as FileIcon } from "lucide-react"; // Adicionado Upload e FileIcon
 
 const fetchBriefingForm = async (formId: string): Promise<BriefingForm | null> => {
   const { data, error } = await supabase
@@ -38,6 +38,7 @@ const PublicBriefingPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
+  const [fileInputs, setFileInputs] = useState<Map<string, File | null>>(new Map()); // NEW: State for file inputs
 
   const { data: form, isLoading, error } = useQuery<BriefingForm | null, Error>({
     queryKey: ["publicBriefingForm", formId],
@@ -55,14 +56,19 @@ const PublicBriefingPage = () => {
   useEffect(() => {
     if (form) {
       const initialData: { [key: string]: any } = {};
+      const initialFiles = new Map<string, File | null>(); // Initialize file map
       allFields.forEach(field => {
         if (field.type === "checkbox") {
           initialData[field.id] = [];
         } else {
           initialData[field.id] = "";
         }
+        if (field.type === "file") { // Initialize file state for file fields
+          initialFiles.set(field.id, null);
+        }
       });
       setFormData(initialData);
+      setFileInputs(initialFiles); // Set initial file inputs
       setCurrentStep(0);
     }
   }, [form, allFields]);
@@ -77,6 +83,9 @@ const PublicBriefingPage = () => {
           return { ...prev, [fieldId]: [...currentValues, value] };
         }
       });
+    } else if (fieldType === "file") { // Handle file change
+      setFileInputs(prev => new Map(prev).set(fieldId, value));
+      // No need to update formData directly here, it will be processed on submit
     } else {
       setFormData(prev => ({ ...prev, [fieldId]: value }));
     }
@@ -86,15 +95,22 @@ const PublicBriefingPage = () => {
     if (form?.display_mode === 'typeform') {
       const currentField = allFields[currentStep];
       if (currentField.required) {
-        const value = formData[currentField.id];
         if (currentField.id === "client-name") {
           if (!clientName.trim()) {
             showError("Por favor, insira seu nome completo.");
             return false;
           }
-        } else if (!value || (Array.isArray(value) && value.length === 0)) {
-          showError(`Por favor, preencha o campo "${currentField.label}".`);
-          return false;
+        } else if (currentField.type === "file") { // Validate file input
+          if (!fileInputs.get(currentField.id)) {
+            showError(`Por favor, faça o upload de um arquivo para "${currentField.label}".`);
+            return false;
+          }
+        } else {
+          const value = formData[currentField.id];
+          if (!value || (Array.isArray(value) && value.length === 0)) {
+            showError(`Por favor, preencha o campo "${currentField.label}".`);
+            return false;
+          }
         }
       }
     } else { // all_questions mode
@@ -103,29 +119,25 @@ const PublicBriefingPage = () => {
         return false;
       }
       const formStructure = form?.form_structure || [];
-      if (formStructure.some((field: BriefingFormField) => field.required && (!formData[field.id] || (Array.isArray(formData[field.id]) && formData[field.id].length === 0)))) {
-        showError("Por favor, preencha todos os campos obrigatórios.");
-        return false;
+      for (const field of formStructure) {
+        if (field.required) {
+          if (field.type === "file") {
+            if (!fileInputs.get(field.id)) {
+              showError(`Por favor, faça o upload de um arquivo para "${field.label}".`);
+              return false;
+            }
+          } else {
+            const value = formData[field.id];
+            if (!value || (Array.isArray(value) && value.length === 0)) {
+              showError(`Por favor, preencha o campo "${field.label}".`);
+              return false;
+            }
+          }
+        }
       }
     }
     return true;
-  }, [form, allFields, currentStep, formData, clientName]);
-
-  const handleNextStep = () => {
-    if (validateCurrentStep()) {
-      if (currentStep < allFields.length - 1) {
-        setCurrentStep(prev => prev + 1);
-      } else {
-        handleSubmit();
-      }
-    }
-  };
-
-  const handlePreviousStep = () => {
-    if (currentStep > 0) {
-      setCurrentStep(prev => prev - 1);
-    }
-  };
+  }, [form, allFields, currentStep, formData, clientName, fileInputs]);
 
   const handleSubmit = async (e?: React.FormEvent) => {
     e?.preventDefault();
@@ -145,10 +157,30 @@ const PublicBriefingPage = () => {
       const finalFormData = { ...formData };
       delete finalFormData["client-name"];
 
+      // NEW: Process file uploads
+      const uploadedFileUrls: { [key: string]: string } = {};
+      for (const [fieldId, file] of fileInputs.entries()) {
+        if (file) {
+          const filePath = `briefing-attachments/${form.id}/${fieldId}/${Date.now()}_${file.name}`;
+          const { data: uploadData, error: uploadError } = await supabase.storage
+            .from("briefing-attachments")
+            .upload(filePath, file);
+
+          if (uploadError) {
+            throw new Error(`Erro ao enviar arquivo para o campo "${allFields.find(f => f.id === fieldId)?.label || fieldId}": ${uploadError.message}`);
+          }
+          const { data: publicUrlData } = supabase.storage.from("briefing-attachments").getPublicUrl(uploadData.path);
+          uploadedFileUrls[fieldId] = publicUrlData.publicUrl;
+        }
+      }
+
+      // Merge uploaded file URLs into finalFormData
+      const responseDataWithFiles = { ...finalFormData, ...uploadedFileUrls };
+
       const { error: submitError } = await supabase.functions.invoke("submit-briefing-response", {
         body: {
           formId: form.id,
-          responseData: finalFormData,
+          responseData: responseDataWithFiles, // Use data with file URLs
           submittedByUserId: submittedByUserId,
           clientName: clientName.trim() || null,
         },
@@ -169,9 +201,13 @@ const PublicBriefingPage = () => {
 
   const renderField = (field: BriefingFormField) => {
     const value = field.id === "client-name" ? clientName : formData[field.id];
-    const onChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | string | boolean) => {
+    const file = fileInputs.get(field.id); // Get file from state
+
+    const onChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | string | boolean | File | null) => {
       if (field.id === "client-name") {
         setClientName(typeof e === 'string' ? e : (e as React.ChangeEvent<HTMLInputElement>).target.value);
+      } else if (field.type === "file") {
+        handleFieldChange(field.id, e as File | null, field.type);
       } else {
         handleFieldChange(field.id, typeof e === 'string' ? e : (e as React.ChangeEvent<HTMLInputElement>).target.value, field.type);
       }
@@ -248,6 +284,23 @@ const PublicBriefingPage = () => {
                 <Label htmlFor={`${field.id}-${option.value}`}>{option.label}</Label>
               </div>
             ))}
+          </div>
+        );
+      case "file": // NEW: Render file input
+        return (
+          <div className="space-y-2">
+            <Input
+              id={field.id}
+              type="file"
+              onChange={(e) => onChange(e.target.files?.[0] || null)}
+              required={field.required}
+              className="w-full"
+            />
+            {file && (
+              <p className="text-sm text-muted-foreground flex items-center gap-1">
+                <FileIcon className="h-4 w-4" /> {file.name}
+              </p>
+            )}
           </div>
         );
       default:
