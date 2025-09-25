@@ -129,8 +129,10 @@ export function Header({ pageTitle }: HeaderProps) {
                 size="sm"
               >
                 <Link to={item.path}>
-                  <item.icon className="mr-2 h-4 w-4" />
-                  {item.name}
+                  <span> {/* Adicionado span para envolver os filhos do Link */}
+                    <item.icon className="mr-2 h-4 w-4" />
+                    {item.name}
+                  </span>
                 </Link>
               </Button>
             ) : null

@@ -147,8 +147,10 @@ const BriefingsPage = () => {
         <h1 className="text-2xl font-bold">Gerenciar Briefings</h1>
         <Button asChild className="w-full sm:w-auto"> {/* Ajustado para responsividade */}
           <Link to="/briefings/new">
-            <PlusCircle className="h-4 w-4 mr-2" />
-            Criar Novo Formulário
+            <span> {/* Adicionado span para envolver os filhos do Link */}
+              <PlusCircle className="h-4 w-4 mr-2" />
+              Criar Novo Formulário
+            </span>
           </Link>
         </Button>
       </div>
