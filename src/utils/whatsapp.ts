@@ -21,11 +21,15 @@ export const sendWhatsAppMetaNotification = async (to: string, message: string) 
   }
 };
 
-// Nova função para enviar mensagens via Evolution API
-export const sendWhatsAppEvolutionNotification = async (to: string, message: string) => {
+// Nova função para enviar mensagens via Evolution API, agora com suporte a grupos
+export const sendWhatsAppEvolutionNotification = async (recipient: string, message: string, isGroup: boolean = false) => {
   try {
     const { data, error } = await supabase.functions.invoke("send-whatsapp-evolution-message", {
-      body: { to, message },
+      body: { 
+        to: isGroup ? undefined : recipient, // Envia 'to' se não for grupo
+        whatsappGroupId: isGroup ? recipient : undefined, // Envia 'whatsappGroupId' se for grupo
+        message 
+      },
     });
 
     if (error) {

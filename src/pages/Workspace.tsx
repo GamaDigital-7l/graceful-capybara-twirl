@@ -22,10 +22,10 @@ const fetchGroups = async (workspaceId: string) => {
   return data;
 };
 
-const fetchWorkspaceDetails = async (workspaceId: string): Promise<{ name: string; client_phone_number: string | null }> => {
+const fetchWorkspaceDetails = async (workspaceId: string): Promise<{ name: string; client_phone_number: string | null; whatsapp_group_id: string | null }> => {
     const { data, error } = await supabase
         .from("workspaces")
-        .select("name, client_phone_number")
+        .select("name, client_phone_number, whatsapp_group_id")
         .eq("id", workspaceId)
         .single();
     if (error) throw new Error(error.message);
@@ -49,11 +49,13 @@ const WorkspacePage = ({ initialWorkspaceId }: WorkspacePageProps) => {
   const [generatedApprovalLink, setGeneratedApprovalLink] = useState("");
   const [whatsappApprovalTemplate, setWhatsappApprovalTemplate] = useState("");
   const [clientPhoneNumberForApproval, setClientPhoneNumberForApproval] = useState<string | null>(null);
+  const [whatsappGroupIdForApproval, setWhatsappGroupIdForApproval] = useState<string | null>(null); // Novo estado
 
   const [isDashboardLinkModalOpen, setIsDashboardLinkModalOpen] = useState(false);
   const [generatedDashboardLink, setGeneratedDashboardLink] = useState("");
   const [dashboardMessageTemplate, setDashboardMessageTemplate] = useState("");
   const [clientPhoneNumberForDashboard, setClientPhoneNumberForDashboard] = useState<string | null>(null);
+  const [whatsappGroupIdForDashboard, setWhatsappGroupIdForDashboard] = useState<string | null>(null); // Novo estado
 
   const { data: groups, isLoading: isLoadingGroups } = useQuery<Group[]>({
     queryKey: ["groups", workspaceId],
@@ -171,6 +173,7 @@ const WorkspacePage = ({ initialWorkspaceId }: WorkspacePageProps) => {
 
       setWhatsappApprovalTemplate(settings.whatsapp_message_template || 'Olá! Seus posts estão prontos para aprovação. Por favor, acesse o link a seguir para revisar e aprovar:');
       setClientPhoneNumberForApproval(workspaceDetails?.client_phone_number || null);
+      setWhatsappGroupIdForApproval(workspaceDetails?.whatsapp_group_id || null); // Definir ID do grupo
 
       const { data: { user }, error: getUserError } = await supabase.auth.getUser();
       if (getUserError || !user) {
@@ -207,6 +210,7 @@ const WorkspacePage = ({ initialWorkspaceId }: WorkspacePageProps) => {
 
       setDashboardMessageTemplate(`Olá! Aqui está o dashboard de acompanhamento do seu projeto com a ${workspaceDetails?.name || 'Gama Creative'}. Acesse para ver os insights do Instagram e o status das tarefas do Kanban:\n\n`);
       setClientPhoneNumberForDashboard(workspaceDetails?.client_phone_number || null);
+      setWhatsappGroupIdForDashboard(workspaceDetails?.whatsapp_group_id || null); // Definir ID do grupo
 
       const { data: { user }, error: getUserError } = await supabase.auth.getUser();
       if (getUserError || !user) {
@@ -357,7 +361,8 @@ const WorkspacePage = ({ initialWorkspaceId }: WorkspacePageProps) => {
         title="Link de Aprovação Gerado"
         description="Copie a mensagem abaixo e envie para o seu cliente via WhatsApp."
         buttonText="Copiar Mensagem para WhatsApp"
-        clientPhoneNumber={clientPhoneNumberForApproval} // Passar o número do cliente
+        clientPhoneNumber={clientPhoneNumberForApproval}
+        whatsappGroupId={whatsappGroupIdForApproval} // Passar o ID do grupo
       />
       <PublicLinkModal
         isOpen={isDashboardLinkModalOpen}
@@ -368,7 +373,8 @@ const WorkspacePage = ({ initialWorkspaceId }: WorkspacePageProps) => {
         title="Link do Dashboard do Cliente Gerado"
         description="Copie a mensagem abaixo e envie para o seu cliente."
         buttonText="Copiar Mensagem"
-        clientPhoneNumber={clientPhoneNumberForDashboard} // Passar o número do cliente
+        clientPhoneNumber={clientPhoneNumberForDashboard}
+        whatsappGroupId={whatsappGroupIdForDashboard} // Passar o ID do grupo
       />
     </div>
   );

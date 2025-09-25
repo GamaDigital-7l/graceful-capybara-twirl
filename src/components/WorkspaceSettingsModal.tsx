@@ -21,7 +21,7 @@ interface WorkspaceSettingsModalProps {
   workspace: Workspace | null;
 }
 
-const INTERNAL_WORKSPACE_NAME = "Tarefas"; // Renomeado de "Tarefas Internas" para "Tarefas"
+const INTERNAL_WORKSPACE_NAME = "Tarefas";
 
 const fetchUsers = async () => {
   const { data, error } = await supabase.functions.invoke("list-users");
@@ -32,7 +32,8 @@ const fetchUsers = async () => {
 export function WorkspaceSettingsModal({ isOpen, onClose, workspace }: WorkspaceSettingsModalProps) {
   const queryClient = useQueryClient();
   const [name, setName] = useState("");
-  const [clientPhoneNumber, setClientPhoneNumber] = useState(""); // Novo estado para o número de telefone
+  const [clientPhoneNumber, setClientPhoneNumber] = useState("");
+  const [whatsappGroupId, setWhatsappGroupId] = useState(""); // Novo estado para o ID do grupo
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
@@ -52,7 +53,8 @@ export function WorkspaceSettingsModal({ isOpen, onClose, workspace }: Workspace
   useEffect(() => {
     if (workspace) {
       setName(workspace.name);
-      setClientPhoneNumber(workspace.client_phone_number || ""); // Inicializar o número de telefone
+      setClientPhoneNumber(workspace.client_phone_number || "");
+      setWhatsappGroupId(workspace.whatsapp_group_id || ""); // Inicializar o ID do grupo
       refetchMembers();
     }
     setSelectedFile(null);
@@ -129,7 +131,7 @@ export function WorkspaceSettingsModal({ isOpen, onClose, workspace }: Workspace
       logoUrl = publicUrlData.publicUrl;
       setIsUploading(false);
     }
-    updateWorkspaceMutation.mutate({ name, logo_url: logoUrl, client_phone_number: clientPhoneNumber }); // Incluir o número de telefone
+    updateWorkspaceMutation.mutate({ name, logo_url: logoUrl, client_phone_number: clientPhoneNumber, whatsapp_group_id: whatsappGroupId }); // Incluir o ID do grupo
   };
 
   const memberIds = members?.map(m => m.user_id) || [];
@@ -158,6 +160,11 @@ export function WorkspaceSettingsModal({ isOpen, onClose, workspace }: Workspace
               <Label htmlFor="client-phone-number">Número de Telefone do Cliente (WhatsApp)</Label>
               <Input id="client-phone-number" value={clientPhoneNumber} onChange={(e) => setClientPhoneNumber(e.target.value)} placeholder="Ex: 5511987654321" disabled={isInternalWorkspace} />
               <p className="text-xs text-muted-foreground">Formato: Código do País + DDD + Número (sem espaços ou caracteres especiais).</p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="whatsapp-group-id">ID do Grupo WhatsApp (Opcional)</Label>
+              <Input id="whatsapp-group-id" value={whatsappGroupId} onChange={(e) => setWhatsappGroupId(e.target.value)} placeholder="Ex: 120363040654321098" disabled={isInternalWorkspace} />
+              <p className="text-xs text-muted-foreground">Use o ID do grupo do WhatsApp para enviar mensagens diretamente para um grupo. Priorizado sobre o número individual.</p>
             </div>
             <div className="space-y-2">
               <Label htmlFor="logo-upload">Logo do Cliente</Label>

@@ -9,9 +9,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Copy, Loader2, MessageSquare, Send } from "lucide-react"; // Adicionado Send
+import { Copy, Loader2, MessageSquare, Send } from "lucide-react";
 import { showSuccess, showError } from "@/utils/toast";
-import { sendWhatsAppEvolutionNotification } from "@/utils/whatsapp"; // Importar a função de envio
+import { sendWhatsAppEvolutionNotification } from "@/utils/whatsapp";
 
 interface PublicLinkModalProps {
   isOpen: boolean;
@@ -22,10 +22,11 @@ interface PublicLinkModalProps {
   title: string;
   description: string;
   buttonText: string;
-  clientPhoneNumber: string | null; // Novo prop para o número de telefone do cliente
+  clientPhoneNumber: string | null;
+  whatsappGroupId: string | null; // Novo prop para o ID do grupo do WhatsApp
 }
 
-export function PublicLinkModal({ isOpen, onClose, link, isGenerating, messageTemplate, title, description, buttonText, clientPhoneNumber }: PublicLinkModalProps) {
+export function PublicLinkModal({ isOpen, onClose, link, isGenerating, messageTemplate, title, description, buttonText, clientPhoneNumber, whatsappGroupId }: PublicLinkModalProps) {
   const fullMessage = `${messageTemplate || 'Acesse o link:'}\n\n${link}`;
   const [isSendingWhatsapp, setIsSendingWhatsapp] = useState(false);
 
@@ -35,21 +36,29 @@ export function PublicLinkModal({ isOpen, onClose, link, isGenerating, messageTe
   };
 
   const handleSendWhatsApp = async () => {
-    if (!clientPhoneNumber) {
-      showError("Número de telefone do cliente não configurado para este workspace.");
+    if (!clientPhoneNumber && !whatsappGroupId) {
+      showError("Nenhum número de telefone ou ID de grupo do cliente configurado para este workspace.");
       return;
     }
+
     setIsSendingWhatsapp(true);
     try {
-      await sendWhatsAppEvolutionNotification(clientPhoneNumber, fullMessage);
+      // Prioriza o envio para o grupo se o ID estiver disponível
+      if (whatsappGroupId) {
+        await sendWhatsAppEvolutionNotification(whatsappGroupId, fullMessage, true); // O terceiro parâmetro indica que é um grupo
+      } else if (clientPhoneNumber) {
+        await sendWhatsAppEvolutionNotification(clientPhoneNumber, fullMessage);
+      }
       showSuccess("Mensagem enviada via WhatsApp!");
-      onClose(); // Fechar modal após o envio
+      onClose();
     } catch (error) {
       // Erro já tratado na função utilitária
     } finally {
       setIsSendingWhatsapp(false);
     }
   };
+
+  const canSendWhatsapp = !!clientPhoneNumber || !!whatsappGroupId;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -72,7 +81,7 @@ export function PublicLinkModal({ isOpen, onClose, link, isGenerating, messageTe
                 <Textarea id="public-message" value={fullMessage} readOnly rows={6} className="resize-none mt-1" />
               </div>
               <div className="flex flex-col sm:flex-row gap-2">
-                {clientPhoneNumber && (
+                {canSendWhatsapp && (
                   <Button onClick={handleSendWhatsApp} className="w-full sm:w-1/2" disabled={isSendingWhatsapp}>
                     {isSendingWhatsapp ? (
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -82,14 +91,14 @@ export function PublicLinkModal({ isOpen, onClose, link, isGenerating, messageTe
                     Enviar via WhatsApp
                   </Button>
                 )}
-                <Button onClick={handleCopyMessage} className="w-full sm:w-1/2" variant={clientPhoneNumber ? "outline" : "default"}>
+                <Button onClick={handleCopyMessage} className="w-full sm:w-1/2" variant={canSendWhatsapp ? "outline" : "default"}>
                   <Copy className="h-4 w-4 mr-2" />
                   {buttonText}
                 </Button>
               </div>
-              {!clientPhoneNumber && (
+              {!canSendWhatsapp && (
                 <p className="text-sm text-muted-foreground text-center mt-2">
-                  Adicione o número de telefone do cliente nas configurações do workspace para enviar via WhatsApp.
+                  Adicione o número de telefone ou ID do grupo do cliente nas configurações do workspace para enviar via WhatsApp.
                 </p>
               )}
             </>

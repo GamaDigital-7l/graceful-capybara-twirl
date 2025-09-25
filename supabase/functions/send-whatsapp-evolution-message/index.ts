@@ -12,15 +12,18 @@ serve(async (req) => {
   }
 
   try {
-    const { to, message: rawMessage } = await req.json();
-    const message = String(rawMessage || '').trim(); // Garante que 'message' é uma string e remove espaços
+    const { to, whatsappGroupId, message: rawMessage } = await req.json();
+    const message = String(rawMessage || '').trim();
 
     console.log("EF: Received 'to':", to);
-    console.log("EF: Received 'rawMessage':", rawMessage);
+    console.log("EF: Received 'whatsappGroupId':", whatsappGroupId);
     console.log("EF: Processed 'message':", message);
 
-    if (!to || !message) {
-      throw new Error("O número de telefone 'to' e a 'message' são obrigatórios.");
+    if (!message) {
+      throw new Error("A 'message' é obrigatória.");
+    }
+    if (!to && !whatsappGroupId) {
+      throw new Error("É necessário fornecer um número de telefone 'to' ou um 'whatsappGroupId'.");
     }
 
     const supabaseAdmin = createClient(
@@ -28,7 +31,6 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    // Buscar as credenciais da Evolution API das configurações do app
     const { data: settings, error: settingsError } = await supabaseAdmin
       .from("app_settings")
       .select("evolution_api_url, evolution_api_token, evolution_api_instance")
@@ -41,29 +43,43 @@ serve(async (req) => {
 
     const { evolution_api_url, evolution_api_token, evolution_api_instance } = settings;
 
-    // Formatar o número de telefone para o padrão da Evolution API (geralmente 55DDD9XXXXYYYY)
-    // Remover caracteres não numéricos e garantir que comece com 55
-    const cleanedTo = to.replace(/\D/g, '');
-    const formattedTo = cleanedTo.startsWith('55') ? cleanedTo : `55${cleanedTo}`;
+    let evolutionApiEndpoint: string;
+    let requestBody: any;
 
-    const evolutionApiEndpoint = `${evolution_api_url}/message/sendText/${evolution_api_instance}`;
-    
-    const requestBody = {
-      number: formattedTo,
-      options: {
-        delay: 1200,
-      },
-      text: message, // Alterado: Tentando enviar 'text' diretamente no nível raiz
-    };
+    if (whatsappGroupId) {
+      // Enviar para grupo
+      evolutionApiEndpoint = `${evolution_api_url}/message/sendText/${evolution_api_instance}`;
+      requestBody = {
+        number: whatsappGroupId, // Evolution API pode usar 'number' para IDs de grupo também, ou 'groupId'
+        options: {
+          delay: 1200,
+        },
+        text: message,
+      };
+      console.log("EF: Sending to WhatsApp Group ID:", whatsappGroupId);
+    } else {
+      // Enviar para número individual
+      const cleanedTo = to.replace(/\D/g, '');
+      const formattedTo = cleanedTo.startsWith('55') ? cleanedTo : `55${cleanedTo}`;
+      evolutionApiEndpoint = `${evolution_api_url}/message/sendText/${evolution_api_instance}`;
+      requestBody = {
+        number: formattedTo,
+        options: {
+          delay: 1200,
+        },
+        text: message,
+      };
+      console.log("EF: Sending to individual number:", formattedTo);
+    }
 
     console.log("EF: Sending request to Evolution API with endpoint:", evolutionApiEndpoint);
-    console.log("EF: Request Body:", JSON.stringify(requestBody, null, 2)); // Loga o corpo completo da requisição
+    console.log("EF: Request Body:", JSON.stringify(requestBody, null, 2));
 
     const evolutionResponse = await fetch(evolutionApiEndpoint, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "apikey": evolution_api_token, // O token da Evolution API geralmente vai no header 'apikey'
+        "apikey": evolution_api_token,
       },
       body: JSON.stringify(requestBody),
     });
