@@ -6,10 +6,12 @@ import { showError, showSuccess } from "@/utils/toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { PlusCircle, Edit, Trash2, MoreVertical } from "lucide-react";
+import { PlusCircle, Edit, Trash2, MoreVertical, NotebookText } from "lucide-react"; // Adicionado NotebookText
 import { SecondBrainClientModal, SecondBrainClient } from "@/components/SecondBrainClientModal";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"; // Importar Tabs
+import { PersonalNotesTab } from "@/components/PersonalNotesTab"; // Importar o novo componente
 
 // A interface SecondBrainClient já é importada de "@/components/SecondBrainClientModal"
 // Removendo a declaração duplicada aqui.
@@ -129,78 +131,95 @@ const SecondBrainDashboard = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"> {/* Ajustado para responsividade */}
-        <h1 className="text-2xl font-bold">Segundo Cérebro</h1>
-        <Button onClick={() => { setSelectedClient(null); setIsClientModalOpen(true); }} className="w-full sm:w-auto"> {/* Ajustado para responsividade */}
-          <PlusCircle className="h-4 w-4 mr-2" />
-          Adicionar Cliente
-        </Button>
-      </div>
-      <Card>
-        <CardHeader>
-          <CardTitle>Meus Clientes</CardTitle>
-          <CardDescription>Gerencie os clientes e seus prompts personalizados.</CardDescription>
-        </CardHeader>
-        <CardContent className="p-4 sm:p-6">
-          {isLoadingClients ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-48 w-full" />)}
-            </div>
-          ) : clients && clients.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {clients.map((client) => (
-                <Card key={client.id} className="hover:shadow-lg transition-shadow flex flex-col">
-                  <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
-                    <CardTitle className="text-lg font-medium flex-grow truncate pr-2">{client.name}</CardTitle>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 -mt-2 -mr-2 flex-shrink-0">
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => { setSelectedClient(client); setIsClientModalOpen(true); }}>
-                          <Edit className="h-4 w-4 mr-2" />
-                          Editar Cliente
-                        </DropdownMenuItem>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <DropdownMenuItem className="text-destructive">
-                              <Trash2 className="h-4 w-4 mr-2" />
-                              Deletar Cliente
+      <h1 className="text-2xl font-bold">Segundo Cérebro</h1>
+      <Tabs defaultValue="clients">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <TabsList className="w-full sm:w-auto grid grid-cols-2 sm:grid-cols-auto">
+            <TabsTrigger value="clients">Meus Clientes</TabsTrigger>
+            <TabsTrigger value="personal-notes">
+              <NotebookText className="h-4 w-4 mr-2" /> Minhas Notas Pessoais
+            </TabsTrigger>
+          </TabsList>
+          <div className="w-full sm:w-auto">
+            <Button onClick={() => { setSelectedClient(null); setIsClientModalOpen(true); }} className="w-full sm:w-auto">
+              <PlusCircle className="h-4 w-4 mr-2" />
+              Adicionar Cliente
+            </Button>
+          </div>
+        </div>
+
+        <TabsContent value="clients">
+          <Card>
+            <CardHeader>
+              <CardTitle>Meus Clientes</CardTitle>
+              <CardDescription>Gerencie os clientes e seus prompts personalizados.</CardDescription>
+            </CardHeader>
+            <CardContent className="p-4 sm:p-6">
+              {isLoadingClients ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                  {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-48 w-full" />)}
+                </div>
+              ) : clients && clients.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                  {clients.map((client) => (
+                    <Card key={client.id} className="hover:shadow-lg transition-shadow flex flex-col">
+                      <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
+                        <CardTitle className="text-lg font-medium flex-grow truncate pr-2">{client.name}</CardTitle>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 -mt-2 -mr-2 flex-shrink-0">
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => { setSelectedClient(client); setIsClientModalOpen(true); }}>
+                              <Edit className="h-4 w-4 mr-2" />
+                              Editar Cliente
                             </DropdownMenuItem>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Tem certeza que deseja deletar o cliente "{client.name}" e todos os seus prompts? Esta ação é irreversível.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                              <AlertDialogAction onClick={() => client.id && deleteClientMutation.mutate(client.id)} className="bg-destructive hover:bg-destructive/90">
-                                Deletar
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </CardHeader>
-                  <Link to={`/second-brain/${client.id}`} className="flex flex-col flex-grow">
-                    <CardContent className="flex-grow flex items-end justify-center p-4 pt-0">
-                      <Button variant="outline" className="w-full">Ver Prompts</Button>
-                    </CardContent>
-                  </Link>
-                </Card>
-              ))}
-            </div>
-          ) : (
-            <p className="text-muted-foreground">Nenhum cliente cadastrado ainda. Clique em "Adicionar Cliente" para começar.</p>
-          )}
-        </CardContent>
-      </Card>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <DropdownMenuItem className="text-destructive">
+                                  <Trash2 className="h-4 w-4 mr-2" />
+                                  Deletar Cliente
+                                </DropdownMenuItem>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Tem certeza que deseja deletar o cliente "{client.name}" e todos os seus prompts? Esta ação é irreversível.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                  <AlertDialogAction onClick={() => client.id && deleteClientMutation.mutate(client.id)} className="bg-destructive hover:bg-destructive/90">
+                                    Deletar
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </CardHeader>
+                      <Link to={`/second-brain/${client.id}`} className="flex flex-col flex-grow">
+                        <CardContent className="flex-grow flex items-end justify-center p-4 pt-0">
+                          <Button variant="outline" className="w-full">Ver Prompts</Button>
+                        </CardContent>
+                      </Link>
+                    </Card>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-muted-foreground">Nenhum cliente cadastrado ainda. Clique em "Adicionar Cliente" para começar.</p>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="personal-notes">
+          <PersonalNotesTab />
+        </TabsContent>
+      </Tabs>
       <SecondBrainClientModal
         isOpen={isClientModalOpen}
         onClose={() => setIsClientModalOpen(false)}

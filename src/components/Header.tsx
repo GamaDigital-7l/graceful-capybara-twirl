@@ -2,7 +2,7 @@ import { Link, useLocation } from "react-router-dom";
 import { AppLogo } from "./AppLogo";
 import { ThemeToggle } from "./ThemeToggle";
 import { Button } from "@/components/ui/button";
-import { LogOut, Home, Banknote, Brain, UserCog, Palette, Users, BookOpen, Menu, BarChart, FileText, LayoutTemplate, ListTodo, MessageSquareText } from "lucide-react";
+import { LogOut, Home, Banknote, Brain, UserCog, Palette, Users, BookOpen, Menu, BarChart, FileText, LayoutTemplate, ListTodo, MessageSquareText, NotebookText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useState, useEffect } from "react";
 import { showError } from "@/utils/toast";
