@@ -100,7 +100,7 @@ const PlaybookPage = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"> {/* Ajustado para responsividade */}
         <div className="flex items-center gap-4">
             <Button asChild variant="outline" size="icon">
                 <Link to={`/workspace/${workspaceId}`}>
@@ -112,7 +112,7 @@ const PlaybookPage = () => {
                 <p className="text-sm text-muted-foreground">{isLoadingName ? <Skeleton className="h-4 w-32 mt-1" /> : workspaceName}</p>
             </div>
         </div>
-        <Button onClick={() => setIsEditorOpen(true)}>
+        <Button onClick={() => setIsEditorOpen(true)} className="w-full sm:w-auto"> {/* Ajustado para responsividade */}
           <Pencil className="h-4 w-4 mr-2" />
           Editar Playbook
         </Button>

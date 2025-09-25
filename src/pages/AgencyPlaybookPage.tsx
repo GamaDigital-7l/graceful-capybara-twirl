@@ -82,12 +82,12 @@ const AgencyPlaybookPage = () => {
   return (
     <React.Fragment>
       <div className="space-y-6">
-        <div className="flex justify-end gap-2">
-          <Button onClick={() => setIsGenerateOnboardingModalOpen(true)}>
+        <div className="flex flex-col sm:flex-row justify-end gap-2"> {/* Ajustado para responsividade */}
+          <Button onClick={() => setIsGenerateOnboardingModalOpen(true)} className="w-full sm:w-auto"> {/* Ajustado para responsividade */}
             <PlusCircle className="h-4 w-4 mr-2" />
             Gerar Página de Boas-Vindas
           </Button>
-          <Button onClick={() => setIsEditorOpen(true)}>
+          <Button onClick={() => setIsEditorOpen(true)} className="w-full sm:w-auto"> {/* Ajustado para responsividade */}
             <Pencil className="h-4 w-4 mr-2" />
             Editar Playbook da Agência
           </Button>
