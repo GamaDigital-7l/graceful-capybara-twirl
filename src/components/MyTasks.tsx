@@ -82,7 +82,9 @@ export function MyTasks() {
     <div>
       {/* Seção para os 3 cards de TaskStats, ClientProgress e PersonalTasksWidget */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-        <TaskStats pendingCount={pendingTasks.length} completedCount={completedTasks.length} />
+        <div> {/* Wrapper div adicionada aqui */}
+          <TaskStats pendingCount={pendingTasks.length} completedCount={completedTasks.length} />
+        </div>
         <ClientProgress /> {/* ClientProgress agora ocupa uma coluna */}
         <PersonalTasksWidget /> {/* Novo widget de tarefas pessoais */}
       </div>
