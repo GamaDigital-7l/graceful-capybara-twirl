@@ -173,7 +173,7 @@ const SortableField = ({ field, index, onUpdateField, onRemoveField }: SortableF
   );
 };
 
-export function BriefingFormEditor() {
+export default function BriefingFormEditor() {
   const { formId } = useParams<{ formId: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -338,7 +338,7 @@ export function BriefingFormEditor() {
             <CardTitle className="mb-2">Detalhes do Formulário</CardTitle>
             <CardDescription>Informações básicas e cliente associado.</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4 p-4 sm:p-6"> {/* Ajustado padding */}
+          <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="form-title">Título do Formulário</Label>
               <Input
@@ -405,7 +405,7 @@ export function BriefingFormEditor() {
             <CardTitle className="mb-2">Estrutura do Formulário</CardTitle>
             <CardDescription>Arraste e solte para reordenar os campos.</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4 p-4 sm:p-6"> {/* Ajustado padding */}
+          <CardContent className="space-y-4">
             <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
               <SortableContext items={formStructure.map(f => f.id)} strategy={verticalListSortingStrategy}>
                 {formStructure.map((field, index) => (
