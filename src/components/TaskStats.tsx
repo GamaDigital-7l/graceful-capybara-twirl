@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { CheckCircle, ListTodo, Target } from "lucide-react";
-// Removido o import de React, pois React.Fragment não será mais usado diretamente.
+import { useMemo } from "react"; // Importar useMemo
 
 interface TaskStatsProps {
   pendingCount: number;
@@ -9,12 +9,10 @@ interface TaskStatsProps {
 }
 
 export function TaskStats({ pendingCount, completedCount }: TaskStatsProps) {
-  const totalTasks = pendingCount + completedCount;
-  const progressPercentage = totalTasks > 0 ? (completedCount / totalTasks) * 100 : 0;
+  const totalTasks = useMemo(() => pendingCount + completedCount, [pendingCount, completedCount]);
+  const progressPercentage = useMemo(() => totalTasks > 0 ? (completedCount / totalTasks) * 100 : 0, [completedCount, totalTasks]);
 
   return (
-    // Envolvendo os três Cards em uma única div para garantir um único elemento raiz.
-    // Adicionei um layout de grid interno para os cards dentro desta div.
     <div className="grid gap-6"> 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

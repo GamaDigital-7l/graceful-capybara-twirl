@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "react-router-dom";
 import { AppLogo } from "./AppLogo";
 import { ThemeToggle } from "./ThemeToggle";
-import { LogOut, Home, Banknote, Brain, UserCog, Palette, Users, BookOpen, BarChart, FileText, LayoutTemplate, ListTodo, MessageSquareText, NotebookText } from "lucide-react";
+import { LogOut, Home, Banknote, Brain, UserCog, Palette, Users, BookOpen, Menu, BarChart, FileText, LayoutTemplate, ListTodo, MessageSquareText, NotebookText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
@@ -25,7 +25,7 @@ export function MobileSidebar({ userRole, onClose }: MobileSidebarProps) {
     { name: "Financeiro", icon: Banknote, path: "/financial", roles: ["admin"] },
     { name: "Segundo Cérebro", icon: Brain, path: "/second-brain", roles: ["admin", "equipe"] },
     { name: "Briefings", icon: FileText, path: "/briefings", roles: ["admin", "equipe"] },
-    { name: "Playbook da Agência", icon: BookOpen, path: "/agency-playbook", roles: ["admin", "equipe"] },
+    // Removido "Playbook da Agência" daqui, agora acessível via aba no Dashboard
     { name: "CRM", icon: MessageSquareText, path: "/crm", roles: ["admin", "equipe"] },
   ];
 

@@ -83,7 +83,7 @@ export function Header({ pageTitle }: HeaderProps) {
     { name: "Financeiro", icon: Banknote, path: "/financial", roles: ["admin"] },
     { name: "Segundo Cérebro", icon: Brain, path: "/second-brain", roles: ["admin", "equipe"] },
     { name: "Briefings", icon: FileText, path: "/briefings", roles: ["admin", "equipe"] },
-    { name: "Playbook da Agência", icon: BookOpen, path: "/agency-playbook", roles: ["admin", "equipe"] },
+    // Removido "Playbook da Agência" daqui, agora acessível via aba no Dashboard
     { name: "CRM", icon: MessageSquareText, path: "/crm", roles: ["admin", "equipe"] },
   ];
 
