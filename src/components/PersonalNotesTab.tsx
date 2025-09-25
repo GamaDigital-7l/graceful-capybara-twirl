@@ -1,17 +1,18 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react"; // Adicionado useMemo
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { showError, showSuccess } from "@/utils/toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { PlusCircle, Edit, Trash2, MoreVertical, FileText } from "lucide-react";
+import { PlusCircle, Edit, Trash2, MoreVertical, FileText, Search } from "lucide-react"; // Adicionado Search
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { PersonalNoteModal, PersonalNote } from "./PersonalNoteModal";
 import { formatSaoPauloDateTime } from "@/utils/date-utils";
+import { Input } from "@/components/ui/input"; // Importado Input
 
 const fetchPersonalNotes = async (userId: string): Promise<PersonalNote[]> => {
   const { data, error } = await supabase.from("personal_notes").select("*").eq("user_id", userId).order("updated_at", { ascending: false });
@@ -25,6 +26,7 @@ export function PersonalNotesTab() {
   const [selectedNote, setSelectedNote] = useState<PersonalNote | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [isUserLoading, setIsUserLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState(""); // Novo estado para o termo de pesquisa
 
   useEffect(() => {
     const getUserId = async () => {
@@ -93,6 +95,18 @@ export function PersonalNotesTab() {
     deleteNoteMutation.mutate(noteId);
   };
 
+  // Filtrar notas com base no termo de pesquisa
+  const filteredNotes = useMemo(() => {
+    if (!notes) return [];
+    if (!searchTerm) return notes;
+
+    const lowerCaseSearchTerm = searchTerm.toLowerCase();
+    return notes.filter(note =>
+      note.title.toLowerCase().includes(lowerCaseSearchTerm) ||
+      note.content.toLowerCase().includes(lowerCaseSearchTerm)
+    );
+  }, [notes, searchTerm]);
+
   if (isUserLoading || isLoadingNotes) {
     return (
       <div className="p-8 text-center">
@@ -115,8 +129,18 @@ export function PersonalNotesTab() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-end">
-        <Button onClick={handleAddNote}>
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-4"> {/* Ajustado para responsividade */}
+        <div className="relative w-full sm:w-auto flex-grow">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            type="text"
+            placeholder="Pesquisar notas..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-9 w-full"
+          />
+        </div>
+        <Button onClick={handleAddNote} className="w-full sm:w-auto"> {/* Ajustado para responsividade */}
           <PlusCircle className="h-4 w-4 mr-2" />
           Adicionar Nota Pessoal
         </Button>
@@ -127,9 +151,9 @@ export function PersonalNotesTab() {
           <CardDescription>Seu espaço pessoal para ideias, prompts e informações importantes.</CardDescription>
         </CardHeader>
         <CardContent className="p-4 sm:p-6">
-          {notes && notes.length > 0 ? (
+          {filteredNotes && filteredNotes.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {notes.map((note) => (
+              {filteredNotes.map((note) => (
                 <Card key={note.id} className="flex flex-col hover:shadow-lg transition-shadow">
                   <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
                     <CardTitle className="text-lg font-medium flex-grow pr-2">{note.title}</CardTitle>
@@ -179,14 +203,14 @@ export function PersonalNotesTab() {
               ))}
             </div>
           ) : (
-            <p className="text-muted-foreground">Nenhuma nota pessoal cadastrada ainda. Clique em "Adicionar Nota Pessoal" para começar.</p>
+            <p className="text-muted-foreground">Nenhuma nota pessoal encontrada. {searchTerm && `Para o termo "${searchTerm}".`}</p>
           )}
         </CardContent>
       </Card>
       <PersonalNoteModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onSave={handleSaveNote}
+        onSave={saveNoteMutation.mutate}
         existingNote={selectedNote}
       />
     </div>
