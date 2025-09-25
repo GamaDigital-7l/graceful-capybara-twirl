@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { showError, showSuccess } from "@/utils/toast";
@@ -11,18 +11,25 @@ import { PlusCircle, ListTodo, CheckCircle, AlertCircle } from "lucide-react";
 import { PersonalTaskCard } from "@/components/PersonalTaskCard";
 import { PersonalTaskModal, PersonalTask } from "@/components/PersonalTaskModal";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { isPast } from "date-fns";
+import { isPast, startOfMonth, subMonths, addMonths } from "date-fns";
 import * as chrono from 'chrono-node';
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { correctGrammar } from "@/utils/grammar";
-import { formatSaoPauloTime } from "@/utils/date-utils";
+import { formatSaoPauloTime, formatSaoPauloDate } from "@/utils/date-utils";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ptBR } from "date-fns/locale";
 
-const fetchPersonalTasks = async (userId: string): Promise<PersonalTask[]> => {
+const fetchPersonalTasks = async (userId: string, month: Date): Promise<PersonalTask[]> => {
+  const startOfMonthISO = formatSaoPauloTime(startOfMonth(month), 'yyyy-MM-dd');
+  const endOfMonthISO = formatSaoPauloTime(addMonths(startOfMonth(month), 1), 'yyyy-MM-dd');
+
   const { data, error } = await supabase
     .from("personal_tasks")
     .select("*, reminder_preferences, priority")
     .eq("user_id", userId)
+    .gte("due_date", startOfMonthISO)
+    .lt("due_date", endOfMonthISO)
     .order("due_date", { ascending: true })
     .order("due_time", { ascending: true });
   if (error) throw new Error(error.message);
@@ -38,6 +45,7 @@ const PersonalTasksPage = () => {
   const [selectedTask, setSelectedTask] = useState<PersonalTask | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [nlpInput, setNlpInput] = useState("");
+  const [selectedMonth, setSelectedMonth] = useState<Date>(startOfMonth(new Date()));
 
   useEffect(() => {
     const getUserId = async () => {
@@ -48,8 +56,8 @@ const PersonalTasksPage = () => {
   }, []);
 
   const { data: tasks, isLoading, error } = useQuery<PersonalTask[]>({
-    queryKey: ["personalTasks", currentUserId],
-    queryFn: () => fetchPersonalTasks(currentUserId!),
+    queryKey: ["personalTasks", currentUserId, selectedMonth.toISOString()],
+    queryFn: () => fetchPersonalTasks(currentUserId!, selectedMonth),
     enabled: !!currentUserId,
   });
 
@@ -74,7 +82,7 @@ const PersonalTasksPage = () => {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["personalTasks", currentUserId] });
+      queryClient.invalidateQueries({ queryKey: ["personalTasks", currentUserId, selectedMonth.toISOString()] });
       showSuccess("Tarefa pessoal salva com sucesso!");
       setNlpInput("");
     },
@@ -87,7 +95,7 @@ const PersonalTasksPage = () => {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["personalTasks", currentUserId] });
+      queryClient.invalidateQueries({ queryKey: ["personalTasks", currentUserId, selectedMonth.toISOString()] });
       showSuccess("Tarefa pessoal deletada!");
     },
     onError: (e: Error) => showError(e.message),
@@ -99,7 +107,7 @@ const PersonalTasksPage = () => {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["personalTasks", currentUserId] });
+      queryClient.invalidateQueries({ queryKey: ["personalTasks", currentUserId, selectedMonth.toISOString()] });
       showSuccess("Status da tarefa atualizado!");
     },
     onError: (e: Error) => showError(e.message),
@@ -176,6 +184,19 @@ const PersonalTasksPage = () => {
   const overdueTasks = tasks?.filter(task => !task.is_completed && isPast(task.due_date)) || [];
   const completedTasks = tasks?.filter(task => task.is_completed) || [];
 
+  const monthOptions = useMemo(() => {
+    const options = [];
+    let current = startOfMonth(new Date());
+    for (let i = 0; i < 12; i++) { // Last 12 months including current
+      options.push({
+        value: current.toISOString(),
+        label: formatSaoPauloTime(current, "MMMM yyyy", { locale: ptBR }),
+      });
+      current = subMonths(current, 1);
+    }
+    return options.reverse();
+  }, []);
+
   if (isLoading) {
     return (
       <div className="p-8 space-y-4">
@@ -193,12 +214,29 @@ const PersonalTasksPage = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"> {/* Ajustado para responsividade */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h1 className="text-2xl font-bold">Todoist</h1>
-        <Button onClick={handleAddTask} className="w-full sm:w-auto"> {/* Ajustado para responsividade */}
-          <PlusCircle className="h-4 w-4 mr-2" />
-          Adicionar Tarefa
-        </Button>
+        <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
+          <Select
+            value={selectedMonth.toISOString()}
+            onValueChange={(value) => setSelectedMonth(new Date(value))}
+          >
+            <SelectTrigger className="w-full sm:w-[180px]">
+              <SelectValue placeholder="Selecione o Mês" />
+            </SelectTrigger>
+            <SelectContent>
+              {monthOptions.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button onClick={handleAddTask} className="w-full sm:w-auto">
+            <PlusCircle className="h-4 w-4 mr-2" />
+            Adicionar Tarefa
+          </Button>
+        </div>
       </div>
 
       <div className="space-y-2">
