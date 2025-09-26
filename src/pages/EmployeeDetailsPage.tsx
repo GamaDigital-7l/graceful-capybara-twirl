@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo } from "react"; // Adicionado React
+import React, { useMemo } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -150,7 +150,7 @@ const EmployeeDetailsPage = () => {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4"> {/* Ajustado para responsividade */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
           <Button asChild variant="outline">
             <Link to="/employees">
               <ArrowLeft className="h-4 w-4 mr-2" />

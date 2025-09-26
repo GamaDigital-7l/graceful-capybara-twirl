@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react"; // Importar React e useCallback
+import React, { useState, useCallback } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

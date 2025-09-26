@@ -1,13 +1,13 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, useCallback } from "react"; // Adicionado useCallback
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { showError, showSuccess } from "@/utils/toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { PlusCircle, Edit, Trash2, MoreVertical, FileText, Search } from "lucide-react"; // Adicionado Search
+import { PlusCircle, Edit, Trash2, MoreVertical, FileText, Search } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { PersonalNoteModal, PersonalNote } from "./PersonalNoteModal";
@@ -205,7 +205,7 @@ export function PersonalNotesTab() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-center gap-4"> {/* Ajustado para responsividade */}
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
         <div className="relative w-full sm:w-auto flex-grow">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
@@ -216,7 +216,7 @@ export function PersonalNotesTab() {
             className="pl-9 w-full"
           />
         </div>
-        <Button onClick={handleAddNote} className="w-full sm:w-auto"> {/* Ajustado para responsividade */}
+        <Button onClick={handleAddNote} className="w-full sm:w-auto">
           <PlusCircle className="h-4 w-4 mr-2" />
           Adicionar Nota Pessoal
         </Button>

@@ -1,3 +1,4 @@
+import React from "react";
 import {
   Dialog,
   DialogContent,
@@ -14,7 +15,7 @@ interface PersonalNoteViewModalProps {
   note: PersonalNote | null;
 }
 
-export function PersonalNoteViewModal({ isOpen, onClose, note }: PersonalNoteViewModalProps) {
+export const PersonalNoteViewModal = React.memo(function PersonalNoteViewModal({ isOpen, onClose, note }: PersonalNoteViewModalProps) {
   if (!note) return null;
 
   return (
@@ -36,4 +37,4 @@ export function PersonalNoteViewModal({ isOpen, onClose, note }: PersonalNoteVie
       </DialogContent>
     </Dialog>
   );
-}
+});

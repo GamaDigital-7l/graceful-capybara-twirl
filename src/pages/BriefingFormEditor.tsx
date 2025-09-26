@@ -58,7 +58,7 @@ interface SortableFieldProps {
   onRemoveField: (index: number) => void;
 }
 
-const SortableField = ({ field, index, onUpdateField, onRemoveField }: SortableFieldProps) => {
+const SortableField = React.memo(({ field, index, onUpdateField, onRemoveField }: SortableFieldProps) => {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: field.id });
 
   const style: React.CSSProperties = {
@@ -83,6 +83,28 @@ const SortableField = ({ field, index, onUpdateField, onRemoveField }: SortableF
     onUpdateField(index, { options: newOptions });
   }, [field.options, index, onUpdateField]);
 
+  const handleTypeChange = useCallback((value: string) => {
+    onUpdateField(index, { type: value as BriefingFieldType, options: [] });
+  }, [index, onUpdateField]);
+
+  const handleLabelChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    onUpdateField(index, { label: e.target.value });
+  }, [index, onUpdateField]);
+
+  const handlePlaceholderChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    onUpdateField(index, { placeholder: e.target.value });
+  }, [index, onUpdateField]);
+
+  const handleRequiredChange = useCallback((checked: boolean | 'indeterminate') => {
+    if (typeof checked === 'boolean') {
+      onUpdateField(index, { required: checked });
+    }
+  }, [index, onUpdateField]);
+
+  const handleRemoveFieldClick = useCallback(() => {
+    onRemoveField(index);
+  }, [index, onRemoveField]);
+
   return (
     <div ref={setNodeRef} style={style} className="bg-card border rounded-md p-4 shadow-sm flex flex-col gap-3">
       <div className="flex items-center justify-between mb-3">
@@ -91,7 +113,7 @@ const SortableField = ({ field, index, onUpdateField, onRemoveField }: SortableF
           <span className="font-bold text-base">Campo #{index + 1} - {field.label || "Sem Título"}</span>
           {field.required && <span className="text-destructive text-sm ml-1">(Obrigatório)</span>}
         </div>
-        <Button variant="destructive" size="icon" onClick={() => onRemoveField(index)}>
+        <Button variant="destructive" size="icon" onClick={handleRemoveFieldClick}>
           <Trash2 className="h-4 w-4" />
         </Button>
       </div>
@@ -101,7 +123,7 @@ const SortableField = ({ field, index, onUpdateField, onRemoveField }: SortableF
           <Label>Tipo de Campo</Label>
           <Select
             value={field.type}
-            onValueChange={(value) => onUpdateField(index, { type: value as BriefingFieldType, options: [] })}
+            onValueChange={handleTypeChange}
           >
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Selecione o tipo" />
@@ -121,7 +143,7 @@ const SortableField = ({ field, index, onUpdateField, onRemoveField }: SortableF
           <Input
             id={`field-label-${field.id}`}
             value={field.label}
-            onChange={(e) => onUpdateField(index, { label: e.target.value })}
+            onChange={handleLabelChange}
             placeholder="Ex: Qual o nome do seu projeto?"
             className="w-full"
           />
@@ -134,7 +156,7 @@ const SortableField = ({ field, index, onUpdateField, onRemoveField }: SortableF
           <Input
             id={`field-placeholder-${field.id}`}
             value={field.placeholder || ""}
-            onChange={(e) => onUpdateField(index, { placeholder: e.target.value })}
+            onChange={handlePlaceholderChange}
             placeholder="Ex: Digite aqui..."
             className="w-full"
           />
@@ -143,7 +165,7 @@ const SortableField = ({ field, index, onUpdateField, onRemoveField }: SortableF
           <Switch
             id={`field-required-${field.id}`}
             checked={field.required}
-            onCheckedChange={(checked) => onUpdateField(index, { required: checked })}
+            onCheckedChange={handleRequiredChange}
           />
           <Label htmlFor={`field-required-${field.id}`}>Campo Obrigatório</Label>
         </div>
@@ -172,7 +194,7 @@ const SortableField = ({ field, index, onUpdateField, onRemoveField }: SortableF
       )}
     </div>
   );
-};
+});
 
 export default function BriefingFormEditor() {
   const { formId } = useParams<{ formId: string }>();

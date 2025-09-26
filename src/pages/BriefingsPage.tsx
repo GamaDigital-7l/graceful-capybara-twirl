@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -88,7 +88,7 @@ const BriefingsPage = () => {
     onError: (e: Error) => showError(e.message),
   });
 
-  const handleGeneratePublicLink = async (formId: string, formTitle: string, workspaceId: string | null) => {
+  const handleGeneratePublicLink = useCallback(async (formId: string, formTitle: string, workspaceId: string | null) => {
     if (!settings?.site_url) {
       showError("URL do site não configurada. Por favor, adicione em Configurações.");
       return;
@@ -122,7 +122,7 @@ const BriefingsPage = () => {
     } finally {
       setIsGeneratingLink(false);
     }
-  };
+  }, [settings?.site_url, settings?.whatsapp_message_template]);
 
   if (isProfileLoading || userRole === undefined) {
     return <div className="flex justify-center items-center min-h-screen">Carregando...</div>;

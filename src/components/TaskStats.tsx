@@ -1,14 +1,14 @@
+import React, { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { CheckCircle, ListTodo, Target } from "lucide-react";
-import { useMemo } from "react"; // Importar useMemo
 
 interface TaskStatsProps {
   pendingCount: number;
   completedCount: number;
 }
 
-export function TaskStats({ pendingCount, completedCount }: TaskStatsProps) {
+export const TaskStats = React.memo(function TaskStats({ pendingCount, completedCount }: TaskStatsProps) {
   const totalTasks = useMemo(() => pendingCount + completedCount, [pendingCount, completedCount]);
   const progressPercentage = useMemo(() => totalTasks > 0 ? (completedCount / totalTasks) * 100 : 0, [completedCount, totalTasks]);
 
@@ -53,4 +53,4 @@ export function TaskStats({ pendingCount, completedCount }: TaskStatsProps) {
       </Card>
     </div>
   );
-}
+});

@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useCallback } from "react"; // Adicionado useCallback
+import React, { useState, useMemo, useEffect, useCallback } from "react";
 import {
   DndContext,
   DragEndEvent,
@@ -230,7 +230,7 @@ export function KanbanBoard({ groupId }: KanbanBoardProps) {
 
   const requestEditMutation = useMutation({
     mutationFn: async ({ taskId, comment, targetColumnId }: { taskId: string, comment: string, targetColumnId: string }) => {
-      const { data: currentTask, error: fetchError } = await supabase.from("tasks").select("comments, title").eq("id', taskId).single();
+      const { data: currentTask, error: fetchError } = await supabase.from("tasks").select("comments, title").eq("id", taskId).single();
       if (fetchError) throw fetchError;
 
       const newComment = { id: Date.now().toString(), text: comment, author: currentUser?.full_name || "Usuário", createdAt: new Date().toISOString() };
@@ -390,7 +390,7 @@ export function KanbanBoard({ groupId }: KanbanBoardProps) {
     <div>
       <DndContext sensors={sensors} onDragStart={onDragStart} onDragEnd={onDragEnd}>
         <div className="w-full overflow-x-auto pb-4">
-          <div className="inline-flex gap-6 items-start"> {/* Adicionado items-start */}
+          <div className="inline-flex gap-6 items-start">
             <SortableContext items={columnsId}>
               {columns.map((col) => (
                 <MemoizedKanbanColumn

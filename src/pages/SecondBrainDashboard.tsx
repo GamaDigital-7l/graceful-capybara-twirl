@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -6,15 +6,12 @@ import { showError, showSuccess } from "@/utils/toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { PlusCircle, Edit, Trash2, MoreVertical, NotebookText } from "lucide-react"; // Adicionado NotebookText
+import { PlusCircle, Edit, Trash2, MoreVertical, NotebookText } from "lucide-react";
 import { SecondBrainClientModal, SecondBrainClient } from "@/components/SecondBrainClientModal";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"; // Importar Tabs
-import { PersonalNotesTab } from "@/components/PersonalNotesTab"; // Importar o novo componente
-
-// A interface SecondBrainClient já é importada de "@/components/SecondBrainClientModal"
-// Removendo a declaração duplicada aqui.
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { PersonalNotesTab } from "@/components/PersonalNotesTab";
 
 const fetchSecondBrainClients = async (): Promise<SecondBrainClient[]> => {
   const { data, error } = await supabase.from("second_brain_clients").select("*").order("name");
@@ -108,9 +105,9 @@ const SecondBrainDashboard = () => {
     onError: (e: Error) => showError(e.message),
   });
 
-  const handleSaveClient = async (client: Partial<SecondBrainClient>) => {
+  const handleSaveClient = useCallback(async (client: Partial<SecondBrainClient>) => {
     await saveClientMutation.mutateAsync(client);
-  };
+  }, [saveClientMutation]);
 
   if (isProfileLoading || userRole === undefined) {
     return (

@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Copy, Link as LinkIcon, FileText } from "lucide-react"; // Adicionado LinkIcon e FileText
 import { showSuccess } from "@/utils/toast";
 import { formatSaoPauloDateTime } from "@/utils/date-utils";
+import { useCallback } from "react"; // Adicionado useCallback
 
 interface BriefingResponseViewModalProps {
   isOpen: boolean;
@@ -78,7 +79,7 @@ export function BriefingResponseViewModal({ isOpen, onClose, response, form }: B
     }
   };
 
-  const handleCopyResponse = () => {
+  const handleCopyResponse = useCallback(() => {
     let responseText = `Resposta do Briefing: ${form.title}\n\n`;
     responseText += `Enviado por: ${response.client_name || "Usuário Autenticado"}\n`;
     responseText += `Data de Envio: ${formatSaoPauloDateTime(response.submitted_at)}\n\n`;
@@ -90,7 +91,7 @@ export function BriefingResponseViewModal({ isOpen, onClose, response, form }: B
 
     navigator.clipboard.writeText(responseText);
     showSuccess("Resposta copiada para a área de transferência!");
-  };
+  }, [response, form]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>

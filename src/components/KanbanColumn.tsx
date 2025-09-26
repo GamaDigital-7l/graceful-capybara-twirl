@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useCallback } from "react"; // Importar React e useCallback
+import React, { useMemo, useState, useCallback } from "react";
 import { SortableContext, useSortable } from "@dnd-kit/sortable";
 import { KanbanCard, Task } from "./KanbanCard";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -142,7 +142,7 @@ export const KanbanColumn = React.memo(function KanbanColumn({
           <DropdownMenuContent>
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <DropdownMenuItem className="text-destructive cursor-pointer" onSelect={(e) => e.preventDefault()}> {/* Prevent default to keep dropdown open until alert confirms */}
+                <DropdownMenuItem className="text-destructive cursor-pointer" onSelect={(e) => e.preventDefault()}>
                   <Trash2 className="mr-2 h-4 w-4" />
                   Deletar Coluna
                 </DropdownMenuItem>
@@ -168,7 +168,7 @@ export const KanbanColumn = React.memo(function KanbanColumn({
           </DropdownMenuContent>
         </DropdownMenu>
       </CardHeader>
-      <CardContent className="flex flex-col gap-4 flex-grow overflow-y-auto"> {/* Adicionado overflow-y-auto */}
+      <CardContent className="flex flex-col gap-4 flex-grow overflow-y-auto">
         <SortableContext items={tasksIds}>
           {tasks.map((task) => (
             <MemoizedKanbanCard

@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react"; // Adicionado React
+import React from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Card, CardContent } from "@/components/ui/card";
@@ -73,7 +73,7 @@ export const CRMLeadCard = React.memo(function CRMLeadCard({
       onClick={onClick}
       className="cursor-pointer hover:ring-2 hover:ring-primary transition-shadow"
     >
-      <CardContent className="p-4 space-y-2"> {/* Ajustado padding e adicionado space-y */}
+      <CardContent className="p-4 space-y-2">
         <div className="flex items-center justify-between">
           <p className="font-medium text-lg truncate pr-2">{lead.name}</p>
           {lead.source && <Badge variant="secondary" className="flex-shrink-0"><Tag className="h-3 w-3 mr-1" /> {lead.source}</Badge>}

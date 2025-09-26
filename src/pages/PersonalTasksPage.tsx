@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { showError, showSuccess } from "@/utils/toast";
@@ -113,25 +113,25 @@ const PersonalTasksPage = () => {
     onError: (e: Error) => showError(e.message),
   });
 
-  const handleAddTask = () => {
+  const handleAddTask = useCallback(() => {
     setSelectedTask(null);
     setIsModalOpen(true);
-  };
+  }, []);
 
-  const handleEditTask = (task: PersonalTask) => {
+  const handleEditTask = useCallback((task: PersonalTask) => {
     setSelectedTask(task);
     setIsModalOpen(true);
-  };
+  }, []);
 
-  const handleDeleteTask = (taskId: string) => {
+  const handleDeleteTask = useCallback((taskId: string) => {
     deleteTaskMutation.mutate(taskId);
-  };
+  }, [deleteTaskMutation]);
 
-  const handleToggleComplete = (taskId: string, isCompleted: boolean) => {
+  const handleToggleComplete = useCallback((taskId: string, isCompleted: boolean) => {
     toggleCompleteMutation.mutate({ taskId, isCompleted });
-  };
+  }, [toggleCompleteMutation]);
 
-  const handleNlpInput = async (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleNlpInput = useCallback(async (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && nlpInput.trim()) {
       // 1. Correção gramatical automática
       const correctedText = await correctGrammar(nlpInput);
@@ -178,7 +178,7 @@ const PersonalTasksPage = () => {
       setSelectedTask(newTask as PersonalTask);
       setIsModalOpen(true);
     }
-  };
+  }, [nlpInput, saveTaskMutation]);
 
   const upcomingTasks = tasks?.filter(task => !task.is_completed && !isPast(task.due_date)) || [];
   const overdueTasks = tasks?.filter(task => !task.is_completed && isPast(task.due_date)) || [];

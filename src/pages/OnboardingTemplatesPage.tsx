@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useMemo } from "react"; // Adicionado useMemo
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,7 +8,7 @@ import { showError, showSuccess } from "@/utils/toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { PlusCircle, Edit, Trash2, MoreVertical, Copy, Link as LinkIcon, FileText, Users, Video, GripVertical, Eye } from "lucide-react"; // Adicionado GripVertical e Eye
+import { PlusCircle, Edit, Trash2, MoreVertical, Copy, Link as LinkIcon, FileText, Users, Video, GripVertical, Eye } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
@@ -100,12 +100,12 @@ const OnboardingTemplatesPage = () => {
 
   const [templateName, setTemplateName] = useState("");
   const [welcomeMessage, setWelcomeMessage] = useState("");
-  const [processesContent, setProcessesContent] = useState<{ title: string; content: string }[]>([]); // Alterado
-  const [appsAccessInfo, setAppsAccessInfo] = useState<{ title: string; content: string }[]>([]); // Alterado
+  const [processesContent, setProcessesContent] = useState<{ title: string; content: string }[]>([]);
+  const [appsAccessInfo, setAppsAccessInfo] = useState<{ title: string; content: string }[]>([]);
   const [tutorialVideos, setTutorialVideos] = useState<{ name: string; url: string }[]>([]);
   const [briefingLinks, setBriefingLinks] = useState<{ name: string; url: string }[]>([]);
   const [mainContent, setMainContent] = useState("");
-  const [sectionOrder, setSectionOrder] = useState<string[]>([]); // Novo estado
+  const [sectionOrder, setSectionOrder] = useState<string[]>([]);
   const [isSaving, setIsSaving] = useState(false);
 
   const { data: templates, isLoading: isLoadingTemplates } = useQuery<OnboardingTemplate[]>({
@@ -148,8 +148,8 @@ const OnboardingTemplatesPage = () => {
     if (selectedTemplate) {
       setTemplateName(selectedTemplate.name);
       setWelcomeMessage(selectedTemplate.welcome_message || "");
-      setProcessesContent(selectedTemplate.processes_content || []); // Inicializar como array
-      setAppsAccessInfo(selectedTemplate.apps_access_info || []); // Inicializar como array
+      setProcessesContent(selectedTemplate.processes_content || []);
+      setAppsAccessInfo(selectedTemplate.apps_access_info || []);
       setTutorialVideos(selectedTemplate.tutorial_videos || []);
       setBriefingLinks(selectedTemplate.briefing_links || []);
       setMainContent(selectedTemplate.main_content || "");
@@ -218,12 +218,12 @@ const OnboardingTemplatesPage = () => {
     const dataToSave = {
       name: templateName.trim(),
       welcome_message: welcomeMessage.trim() || null,
-      processes_content: processesContent, // Salvar como array
-      apps_access_info: appsAccessInfo, // Salvar como array
+      processes_content: processesContent,
+      apps_access_info: appsAccessInfo,
       tutorial_videos: tutorialVideos,
       briefing_links: briefingLinks,
       main_content: mainContent.trim() || null,
-      section_order: sectionOrder, // Salvar a ordem das seções
+      section_order: sectionOrder,
     };
 
     if (selectedTemplate) {
@@ -343,9 +343,9 @@ const OnboardingTemplatesPage = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"> {/* Ajustado para responsividade */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h1 className="text-2xl font-bold">Gerenciar Templates de Onboarding</h1>
-        <Button onClick={() => { setSelectedTemplate(null); setIsModalOpen(true); }} className="w-full sm:w-auto"> {/* Ajustado para responsividade */}
+        <Button onClick={() => { setSelectedTemplate(null); setIsModalOpen(true); }} className="w-full sm:w-auto">
           <PlusCircle className="h-4 w-4 mr-2" />
           Novo Template
         </Button>
@@ -425,7 +425,7 @@ const OnboardingTemplatesPage = () => {
             <DialogTitle>{selectedTemplate ? "Editar Template de Onboarding" : "Criar Novo Template de Onboarding"}</DialogTitle>
           </DialogHeader>
           <Tabs defaultValue="welcome" className="py-4">
-            <TabsList className="grid w-full grid-cols-2 sm:grid-cols-6"> {/* Ajustado para responsividade */}
+            <TabsList className="grid w-full grid-cols-2 sm:grid-cols-6">
               <TabsTrigger value="welcome">Boas-Vindas</TabsTrigger>
               <TabsTrigger value="main-content">Conteúdo Principal</TabsTrigger>
               <TabsTrigger value="briefings">Briefings</TabsTrigger>
@@ -433,7 +433,7 @@ const OnboardingTemplatesPage = () => {
               <TabsTrigger value="apps">Apps & Vídeos</TabsTrigger>
               <TabsTrigger value="layout">Layout</TabsTrigger>
             </TabsList>
-            <TabsContent value="welcome" className="pt-4 space-y-4 p-4 sm:p-6"> {/* Adicionado p-4 sm:p-6 */}
+            <TabsContent value="welcome" className="pt-4 space-y-4 p-4 sm:p-6">
               <div className="space-y-2">
                 <Label htmlFor="template-name">Nome do Template</Label>
                 <Input id="template-name" value={templateName} onChange={(e) => setTemplateName(e.target.value)} placeholder="Ex: Onboarding Social Media" />
@@ -444,25 +444,25 @@ const OnboardingTemplatesPage = () => {
                 <p className="text-xs text-muted-foreground">Use **negrito**, *itálico*, [links](url) e imagens `![alt](url)`.</p>
               </div>
             </TabsContent>
-            <TabsContent value="main-content" className="pt-4 p-4 sm:p-6"> {/* Adicionado p-4 sm:p-6 */}
+            <TabsContent value="main-content" className="pt-4 p-4 sm:p-6">
               <Label htmlFor="main-content">Conteúdo Principal (suporta Markdown)</Label>
               <Textarea id="main-content" value={mainContent} onChange={(e) => setMainContent(e.target.value)} rows={15} placeholder="Descreva os serviços contratados, prazos, o que está incluído no pacote, etc. Use Markdown para formatar o texto, adicionar imagens e vídeos." />
               <p className="text-xs text-muted-foreground">
                 Use **negrito**, *itálico*, `código`, [links](url), listas (`- item`), imagens `![alt](url)` e vídeos `![alt](https://www.youtube.com/watch?v=VIDEO_ID)`.
               </p>
             </TabsContent>
-            <TabsContent value="briefings" className="pt-4 space-y-4 p-4 sm:p-6"> {/* Adicionado p-4 sm:p-6 */}
+            <TabsContent value="briefings" className="pt-4 space-y-4 p-4 sm:p-6">
               <Label className="text-lg font-semibold">Links de Briefings</Label>
               {briefingLinks.map((link, index) => (
-                <div key={index} className="flex flex-col sm:flex-row items-center gap-2 mt-2"> {/* Ajustado para responsividade */}
-                  <Input placeholder="Nome do Briefing" value={link.name} onChange={(e) => updateBriefingLink(index, 'name', e.target.value)} className="w-full sm:w-auto" /> {/* Ajustado para responsividade */}
-                  <Input placeholder="URL" value={link.url} onChange={(e) => updateBriefingLink(index, 'url', e.target.value)} className="w-full sm:w-auto" /> {/* Ajustado para responsividade */}
+                <div key={index} className="flex flex-col sm:flex-row items-center gap-2 mt-2">
+                  <Input placeholder="Nome do Briefing" value={link.name} onChange={(e) => updateBriefingLink(index, 'name', e.target.value)} className="w-full sm:w-auto" />
+                  <Input placeholder="URL" value={link.url} onChange={(e) => updateBriefingLink(index, 'url', e.target.value)} className="w-full sm:w-auto" />
                   <Button variant="ghost" size="icon" onClick={() => removeBriefingLink(index)}><Trash2 className="h-4 w-4" /></Button>
                 </div>
               ))}
-              <Button variant="outline" onClick={addBriefingLink} className="mt-2 w-full sm:w-auto">Adicionar Link de Briefing</Button> {/* Ajustado para responsividade */}
+              <Button variant="outline" onClick={addBriefingLink} className="mt-2 w-full sm:w-auto">Adicionar Link de Briefing</Button>
             </TabsContent>
-            <TabsContent value="processes" className="pt-4 space-y-4 p-4 sm:p-6"> {/* Adicionado p-4 sm:p-6 */}
+            <TabsContent value="processes" className="pt-4 space-y-4 p-4 sm:p-6">
               <Label className="text-lg font-semibold">Nossos Processos</Label>
               {processesContent.map((item, index) => (
                 <div key={index} className="space-y-2 border p-3 rounded-md bg-muted/50">
@@ -471,10 +471,10 @@ const OnboardingTemplatesPage = () => {
                   <Button variant="destructive" size="sm" onClick={() => removeProcessItem(index)}><Trash2 className="h-4 w-4 mr-2" /> Remover Processo</Button>
                 </div>
               ))}
-              <Button variant="outline" onClick={addProcessItem} className="mt-2 w-full sm:w-auto">Adicionar Item de Processo</Button> {/* Ajustado para responsividade */}
+              <Button variant="outline" onClick={addProcessItem} className="mt-2 w-full sm:w-auto">Adicionar Item de Processo</Button>
               <p className="text-xs text-muted-foreground mt-2">Use **negrito**, *itálico*, [links](url) e imagens `![alt](url)` no conteúdo.</p>
             </TabsContent>
-            <TabsContent value="apps" className="pt-4 space-y-4 p-4 sm:p-6"> {/* Adicionado p-4 sm:p-6 */}
+            <TabsContent value="apps" className="pt-4 space-y-4 p-4 sm:p-6">
               <div>
                 <Label className="text-lg font-semibold">Informações de Acesso aos Apps</Label>
                 {appsAccessInfo.map((item, index) => (
@@ -484,21 +484,21 @@ const OnboardingTemplatesPage = () => {
                     <Button variant="destructive" size="sm" onClick={() => removeAppAccessItem(index)}><Trash2 className="h-4 w-4 mr-2" /> Remover Acesso</Button>
                   </div>
                 ))}
-                <Button variant="outline" onClick={addAppAccessItem} className="mt-2 w-full sm:w-auto">Adicionar Item de Acesso</Button> {/* Ajustado para responsividade */}
+                <Button variant="outline" onClick={addAppAccessItem} className="mt-2 w-full sm:w-auto">Adicionar Item de Acesso</Button>
               </div>
               <div>
                 <Label className="text-lg font-semibold">Vídeos Tutoriais</Label>
                 {tutorialVideos.map((video, index) => (
-                  <div key={index} className="flex flex-col sm:flex-row items-center gap-2 mt-2"> {/* Ajustado para responsividade */}
-                    <Input placeholder="Título do Vídeo" value={video.name} onChange={(e) => updateTutorialVideo(index, 'name', e.target.value)} className="w-full sm:w-auto" /> {/* Ajustado para responsividade */}
-                    <Input placeholder="URL do YouTube/Vimeo" value={video.url} onChange={(e) => updateTutorialVideo(index, 'url', e.target.value)} className="w-full sm:w-auto" /> {/* Ajustado para responsividade */}
+                  <div key={index} className="flex flex-col sm:flex-row items-center gap-2 mt-2">
+                    <Input placeholder="Título do Vídeo" value={video.name} onChange={(e) => updateTutorialVideo(index, 'name', e.target.value)} className="w-full sm:w-auto" />
+                    <Input placeholder="URL do YouTube/Vimeo" value={video.url} onChange={(e) => updateTutorialVideo(index, 'url', e.target.value)} className="w-full sm:w-auto" />
                     <Button variant="ghost" size="icon" onClick={() => removeTutorialVideo(index)}><Trash2 className="h-4 w-4" /></Button>
                   </div>
                 ))}
-                <Button variant="outline" onClick={addTutorialVideo} className="mt-2 w-full sm:w-auto">Adicionar Vídeo Tutorial</Button> {/* Ajustado para responsividade */}
+                <Button variant="outline" onClick={addTutorialVideo} className="mt-2 w-full sm:w-auto">Adicionar Vídeo Tutorial</Button>
               </div>
             </TabsContent>
-            <TabsContent value="layout" className="pt-4 space-y-4 p-4 sm:p-6"> {/* Adicionado p-4 sm:p-6 */}
+            <TabsContent value="layout" className="pt-4 space-y-4 p-4 sm:p-6">
               <Label className="text-lg font-semibold">Reorganizar Seções da Página</Label>
               <p className="text-sm text-muted-foreground mb-4">Arraste e solte para mudar a ordem de exibição das seções na página de boas-vindas do cliente.</p>
               <DndContext sensors={sensors} onDragEnd={handleDragEnd}>

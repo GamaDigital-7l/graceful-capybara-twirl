@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import React, { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
@@ -33,7 +33,7 @@ const fetchAllWorkspaceTasksForProgress = async (): Promise<Task[]> => {
   return data || [];
 };
 
-export function ClientProgress() {
+export const ClientProgress = React.memo(function ClientProgress() {
   const { data: tasks, isLoading } = useQuery<Task[]>({
     queryKey: ["all_workspace_tasks_for_progress"],
     queryFn: fetchAllWorkspaceTasksForProgress,
@@ -88,11 +88,11 @@ export function ClientProgress() {
   const sortedWorkspaces = Object.values(progressByWorkspace).sort((a, b) => a.name.localeCompare(b.name));
 
   return (
-    <Card className="flex flex-col"> {/* Adicionado flex-col */}
+    <Card className="flex flex-col">
       <CardHeader>
         <CardTitle>Progresso por Cliente</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-6 flex-grow overflow-y-auto max-h-[300px]"> {/* Adicionado flex-grow, overflow-y-auto e max-h */}
+      <CardContent className="space-y-6 flex-grow overflow-y-auto max-h-[300px]">
         {sortedWorkspaces.length > 0 ? (
           sortedWorkspaces.map((ws) => (
             <div key={ws.id}>
@@ -119,4 +119,4 @@ export function ClientProgress() {
       </CardContent>
     </Card>
   );
-}
+});

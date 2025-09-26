@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -120,23 +120,23 @@ const ClientPromptsPage = () => {
     onError: (e: Error) => showError(e.message),
   });
 
-  const handleSavePrompt = (prompt: Partial<Prompt>) => {
+  const handleSavePrompt = useCallback((prompt: Partial<Prompt>) => {
     if (prompt.id) {
       updatePromptMutation.mutate(prompt);
     } else {
       createPromptMutation.mutate(prompt);
     }
-  };
+  }, [createPromptMutation, updatePromptMutation]);
 
-  const handleCopyPrompt = (content: string) => {
+  const handleCopyPrompt = useCallback((content: string) => {
     navigator.clipboard.writeText(content);
     toast.success("Prompt copiado para a área de transferência!");
-  };
+  }, []);
 
-  const handleViewPrompt = (prompt: Prompt) => {
+  const handleViewPrompt = useCallback((prompt: Prompt) => {
     setViewingPrompt(prompt);
     setIsPromptViewModalOpen(true);
-  };
+  }, []);
 
   if (isProfileLoading || userRole === undefined) {
     return <div className="flex justify-center items-center min-h-screen">Carregando...</div>;
@@ -178,7 +178,7 @@ const ClientPromptsPage = () => {
           <CardTitle>Prompts Personalizados</CardTitle>
           <CardDescription>Gerencie os prompts de IA e notas importantes para este cliente.</CardDescription>
         </CardHeader>
-        <CardContent className="p-4 sm:p-6"> {/* Ajustado padding */}
+        <CardContent className="p-4 sm:p-6">
           {isLoadingPrompts ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-48 w-full" />)}
@@ -229,7 +229,7 @@ const ClientPromptsPage = () => {
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </CardHeader>
-                  <CardContent className="flex-grow p-4 pt-0"> {/* Ajustado padding */}
+                  <CardContent className="flex-grow p-4 pt-0">
                     <p className="text-sm text-muted-foreground line-clamp-5">{prompt.content}</p>
                   </CardContent>
                 </Card>

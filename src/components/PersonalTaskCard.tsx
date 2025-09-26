@@ -1,4 +1,4 @@
-import React, { useCallback } from "react"; // Importar React e useCallback
+import React, { useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";

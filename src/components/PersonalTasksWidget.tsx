@@ -29,7 +29,7 @@ const fetchPersonalTasks = async (userId: string): Promise<PersonalTask[]> => {
   })) as PersonalTask[];
 };
 
-export function PersonalTasksWidget() {
+export const PersonalTasksWidget = React.memo(function PersonalTasksWidget() {
   const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<PersonalTask | null>(null);
@@ -203,4 +203,4 @@ export function PersonalTasksWidget() {
       />
     </Card>
   );
-}
+});

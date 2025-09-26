@@ -199,6 +199,23 @@ const PublicBriefingPage = () => {
     }
   };
 
+  const handleNextStep = useCallback(() => {
+    if (!validateCurrentStep()) {
+      return;
+    }
+    if (currentStep < allFields.length - 1) {
+      setCurrentStep(prev => prev + 1);
+    } else {
+      handleSubmit();
+    }
+  }, [currentStep, allFields, validateCurrentStep, handleSubmit]);
+
+  const handlePreviousStep = useCallback(() => {
+    if (currentStep > 0) {
+      setCurrentStep(prev => prev - 1);
+    }
+  }, [currentStep]);
+
   const renderField = (field: BriefingFormField) => {
     const value = field.id === "client-name" ? clientName : formData[field.id];
     const file = fileInputs.get(field.id); // Get file from state

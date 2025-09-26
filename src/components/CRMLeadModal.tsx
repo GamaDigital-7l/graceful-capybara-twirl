@@ -20,7 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { CRMLead } from "./CRMLeadCard";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Trash2, User, MessageSquareText, Send, ExternalLink } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { showError, showSuccess } from "@/utils/toast";
@@ -82,7 +82,7 @@ export function CRMLeadModal({
     setWhatsappMessage(""); // Limpar mensagem ao abrir/trocar lead
   }, [lead, isOpen]);
 
-  const handleSave = async () => {
+  const handleSave = useCallback(async () => {
     if (!name.trim()) {
       showError("O nome do lead é obrigatório.");
       return;
@@ -100,16 +100,16 @@ export function CRMLeadModal({
     };
     onSave(savedLead);
     onClose();
-  };
+  }, [name, email, phone, source, notes, assignedTo, lead, stageId, onSave, onClose]);
 
-  const handleDelete = () => {
+  const handleDelete = useCallback(() => {
     if (lead && onDelete) {
       onDelete(lead.id);
       onClose();
     }
-  };
+  }, [lead, onDelete, onClose]);
 
-  const handleSendWhatsApp = async () => {
+  const handleSendWhatsApp = useCallback(async () => {
     if (!phone.trim()) {
       showError("O lead não possui um número de telefone para enviar a mensagem.");
       return;
@@ -128,9 +128,9 @@ export function CRMLeadModal({
     } finally {
       setIsSendingWhatsapp(false);
     }
-  };
+  }, [phone, whatsappMessage]);
 
-  const handleOpenWhatsAppWeb = () => {
+  const handleOpenWhatsAppWeb = useCallback(() => {
     if (!phone.trim()) {
       showError("O lead não possui um número de telefone.");
       return;
@@ -138,7 +138,7 @@ export function CRMLeadModal({
     const formattedPhone = phone.replace(/\D/g, ''); // Remove non-digits
     const whatsappUrl = `https://wa.me/${formattedPhone}?text=${encodeURIComponent(whatsappMessage.trim())}`;
     window.open(whatsappUrl, '_blank');
-  };
+  }, [phone, whatsappMessage]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -151,7 +151,7 @@ export function CRMLeadModal({
             <TabsTrigger value="details">Detalhes do Lead</TabsTrigger>
             <TabsTrigger value="whatsapp" disabled={!lead}>Mensagens WhatsApp</TabsTrigger>
           </TabsList>
-          <TabsContent value="details" className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 p-4 sm:p-6"> {/* Adicionado p-4 sm:p-6 */}
+          <TabsContent value="details" className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 p-4 sm:p-6">
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Nome do Lead</Label>
@@ -231,7 +231,7 @@ export function CRMLeadModal({
               </div>
             </div>
           </TabsContent>
-          <TabsContent value="whatsapp" className="pt-4 space-y-4 p-4 sm:p-6"> {/* Adicionado p-4 sm:p-6 */}
+          <TabsContent value="whatsapp" className="pt-4 space-y-4 p-4 sm:p-6">
             {lead && phone ? (
               <>
                 <p className="text-sm text-muted-foreground">Enviar mensagem para: <span className="font-semibold">{phone}</span></p>
@@ -245,7 +245,7 @@ export function CRMLeadModal({
                     rows={6}
                   />
                 </div>
-                <div className="flex flex-col sm:flex-row gap-2"> {/* Ajustado para flex-col em mobile */}
+                <div className="flex flex-col sm:flex-row gap-2">
                   <Button onClick={handleSendWhatsApp} disabled={isSendingWhatsapp || !whatsappMessage.trim()} className="flex-grow">
                     {isSendingWhatsapp ? "Enviando..." : <><Send className="h-4 w-4 mr-2" /> Enviar via Evolution AI</>}
                   </Button>
@@ -261,7 +261,7 @@ export function CRMLeadModal({
             )}
           </TabsContent>
         </Tabs>
-        <DialogFooter className="justify-between pt-4 flex-col sm:flex-row gap-2"> {/* Ajustado para flex-col em mobile */}
+        <DialogFooter className="justify-between pt-4 flex-col sm:flex-row gap-2">
           <div>
             {lead && onDelete && (
               <Button variant="destructive" onClick={handleDelete} size="icon">
@@ -269,13 +269,13 @@ export function CRMLeadModal({
               </Button>
             )}
           </div>
-          <div className="flex gap-2 w-full sm:w-auto"> {/* Ajustado para w-full em mobile */}
+          <div className="flex gap-2 w-full sm:w-auto">
             <DialogClose asChild>
-              <Button type="button" variant="secondary" className="w-full sm:w-auto"> {/* Ajustado para w-full em mobile */}
+              <Button type="button" variant="secondary" className="w-full sm:w-auto">
                 Cancelar
               </Button>
             </DialogClose>
-            <Button type="button" onClick={handleSave} className="w-full sm:w-auto"> {/* Ajustado para w-full em mobile */}
+            <Button type="button" onClick={handleSave} className="w-full sm:w-auto">
               Salvar
             </Button>
           </div>

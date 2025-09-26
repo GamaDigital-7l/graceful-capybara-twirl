@@ -1,4 +1,4 @@
-import React from "react"; // Importar React
+import React from "react";
 import { useTheme } from "next-themes";
 
 interface AppLogoProps {

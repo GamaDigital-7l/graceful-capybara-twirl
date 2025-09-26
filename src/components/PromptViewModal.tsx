@@ -1,3 +1,4 @@
+import React from "react";
 import {
   Dialog,
   DialogContent,
@@ -13,7 +14,7 @@ interface PromptViewModalProps {
   prompt: Prompt | null;
 }
 
-export function PromptViewModal({ isOpen, onClose, prompt }: PromptViewModalProps) {
+export const PromptViewModal = React.memo(function PromptViewModal({ isOpen, onClose, prompt }: PromptViewModalProps) {
   if (!prompt) return null;
 
   return (
@@ -23,11 +24,11 @@ export function PromptViewModal({ isOpen, onClose, prompt }: PromptViewModalProp
           <DialogTitle>{prompt.title}</DialogTitle>
         </DialogHeader>
         <ScrollArea className="max-h-[70vh] pr-4">
-          <div className="py-4 whitespace-pre-wrap text-sm text-muted-foreground p-4 sm:p-6"> {/* Ajustado padding */}
+          <div className="py-4 whitespace-pre-wrap text-sm text-muted-foreground p-4 sm:p-6">
             {prompt.content}
           </div>
         </ScrollArea>
       </DialogContent>
     </Dialog>
   );
-}
+});

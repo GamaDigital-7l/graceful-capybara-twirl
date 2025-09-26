@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Dialog,
   DialogContent,
@@ -51,7 +51,7 @@ export function PersonalNoteModal({
     }
   }, [existingNote, isOpen]);
 
-  const handleSave = async () => {
+  const handleSave = useCallback(async () => {
     if (!title.trim() || !content.trim()) {
       showError("Título e conteúdo são obrigatórios.");
       return;
@@ -73,7 +73,7 @@ export function PersonalNoteModal({
     } finally {
       setIsSaving(false);
     }
-  };
+  }, [title, content, existingNote, onSave, onClose]);
 
   const isDisabled = isSaving;
 

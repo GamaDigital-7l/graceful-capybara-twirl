@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo } from "react"; // Adicionado React
+import React, { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -24,7 +24,7 @@ interface RawEmployeeTask {
   title: string;
   due_date: string | null;
   column_id: string;
-  columns: { title: string } | null; // Corrigido: agora é um objeto único, não um array
+  columns: { title: string } | null;
   assigned_to: string | null;
 }
 
@@ -47,7 +47,7 @@ const fetchAllStaffTasks = async (): Promise<EmployeeTask[]> => {
   if (error) throw new Error(error.message);
   
   // Flatten the data to include column_title directly
-  return data.map((task: RawEmployeeTask) => ({ // Tipagem explícita para o item do map
+  return data.map((task: RawEmployeeTask) => ({
     id: task.id,
     title: task.title,
     due_date: task.due_date,

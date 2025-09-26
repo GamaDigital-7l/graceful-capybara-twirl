@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState, useCallback } from "react"; // Adicionado React e useCallback
+import React, { useMemo, useState, useCallback } from "react";
 import { SortableContext, useSortable } from "@dnd-kit/sortable";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "./ui/button";
@@ -105,11 +105,11 @@ export const CRMStageColumn = React.memo(function CRMStageColumn({
   }
 
   return (
-    <Card ref={setNodeRef} style={style} className="flex flex-col w-[300px] flex-shrink-0 h-full"> {/* Adicionado h-full */}
+    <Card ref={setNodeRef} style={style} className="flex flex-col w-[300px] flex-shrink-0 h-full">
       <CardHeader
         {...attributes}
         {...listeners}
-        className="flex flex-row items-center justify-between cursor-grab p-4 border-b" // Adicionado border-b
+        className="flex flex-row items-center justify-between cursor-grab p-4 border-b"
       >
         <div className="flex items-center gap-2 flex-grow" onClick={() => setIsEditing(true)}>
           <GripVertical className="h-4 w-4 text-muted-foreground" />
@@ -123,11 +123,11 @@ export const CRMStageColumn = React.memo(function CRMStageColumn({
               }}
               autoFocus
               onClick={(e) => e.stopPropagation()}
-              className="h-8 text-base" // Ajustado altura e tamanho da fonte
+              className="h-8 text-base"
             />
           ) : (
             <div className="flex items-center gap-2">
-              <h3 className="font-bold text-lg">{stage.title}</h3> {/* Ajustado tamanho da fonte */}
+              <h3 className="font-bold text-lg">{stage.title}</h3>
               <Badge variant="secondary" className="h-5">{leads.length}</Badge>
             </div>
           )}
@@ -167,7 +167,7 @@ export const CRMStageColumn = React.memo(function CRMStageColumn({
           </DropdownMenuContent>
         </DropdownMenu>
       </CardHeader>
-      <CardContent className="flex flex-col gap-4 flex-grow overflow-y-auto p-4"> {/* Adicionado p-4 */}
+      <CardContent className="flex flex-col gap-4 flex-grow overflow-y-auto p-4">
         <SortableContext items={leadsIds}>
           {leads.map((lead) => (
             <MemoizedCRMLeadCard
