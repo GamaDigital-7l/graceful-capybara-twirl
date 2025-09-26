@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react"; // Adicionado useCallback
+import React, { useState, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";

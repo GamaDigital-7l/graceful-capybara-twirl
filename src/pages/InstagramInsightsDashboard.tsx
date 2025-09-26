@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useCallback } from "react"; // Adicionado useCallback
+import React, { useState, useMemo, useCallback } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -352,7 +352,7 @@ const InstagramInsightsDashboard = () => {
         {chartData.length > 0 && (
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2"><BarChart className="h-5 w-5" /> Gráfico de Métricas</CardTitle>
+              <CardTitle className="flex items-center gap-2"><RechartsBarChart className="h-5 w-5" /> Gráfico de Métricas</CardTitle>
               <CardDescription>Visão geral das métricas inseridas.</CardDescription>
             </CardHeader>
             <CardContent className="h-[400px] p-4 sm:p-6">

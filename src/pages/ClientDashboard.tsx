@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react"; // Adicionado React
+import React from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -34,7 +34,7 @@ const WorkspaceCard = React.memo(({ workspace }: { workspace: Workspace }) => (
     <Link to={`/workspace/${workspace.id}`} className="flex flex-col flex-grow">
       <CardHeader className="flex flex-col items-center justify-center pt-6 pb-4 flex-grow">
         <Avatar className="h-24 w-24 mb-4">
-          <AvatarImage src={workspace.logo_url || undefined} alt={workspace.name} loading="lazy" /> {/* Adicionado loading="lazy" */}
+          <AvatarImage src={workspace.logo_url || undefined} alt={workspace.name} loading="lazy" />
           <AvatarFallback className="text-4xl">{workspace.name.charAt(0).toUpperCase()}</AvatarFallback>
         </Avatar>
         <CardTitle className="text-lg font-medium text-center">{workspace.name}</CardTitle>

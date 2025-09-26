@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useCallback } from "react"; // Adicionado useCallback
+import React, { useState, useMemo, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -222,7 +222,7 @@ const PublicClientDashboardPage = () => {
                 </div>
                 <div className="p-4 border rounded-lg bg-muted/20 flex flex-col items-center justify-center text-center">
                   <BarChart className="h-8 w-8 text-orange-500 mb-2" />
-                  <p className className="text-sm font-medium text-muted-foreground">Impressões</p>
+                  <p className="text-sm font-medium text-muted-foreground">Impressões</p>
                   <p className="text-2xl font-bold">{instagramInsights.impressions.toLocaleString('pt-BR')}</p>
                 </div>
                 <div className="p-4 border rounded-lg bg-muted/20 flex flex-col items-center justify-center text-center">
@@ -241,7 +241,7 @@ const PublicClientDashboardPage = () => {
             {chartData.length > 0 && (
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2"><BarChart className="h-5 w-5" /> Gráfico de Métricas</CardTitle>
+                  <CardTitle className="flex items-center gap-2"><RechartsBarChart className="h-5 w-5" /> Gráfico de Métricas</CardTitle>
                   <CardDescription>Visão geral das métricas inseridas.</CardDescription>
                 </CardHeader>
                 <CardContent className="h-[400px] p-4 sm:p-6">
