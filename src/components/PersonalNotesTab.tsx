@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react"; // Adicionado useMemo
+import React, { useState, useEffect, useMemo, useCallback } from "react"; // Adicionado useCallback
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { showError, showSuccess } from "@/utils/toast";
@@ -20,6 +20,74 @@ const fetchPersonalNotes = async (userId: string): Promise<PersonalNote[]> => {
   if (error) throw new Error(error.message);
   return data;
 };
+
+const NoteCard = React.memo(({ note, onEdit, onDelete, onView }: {
+  note: PersonalNote;
+  onEdit: (note: PersonalNote) => void;
+  onDelete: (noteId: string) => void;
+  onView: (note: PersonalNote) => void;
+}) => {
+  const handleEditClick = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    onEdit(note);
+  }, [onEdit, note]);
+
+  const handleDeleteClick = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    onDelete(note.id!);
+  }, [onDelete, note.id]);
+
+  const handleViewClick = useCallback(() => onView(note), [onView, note]);
+
+  return (
+    <Card key={note.id} className="flex flex-col cursor-pointer hover:shadow-lg transition-shadow" onClick={handleViewClick}>
+      <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
+        <CardTitle className="text-lg font-medium flex-grow pr-2">{note.title}</CardTitle>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className="h-8 w-8 -mt-2 -mr-2 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+              <MoreVertical className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={handleEditClick}>
+              <Edit className="h-4 w-4 mr-2" />
+              Editar Nota
+            </DropdownMenuItem>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <DropdownMenuItem className="text-destructive" onClick={(e) => e.stopPropagation()}>
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Deletar Nota
+                </DropdownMenuItem>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Tem certeza que deseja deletar a nota "{note.title}"? Esta ação é irreversível.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleDeleteClick} className="bg-destructive hover:bg-destructive/90">
+                    Deletar
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </CardHeader>
+      <CardContent className="flex-grow p-4 pt-0">
+        <p className="text-sm text-muted-foreground line-clamp-5">{note.content}</p>
+        {note.updated_at && (
+          <p className="text-xs text-muted-foreground mt-2">Última atualização: {formatSaoPauloDateTime(note.updated_at)}</p>
+        )}
+      </CardContent>
+    </Card>
+  );
+});
 
 export function PersonalNotesTab() {
   const queryClient = useQueryClient();
@@ -80,28 +148,28 @@ export function PersonalNotesTab() {
     onError: (e: Error) => showError(e.message),
   });
 
-  const handleSaveNote = async (note: Partial<PersonalNote>) => {
+  const handleSaveNote = useCallback(async (note: Partial<PersonalNote>) => {
     await saveNoteMutation.mutateAsync(note);
-  };
+  }, [saveNoteMutation]);
 
-  const handleAddNote = () => {
+  const handleAddNote = useCallback(() => {
     setSelectedNote(null);
     setIsModalOpen(true);
-  };
+  }, []);
 
-  const handleEditNote = (note: PersonalNote) => {
+  const handleEditNote = useCallback((note: PersonalNote) => {
     setSelectedNote(note);
     setIsModalOpen(true);
-  };
+  }, []);
 
-  const handleDeleteNote = (noteId: string) => {
+  const handleDeleteNote = useCallback((noteId: string) => {
     deleteNoteMutation.mutate(noteId);
-  };
+  }, [deleteNoteMutation]);
 
-  const handleViewNote = (note: PersonalNote) => {
+  const handleViewNote = useCallback((note: PersonalNote) => {
     setViewingNote(note);
     setIsViewModalOpen(true);
-  };
+  }, []);
 
   // Filtrar notas com base no termo de pesquisa
   const filteredNotes = useMemo(() => {
@@ -162,52 +230,13 @@ export function PersonalNotesTab() {
           {filteredNotes && filteredNotes.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredNotes.map((note) => (
-                <Card key={note.id} className="flex flex-col cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleViewNote(note)}>
-                  <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
-                    <CardTitle className="text-lg font-medium flex-grow pr-2">{note.title}</CardTitle>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 -mt-2 -mr-2 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleEditNote(note); }}>
-                          <Edit className="h-4 w-4 mr-2" />
-                          Editar Nota
-                        </DropdownMenuItem>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <DropdownMenuItem className="text-destructive" onClick={(e) => e.stopPropagation()}>
-                              <Trash2 className="h-4 w-4 mr-2" />
-                              Deletar Nota
-                            </DropdownMenuItem>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Tem certeza que deseja deletar a nota "{note.title}"? Esta ação é irreversível.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                              <AlertDialogAction onClick={(e) => { e.stopPropagation(); handleDeleteNote(note.id!); }} className="bg-destructive hover:bg-destructive/90">
-                                Deletar
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </CardHeader>
-                  <CardContent className="flex-grow p-4 pt-0">
-                    <p className="text-sm text-muted-foreground line-clamp-5">{note.content}</p>
-                    {note.updated_at && (
-                      <p className="text-xs text-muted-foreground mt-2">Última atualização: {formatSaoPauloDateTime(note.updated_at)}</p>
-                    )}
-                  </CardContent>
-                </Card>
+                <NoteCard
+                  key={note.id}
+                  note={note}
+                  onEdit={handleEditNote}
+                  onDelete={handleDeleteNote}
+                  onView={handleViewNote}
+                />
               ))}
             </div>
           ) : (

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState, useCallback } from "react"; // Importar React e useCallback
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -52,7 +52,7 @@ interface GroupTabsProps {
   onReorderGroups: (groups: Group[]) => void;
 }
 
-const SortableGroupTab = ({
+const SortableGroupTab = React.memo(({
   group,
   onDeleteGroup,
 }: {
@@ -68,6 +68,11 @@ const SortableGroupTab = ({
     opacity: isDragging ? 0.5 : 1,
     zIndex: isDragging ? 10 : 0,
   };
+
+  const handleDeleteClick = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent activating TabsTrigger
+    onDeleteGroup(group.id);
+  }, [group.id, onDeleteGroup]);
 
   return (
     <TabsTrigger
@@ -114,7 +119,7 @@ const SortableGroupTab = ({
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction
-              onClick={() => onDeleteGroup(group.id)}
+              onClick={handleDeleteClick}
               className="bg-destructive hover:bg-destructive/90"
             >
               Sim, deletar
@@ -124,7 +129,7 @@ const SortableGroupTab = ({
       </AlertDialog>
     </TabsTrigger>
   );
-};
+});
 
 export function GroupTabs({
   groups,
@@ -151,22 +156,22 @@ export function GroupTabs({
     })
   );
 
-  const handleCreate = () => {
+  const handleCreate = useCallback(() => {
     if (newGroupName.trim()) {
       onCreateGroup(newGroupName.trim());
       setNewGroupName("");
       setIsCreating(false);
     }
-  };
+  }, [newGroupName, onCreateGroup]);
 
-  const handleDragEnd = (event: DragEndEvent) => {
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event;
     if (over && active.id !== over.id) {
       const oldIndex = groups.findIndex((g) => g.id === active.id);
       const newIndex = groups.findIndex((g) => g.id === over.id);
       onReorderGroups(arrayMove(groups, oldIndex, newIndex));
     }
-  };
+  }, [groups, onReorderGroups]);
 
   return (
     <Tabs

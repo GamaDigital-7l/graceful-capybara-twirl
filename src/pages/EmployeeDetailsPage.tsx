@@ -1,7 +1,6 @@
 "use client";
 
-import * as React from "react";
-import { useMemo, useState } from "react";
+import React, { useMemo } from "react"; // Adicionado React
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -52,6 +51,36 @@ const fetchAssignedTasks = async (employeeId: string, month: Date): Promise<Assi
   if (error) throw new Error(error.message);
   return data || [];
 };
+
+const TaskDetailCard = React.memo(({ task }: { task: AssignedTask }) => (
+  <Link to={`/workspace/${task.workspace_id}`} key={task.id}>
+    <Card className={cn(
+      "hover:shadow-md transition-shadow",
+      task.due_date && isPast(new Date(task.due_date)) && task.column_title !== "Aprovado" && "border-destructive/50 ring-1 ring-destructive/50"
+    )}>
+      <CardContent className="p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+        <div>
+          <p className="font-medium">{task.title}</p>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
+            <Briefcase className="h-4 w-4" />
+            <span>{task.workspace_name}</span>
+            <Badge variant="secondary">{task.column_title}</Badge>
+          </div>
+        </div>
+        {task.due_date && (
+          <div className="flex items-center gap-1 text-sm text-muted-foreground">
+            <CalendarDays className="h-4 w-4" />
+            <span className={cn(
+              task.due_date && isPast(new Date(task.due_date)) && task.column_title !== "Aprovado" && "text-destructive font-semibold"
+            )}>
+              {formatSaoPauloDate(task.due_date)}
+            </span>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  </Link>
+));
 
 const EmployeeDetailsPage = () => {
   const { employeeId } = useParams<{ employeeId: string }>();
@@ -195,33 +224,7 @@ const EmployeeDetailsPage = () => {
             <CardContent className="space-y-4">
               {tasks && tasks.length > 0 ? (
                 tasks.map(task => (
-                  <Link to={`/workspace/${task.workspace_id}`} key={task.id}>
-                    <Card className={cn(
-                      "hover:shadow-md transition-shadow",
-                      task.due_date && isPast(new Date(task.due_date)) && task.column_title !== "Aprovado" && "border-destructive/50 ring-1 ring-destructive/50"
-                    )}>
-                      <CardContent className="p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-                        <div>
-                          <p className="font-medium">{task.title}</p>
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
-                            <Briefcase className="h-4 w-4" />
-                            <span>{task.workspace_name}</span>
-                            <Badge variant="secondary">{task.column_title}</Badge>
-                          </div>
-                        </div>
-                        {task.due_date && (
-                          <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                            <CalendarDays className="h-4 w-4" />
-                            <span className={cn(
-                              task.due_date && isPast(new Date(task.due_date)) && task.column_title !== "Aprovado" && "text-destructive font-semibold"
-                            )}>
-                              {formatSaoPauloDate(task.due_date)}
-                            </span>
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  </Link>
+                  <TaskDetailCard key={task.id} task={task} />
                 ))
               ) : (
                 <p className="text-muted-foreground">Nenhuma tarefa atribuída a este funcionário no mês selecionado.</p>

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useCallback } from "react"; // Adicionado useCallback
 import {
   DndContext,
   DragEndEvent,
@@ -130,7 +130,7 @@ export function CRMKanbanBoard() {
     })
   );
 
-  const invalidateCRMData = () => queryClient.invalidateQueries({ queryKey: ["crmData"] });
+  const invalidateCRMData = useCallback(() => queryClient.invalidateQueries({ queryKey: ["crmData"] }), [queryClient]);
 
   const createStageMutation = useMutation({
     mutationFn: async () => supabase.from("crm_stages").insert({ title: "Nova Etapa", position: stages.length }),
@@ -206,16 +206,16 @@ export function CRMKanbanBoard() {
     onError: (e: Error) => showError(e.message),
   });
 
-  const onDragStart = (event: DragStartEvent) => {
+  const onDragStart = useCallback((event: DragStartEvent) => {
     const { active } = event;
     if (active.data.current?.type === "Stage") {
       setActiveEl({ type: "Stage", data: active.data.current.stage as CRMStage });
     } else if (active.data.current?.type === "Lead") {
       setActiveEl({ type: "Lead", data: active.data.current.lead as CRMLead });
     }
-  };
+  }, []);
 
-  const onDragEnd = (event: DragEndEvent) => {
+  const onDragEnd = useCallback((event: DragEndEvent) => {
     setActiveEl(null);
     const { active, over } = event;
     if (!over) return;
@@ -264,7 +264,21 @@ export function CRMKanbanBoard() {
             showSuccess(`Lead "${activeLead.name}" movido para a nova etapa!`);
         }
     }
-  };
+  }, [stages, leads, updateStagePositionMutation, updateLeadStageMutation]);
+
+  const handleLeadClick = useCallback((lead: CRMLead) => {
+    setSelectedLead(lead);
+    setIsLeadModalOpen(true);
+  }, []);
+
+  const handleAddLead = useCallback((stageId: string) => {
+    setSelectedLead(null);
+    setNewLeadStageId(stageId);
+    setIsLeadModalOpen(true);
+  }, []);
+
+  const MemoizedCRMStageColumn = React.memo(CRMStageColumn);
+  const MemoizedCRMLeadCard = React.memo(CRMLeadCard);
 
   if (isLoading || isLoadingUsersForAssignment) return <div className="p-8 text-center">Carregando CRM...</div>;
   if (error) return <div className="p-8 text-center text-destructive">Erro ao carregar o CRM: ${error.message}</div>;
@@ -276,12 +290,12 @@ export function CRMKanbanBoard() {
           <div className="inline-flex gap-6 items-start min-h-[500px]"> {/* Adicionado min-h-[500px] e items-start */}
             <SortableContext items={stageIds}>
               {stages.map((stage) => (
-                <CRMStageColumn
+                <MemoizedCRMStageColumn
                   key={stage.id}
                   stage={stage}
                   leads={leads.filter((lead) => lead.stageId === stage.id)}
-                  onLeadClick={(lead) => { setSelectedLead(lead); setIsLeadModalOpen(true); }}
-                  onAddLead={(stageId) => { setSelectedLead(null); setNewLeadStageId(stageId); setIsLeadModalOpen(true); }}
+                  onLeadClick={handleLeadClick}
+                  onAddLead={handleAddLead}
                   onDeleteStage={(id) => deleteStageMutation.mutate(id)}
                   onUpdateStage={(id, title) => updateStageMutation.mutate({ id, title })}
                 />
@@ -293,10 +307,10 @@ export function CRMKanbanBoard() {
           </div>
         </div>
         {createPortal(<DragOverlay>{
-          activeEl?.type === "Lead" && <CRMLeadCard lead={activeEl.data as CRMLead} onClick={() => {}} />
+          activeEl?.type === "Lead" && <MemoizedCRMLeadCard lead={activeEl.data as CRMLead} onClick={() => {}} />
         }
         {
-          activeEl?.type === "Stage" && <CRMStageColumn stage={activeEl.data as CRMStage} leads={[]} onLeadClick={() => {}} onAddLead={() => {}} onDeleteStage={() => {}} onUpdateStage={() => {}} />
+          activeEl?.type === "Stage" && <MemoizedCRMStageColumn stage={activeEl.data as CRMStage} leads={[]} onLeadClick={() => {}} onAddLead={() => {}} onDeleteStage={() => {}} onUpdateStage={() => {}} />
         }
         </DragOverlay>, document.body)}
       </DndContext>

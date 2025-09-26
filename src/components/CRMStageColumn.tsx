@@ -1,7 +1,7 @@
 "use client";
 
+import React, { useMemo, useState, useCallback } from "react"; // Adicionado React e useCallback
 import { SortableContext, useSortable } from "@dnd-kit/sortable";
-import { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -42,7 +42,7 @@ interface CRMStageColumnProps {
   onUpdateStage: (stageId: string, title: string) => void;
 }
 
-export function CRMStageColumn({
+export const CRMStageColumn = React.memo(function CRMStageColumn({
   stage,
   leads,
   onLeadClick,
@@ -77,12 +77,22 @@ export function CRMStageColumn({
     transform: CSS.Transform.toString(transform),
   };
 
-  const handleTitleBlur = () => {
+  const handleTitleBlur = useCallback(() => {
     if (title !== stage.title) {
       onUpdateStage(stage.id, title);
     }
     setIsEditing(false);
-  };
+  }, [title, stage.title, stage.id, onUpdateStage]);
+
+  const handleDeleteStageClick = useCallback(() => {
+    onDeleteStage(stage.id);
+  }, [stage.id, onDeleteStage]);
+
+  const handleAddLeadClick = useCallback(() => {
+    onAddLead(stage.id);
+  }, [stage.id, onAddLead]);
+
+  const MemoizedCRMLeadCard = React.memo(CRMLeadCard);
 
   if (isDragging) {
     return (
@@ -146,7 +156,7 @@ export function CRMStageColumn({
                 <AlertDialogFooter>
                   <AlertDialogCancel>Cancelar</AlertDialogCancel>
                   <AlertDialogAction
-                    onClick={() => onDeleteStage(stage.id)}
+                    onClick={handleDeleteStageClick}
                     className="bg-destructive hover:bg-destructive/90"
                   >
                     Sim, deletar
@@ -160,7 +170,7 @@ export function CRMStageColumn({
       <CardContent className="flex flex-col gap-4 flex-grow overflow-y-auto p-4"> {/* Adicionado p-4 */}
         <SortableContext items={leadsIds}>
           {leads.map((lead) => (
-            <CRMLeadCard
+            <MemoizedCRMLeadCard
               key={lead.id}
               lead={lead}
               onClick={() => onLeadClick(lead)}
@@ -172,7 +182,7 @@ export function CRMStageColumn({
         <Button
           variant="ghost"
           className="w-full"
-          onClick={() => onAddLead(stage.id)}
+          onClick={handleAddLeadClick}
         >
           <Plus className="h-4 w-4 mr-2" />
           Adicionar Lead
@@ -180,4 +190,4 @@ export function CRMStageColumn({
       </div>
     </Card>
   );
-}
+});

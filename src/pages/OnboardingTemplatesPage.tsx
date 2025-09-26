@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react"; // Adicionado useMemo
 import { Link, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -66,7 +66,7 @@ interface SortableSectionItemProps {
   label: string;
 }
 
-const SortableSectionItem = ({ id, label }: SortableSectionItemProps) => {
+const SortableSectionItem = React.memo(({ id, label }: SortableSectionItemProps) => {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
 
   const style = {
@@ -87,7 +87,7 @@ const SortableSectionItem = ({ id, label }: SortableSectionItemProps) => {
       <span>{label}</span>
     </div>
   );
-};
+});
 
 const OnboardingTemplatesPage = () => {
   const queryClient = useQueryClient();
@@ -209,7 +209,7 @@ const OnboardingTemplatesPage = () => {
     onError: (e: Error) => showError(e.message),
   });
 
-  const handleSaveTemplate = () => {
+  const handleSaveTemplate = useCallback(() => {
     if (!templateName.trim()) {
       showError("O nome do template é obrigatório.");
       return;
@@ -231,59 +231,67 @@ const OnboardingTemplatesPage = () => {
     } else {
       createTemplateMutation.mutate(dataToSave);
     }
-  };
+  }, [templateName, welcomeMessage, processesContent, appsAccessInfo, tutorialVideos, briefingLinks, mainContent, sectionOrder, selectedTemplate, updateTemplateMutation, createTemplateMutation]);
 
-  const addBriefingLink = () => setBriefingLinks([...briefingLinks, { name: "", url: "" }]);
-  const updateBriefingLink = (index: number, field: 'name' | 'url', value: string) => {
-    const newLinks = [...briefingLinks];
-    newLinks[index][field] = value;
-    setBriefingLinks(newLinks);
-  };
-  const removeBriefingLink = (index: number) => setBriefingLinks(briefingLinks.filter((_, i) => i !== index));
+  const addBriefingLink = useCallback(() => setBriefingLinks(prev => [...prev, { name: "", url: "" }]), []);
+  const updateBriefingLink = useCallback((index: number, field: 'name' | 'url', value: string) => {
+    setBriefingLinks(prev => {
+      const newLinks = [...prev];
+      newLinks[index][field] = value;
+      return newLinks;
+    });
+  }, []);
+  const removeBriefingLink = useCallback((index: number) => setBriefingLinks(prev => prev.filter((_, i) => i !== index)), []);
 
-  const addTutorialVideo = () => setTutorialVideos([...tutorialVideos, { name: "", url: "" }]);
-  const updateTutorialVideo = (index: number, field: 'name' | 'url', value: string) => {
-    const newVideos = [...tutorialVideos];
-    newVideos[index][field] = value;
-    setTutorialVideos(newVideos);
-  };
-  const removeTutorialVideo = (index: number) => setTutorialVideos(tutorialVideos.filter((_, i) => i !== index));
+  const addTutorialVideo = useCallback(() => setTutorialVideos(prev => [...prev, { name: "", url: "" }]), []);
+  const updateTutorialVideo = useCallback((index: number, field: 'name' | 'url', value: string) => {
+    setTutorialVideos(prev => {
+      const newVideos = [...prev];
+      newVideos[index][field] = value;
+      return newVideos;
+    });
+  }, []);
+  const removeTutorialVideo = useCallback((index: number) => setTutorialVideos(prev => prev.filter((_, i) => i !== index)), []);
 
   // Funções para Processes Content
-  const addProcessItem = () => setProcessesContent([...processesContent, { title: "", content: "" }]);
-  const updateProcessItem = (index: number, field: 'title' | 'content', value: string) => {
-    const newItems = [...processesContent];
-    newItems[index][field] = value;
-    setProcessesContent(newItems);
-  };
-  const removeProcessItem = (index: number) => setProcessesContent(processesContent.filter((_, i) => i !== index));
+  const addProcessItem = useCallback(() => setProcessesContent(prev => [...prev, { title: "", content: "" }]), []);
+  const updateProcessItem = useCallback((index: number, field: 'title' | 'content', value: string) => {
+    setProcessesContent(prev => {
+      const newItems = [...prev];
+      newItems[index][field] = value;
+      return newItems;
+    });
+  }, []);
+  const removeProcessItem = useCallback((index: number) => setProcessesContent(prev => prev.filter((_, i) => i !== index)), []);
 
   // Funções para Apps Access Info
-  const addAppAccessItem = () => setAppsAccessInfo([...appsAccessInfo, { title: "", content: "" }]);
-  const updateAppAccessItem = (index: number, field: 'title' | 'content', value: string) => {
-    const newItems = [...appsAccessInfo];
-    newItems[index][field] = value;
-    setAppsAccessInfo(newItems);
-  };
-  const removeAppAccessItem = (index: number) => setAppsAccessInfo(appsAccessInfo.filter((_, i) => i !== index));
+  const addAppAccessItem = useCallback(() => setAppsAccessInfo(prev => [...prev, { title: "", content: "" }]), []);
+  const updateAppAccessItem = useCallback((index: number, field: 'title' | 'content', value: string) => {
+    setAppsAccessInfo(prev => {
+      const newItems = [...prev];
+      newItems[index][field] = value;
+      return newItems;
+    });
+  }, []);
+  const removeAppAccessItem = useCallback((index: number) => setAppsAccessInfo(prev => prev.filter((_, i) => i !== index)), []);
 
-  const handleDragEnd = (event: DragEndEvent) => {
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event;
     if (over && active.id !== over.id) {
       const oldIndex = sectionOrder.indexOf(active.id as string);
       const newIndex = sectionOrder.indexOf(over.id as string);
       setSectionOrder((items) => arrayMove(items, oldIndex, newIndex));
     }
-  };
+  }, [sectionOrder]);
 
-  const sectionLabels: { [key: string]: string } = {
+  const sectionLabels: { [key: string]: string } = useMemo(() => ({
     'welcome_message': 'Mensagem de Boas-Vindas',
     'main_content': 'Conteúdo Principal',
     'briefing_links': 'Links de Briefings',
     'processes_content': 'Nossos Processos',
     'apps_access_info': 'Acesso aos Nossos Apps',
     'tutorial_videos': 'Vídeos Tutoriais',
-  };
+  }), []);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -293,7 +301,7 @@ const OnboardingTemplatesPage = () => {
     })
   );
 
-  const handlePreview = () => {
+  const handlePreview = useCallback(() => {
     if (!selectedTemplate) {
       showError("Por favor, selecione ou crie um template para pré-visualizar.");
       return;
@@ -316,7 +324,7 @@ const OnboardingTemplatesPage = () => {
     };
     localStorage.setItem('onboardingPreviewData', JSON.stringify(previewData));
     window.open('/onboarding/preview', '_blank'); // Abrir em nova aba com token especial
-  };
+  }, [selectedTemplate, templateName, welcomeMessage, processesContent, appsAccessInfo, tutorialVideos, briefingLinks, mainContent, sectionOrder]);
 
   if (isProfileLoading || userRole === undefined) {
     return <div className="flex justify-center items-center min-h-screen">Carregando...</div>;

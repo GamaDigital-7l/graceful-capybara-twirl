@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React from "react"; // Adicionado React
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -28,6 +28,23 @@ const fetchClientWorkspaces = async (userId: string): Promise<Workspace[]> => {
   // Flatten the data structure
   return data.flatMap(member => member.workspaces).filter(Boolean) as Workspace[];
 };
+
+const WorkspaceCard = React.memo(({ workspace }: { workspace: Workspace }) => (
+  <Card key={workspace.id} className="hover:shadow-lg transition-shadow flex flex-col">
+    <Link to={`/workspace/${workspace.id}`} className="flex flex-col flex-grow">
+      <CardHeader className="flex flex-col items-center justify-center pt-6 pb-4 flex-grow">
+        <Avatar className="h-24 w-24 mb-4">
+          <AvatarImage src={workspace.logo_url || undefined} alt={workspace.name} loading="lazy" /> {/* Adicionado loading="lazy" */}
+          <AvatarFallback className="text-4xl">{workspace.name.charAt(0).toUpperCase()}</AvatarFallback>
+        </Avatar>
+        <CardTitle className="text-lg font-medium text-center">{workspace.name}</CardTitle>
+      </CardHeader>
+      <CardContent className="p-4 pt-0">
+        <Button variant="outline" className="w-full">Ver Projeto</Button>
+      </CardContent>
+    </Link>
+  </Card>
+));
 
 const ClientDashboard = () => {
   const [currentUserId, setCurrentUserId] = React.useState<string | null>(null);
@@ -83,20 +100,7 @@ const ClientDashboard = () => {
       <h1 className="text-2xl font-bold">Meus Projetos</h1>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {workspaces.map((ws) => (
-          <Card key={ws.id} className="hover:shadow-lg transition-shadow flex flex-col">
-            <Link to={`/workspace/${ws.id}`} className="flex flex-col flex-grow">
-              <CardHeader className="flex flex-col items-center justify-center pt-6 pb-4 flex-grow">
-                <Avatar className="h-24 w-24 mb-4">
-                  <AvatarImage src={ws.logo_url || undefined} alt={ws.name} loading="lazy" /> {/* Adicionado loading="lazy" */}
-                  <AvatarFallback className="text-4xl">{ws.name.charAt(0).toUpperCase()}</AvatarFallback>
-                </Avatar>
-                <CardTitle className="text-lg font-medium text-center">{ws.name}</CardTitle>
-              </CardHeader>
-              <CardContent className="p-4 pt-0">
-                <Button variant="outline" className="w-full">Ver Projeto</Button>
-              </CardContent>
-            </Link>
-          </Card>
+          <WorkspaceCard key={ws.id} workspace={ws} />
         ))}
       </div>
     </div>

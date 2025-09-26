@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react"; // Adicionado React
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Card, CardContent } from "@/components/ui/card";
@@ -29,7 +30,7 @@ interface CRMLeadCardProps {
   onClick: () => void;
 }
 
-export function CRMLeadCard({
+export const CRMLeadCard = React.memo(function CRMLeadCard({
   lead,
   onClick,
 }: CRMLeadCardProps) {
@@ -105,4 +106,4 @@ export function CRMLeadCard({
       </CardContent>
     </Card>
   );
-}
+});

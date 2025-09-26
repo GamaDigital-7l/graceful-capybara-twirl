@@ -1,3 +1,4 @@
+import React, { useCallback } from "react"; // Importar React e useCallback
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
@@ -16,7 +17,7 @@ interface PersonalTaskCardProps {
   onToggleComplete: (taskId: string, isCompleted: boolean) => void;
 }
 
-export function PersonalTaskCard({ task, onEdit, onDelete, onToggleComplete }: PersonalTaskCardProps) {
+export const PersonalTaskCard = React.memo(function PersonalTaskCard({ task, onEdit, onDelete, onToggleComplete }: PersonalTaskCardProps) {
   // Combine due_date and due_time into a single Date object in São Paulo timezone for comparison
   const fullDueDateTimeSaoPaulo = task.due_time
     ? toSaoPauloTime(`${formatSaoPauloTime(task.due_date, 'yyyy-MM-dd')}T${task.due_time}:00`)
@@ -24,7 +25,7 @@ export function PersonalTaskCard({ task, onEdit, onDelete, onToggleComplete }: P
 
   const isOverdue = !task.is_completed && isPast(fullDueDateTimeSaoPaulo);
 
-  const getPriorityBadgeVariant = (priority: PersonalTask['priority']) => {
+  const getPriorityBadgeVariant = useCallback((priority: PersonalTask['priority']) => {
     switch (priority) {
       case 'Highest': return 'destructive';
       case 'High': return 'default';
@@ -32,9 +33,9 @@ export function PersonalTaskCard({ task, onEdit, onDelete, onToggleComplete }: P
       case 'Low': return 'outline';
       default: return 'outline';
     }
-  };
+  }, []);
 
-  const getPriorityLabel = (priority: PersonalTask['priority']) => {
+  const getPriorityLabel = useCallback((priority: PersonalTask['priority']) => {
     switch (priority) {
       case 'Highest': return 'Mais Alta';
       case 'High': return 'Alta';
@@ -42,7 +43,15 @@ export function PersonalTaskCard({ task, onEdit, onDelete, onToggleComplete }: P
       case 'Low': return 'Baixa';
       default: return 'Média';
     }
-  };
+  }, []);
+
+  const handleEditClick = useCallback(() => onEdit(task), [onEdit, task]);
+  const handleDeleteClick = useCallback(() => onDelete(task.id!), [onDelete, task.id]);
+  const handleToggleCompleteChange = useCallback((checked: boolean | 'indeterminate') => {
+    if (typeof checked === 'boolean') {
+      onToggleComplete(task.id!, checked);
+    }
+  }, [onToggleComplete, task.id]);
 
   return (
     <Card className={cn(
@@ -53,7 +62,7 @@ export function PersonalTaskCard({ task, onEdit, onDelete, onToggleComplete }: P
       <div className="flex items-center space-x-4 flex-grow">
         <Checkbox
           checked={task.is_completed}
-          onCheckedChange={(checked: boolean) => onToggleComplete(task.id!, checked)}
+          onCheckedChange={handleToggleCompleteChange}
           id={`task-${task.id}`}
         />
         <div className="flex-grow">
@@ -86,13 +95,13 @@ export function PersonalTaskCard({ task, onEdit, onDelete, onToggleComplete }: P
         </div>
       </div>
       <div className="flex space-x-2">
-        <Button variant="ghost" size="icon" onClick={() => onEdit(task)}>
+        <Button variant="ghost" size="icon" onClick={handleEditClick}>
           <Pencil className="h-4 w-4" />
         </Button>
-        <Button variant="destructive" size="icon" onClick={() => onDelete(task.id!)}>
+        <Button variant="destructive" size="icon" onClick={handleDeleteClick}>
           <Trash2 className="h-4 w-4" />
         </Button>
       </div>
     </Card>
   );
-}
+});

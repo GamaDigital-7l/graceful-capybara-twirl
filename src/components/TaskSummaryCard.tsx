@@ -1,3 +1,4 @@
+import React from "react"; // Importar React
 import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -14,7 +15,7 @@ interface TaskSummaryCardProps {
   };
 }
 
-export function TaskSummaryCard({ task }: TaskSummaryCardProps) {
+export const TaskSummaryCard = React.memo(function TaskSummaryCard({ task }: TaskSummaryCardProps) {
   const needsEdit = task.column_title === "Editar";
 
   return (
@@ -38,4 +39,4 @@ export function TaskSummaryCard({ task }: TaskSummaryCardProps) {
       </Card>
     </Link>
   );
-}
+});

@@ -1,5 +1,5 @@
+import React, { useMemo, useState, useCallback } from "react"; // Importar React e useCallback
 import { SortableContext, useSortable } from "@dnd-kit/sortable";
-import { useMemo, useState } from "react";
 import { KanbanCard, Task } from "./KanbanCard";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "./ui/button";
@@ -42,7 +42,7 @@ interface KanbanColumnProps {
   onEditRequestTask: (taskId: string) => void;
 }
 
-export function KanbanColumn({
+export const KanbanColumn = React.memo(function KanbanColumn({
   column,
   tasks,
   onCardClick,
@@ -79,12 +79,22 @@ export function KanbanColumn({
     transform: CSS.Transform.toString(transform),
   };
 
-  const handleTitleBlur = () => {
+  const handleTitleBlur = useCallback(() => {
     if (title !== column.title) {
       onUpdateColumn(column.id, title);
     }
     setIsEditing(false);
-  };
+  }, [title, column.title, column.id, onUpdateColumn]);
+
+  const handleDeleteColumnClick = useCallback(() => {
+    onDeleteColumn(column.id);
+  }, [column.id, onDeleteColumn]);
+
+  const handleAddTaskClick = useCallback(() => {
+    onAddTask(column.id);
+  }, [column.id, onAddTask]);
+
+  const MemoizedKanbanCard = React.memo(KanbanCard);
 
   if (isDragging) {
     return (
@@ -147,7 +157,7 @@ export function KanbanColumn({
                 <AlertDialogFooter>
                   <AlertDialogCancel>Cancelar</AlertDialogCancel>
                   <AlertDialogAction
-                    onClick={() => onDeleteColumn(column.id)}
+                    onClick={handleDeleteColumnClick}
                     className="bg-destructive hover:bg-destructive/90"
                   >
                     Sim, deletar
@@ -161,7 +171,7 @@ export function KanbanColumn({
       <CardContent className="flex flex-col gap-4 flex-grow overflow-y-auto"> {/* Adicionado overflow-y-auto */}
         <SortableContext items={tasksIds}>
           {tasks.map((task) => (
-            <KanbanCard
+            <MemoizedKanbanCard
               key={task.id}
               task={task}
               onClick={() => onCardClick(task)}
@@ -175,7 +185,7 @@ export function KanbanColumn({
         <Button
           variant="ghost"
           className="w-full"
-          onClick={() => onAddTask(column.id)}
+          onClick={handleAddTaskClick}
         >
           <Plus className="h-4 w-4 mr-2" />
           Adicionar Tarefa
@@ -183,4 +193,4 @@ export function KanbanColumn({
       </div>
     </Card>
   );
-}
+});

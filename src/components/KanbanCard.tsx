@@ -1,3 +1,4 @@
+import React, { useState, useCallback } from "react"; // Importar React e useCallback
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
@@ -5,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { CalendarDays, MessageSquare, Eye, User } from "lucide-react";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
-import { useState } from "react";
 import { ImagePreviewModal } from "./ImagePreviewModal";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { formatSaoPauloDate } from "@/utils/date-utils";
@@ -48,7 +48,7 @@ interface KanbanCardProps {
   onEditRequest?: (taskId: string) => void;
 }
 
-export function KanbanCard({
+export const KanbanCard = React.memo(function KanbanCard({
   task,
   onClick,
   onApprove,
@@ -77,7 +77,7 @@ export function KanbanCard({
     transform: CSS.Transform.toString(transform),
   };
 
-  const handleActionClick = (
+  const handleActionClick = useCallback((
     e: React.MouseEvent,
     action?: (taskId: string) => void
   ) => {
@@ -85,7 +85,16 @@ export function KanbanCard({
     if (action) {
       action(task.id);
     }
-  };
+  }, [task.id]);
+
+  const handleImagePreviewClick = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    const coverImage = task.attachments?.find((att) => att.isCover)?.url;
+    if (coverImage) {
+      setPreviewImageUrl(coverImage);
+      setIsPreviewModalOpen(true);
+    }
+  }, [task.attachments]);
 
   const coverImage = task.attachments?.find((att) => att.isCover)?.url;
 
@@ -120,13 +129,7 @@ export function KanbanCard({
               />
               <div 
                 className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (coverImage) {
-                    setPreviewImageUrl(coverImage);
-                    setIsPreviewModalOpen(true);
-                  }
-                }}
+                onClick={handleImagePreviewClick}
               >
                 <Eye className="h-8 w-8 text-white" />
               </div>
@@ -195,4 +198,4 @@ export function KanbanCard({
       />
     </>
   );
-}
+});

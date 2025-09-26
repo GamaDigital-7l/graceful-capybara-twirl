@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react"; // Adicionado useCallback
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -33,6 +33,74 @@ const fetchBriefingResponses = async (formId: string): Promise<BriefingResponse[
   if (error) throw new Error(error.message);
   return data as BriefingResponse[];
 };
+
+const ResponseCard = React.memo(({ response, form, onDelete, onView }: {
+  response: BriefingResponse;
+  form: BriefingForm;
+  onDelete: (responseId: string) => void;
+  onView: (response: BriefingResponse) => void;
+}) => {
+  const handleDeleteClick = useCallback(() => onDelete(response.id), [onDelete, response.id]);
+  const handleViewClick = useCallback(() => onView(response), [onView, response]);
+
+  return (
+    <Card key={response.id} className="flex flex-col hover:shadow-lg transition-shadow">
+      <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
+        <div className="flex flex-col">
+          <CardTitle className="text-lg font-medium flex-grow pr-2">{response.client_name || "Usuário Autenticado"}</CardTitle>
+          <CardDescription className="flex items-center gap-1 text-sm text-muted-foreground mt-1">
+            <CalendarDays className="h-3 w-3" /> {formatSaoPauloDateTime(response.submitted_at)}
+          </CardDescription>
+        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className="h-8 w-8 -mt-2 -mr-2 flex-shrink-0">
+              <MoreVertical className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={handleViewClick}>
+              <Eye className="h-4 w-4 mr-2" />
+              Ver Resposta Completa
+            </DropdownMenuItem>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <DropdownMenuItem className="text-destructive">
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Deletar Resposta
+                </DropdownMenuItem>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Tem certeza que deseja deletar esta resposta de "{response.client_name || "Usuário Autenticado"}"? Esta ação é irreversível.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleDeleteClick} className="bg-destructive hover:bg-destructive/90">
+                    Deletar
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </CardHeader>
+      <CardContent className="flex-grow p-4 pt-0">
+        <p className="text-sm text-muted-foreground line-clamp-3">
+          {Object.entries(response.response_data).slice(0, 2).map(([fieldId, value]) => {
+            const field = form.form_structure?.find(f => f.id === fieldId);
+            if (!field) return null;
+            const displayValue = Array.isArray(value) ? value.join(", ") : value;
+            return <span key={fieldId} className="block">{field.label}: {displayValue}</span>;
+          })}
+        </p>
+      </CardContent>
+    </Card>
+  );
+});
 
 const BriefingResponsesPage = () => {
   const { formId } = useParams<{ formId: string }>();
@@ -100,10 +168,10 @@ const BriefingResponsesPage = () => {
     onError: (e: Error) => showError(e.message),
   });
 
-  const handleViewResponse = (response: BriefingResponse) => {
+  const handleViewResponse = useCallback((response: BriefingResponse) => {
     setSelectedResponse(response);
     setIsViewModalOpen(true);
-  };
+  }, []);
 
   if (isProfileLoading || userRole === undefined || isLoadingForm || isLoadingResponses) {
     return <div className="flex justify-center items-center min-h-screen">Carregando...</div>;
@@ -156,61 +224,13 @@ const BriefingResponsesPage = () => {
           {responses && responses.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {responses.map((response) => (
-                <Card key={response.id} className="flex flex-col hover:shadow-lg transition-shadow">
-                  <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
-                    <div className="flex flex-col">
-                      <CardTitle className="text-lg font-medium flex-grow pr-2">{response.client_name || "Usuário Autenticado"}</CardTitle>
-                      <CardDescription className="flex items-center gap-1 text-sm text-muted-foreground mt-1">
-                        <CalendarDays className="h-3 w-3" /> {formatSaoPauloDateTime(response.submitted_at)}
-                      </CardDescription>
-                    </div>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 -mt-2 -mr-2 flex-shrink-0">
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handleViewResponse(response)}>
-                          <Eye className="h-4 w-4 mr-2" />
-                          Ver Resposta Completa
-                        </DropdownMenuItem>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <DropdownMenuItem className="text-destructive">
-                              <Trash2 className="h-4 w-4 mr-2" />
-                              Deletar Resposta
-                            </DropdownMenuItem>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Tem certeza que deseja deletar esta resposta de "{response.client_name || "Usuário Autenticado"}"? Esta ação é irreversível.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                              <AlertDialogAction onClick={() => deleteResponseMutation.mutate(response.id)} className="bg-destructive hover:bg-destructive/90">
-                                Deletar
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </CardHeader>
-                  <CardContent className="flex-grow p-4 pt-0">
-                    <p className="text-sm text-muted-foreground line-clamp-3">
-                      {Object.entries(response.response_data).slice(0, 2).map(([fieldId, value]) => {
-                        const field = form.form_structure.find(f => f.id === fieldId);
-                        if (!field) return null;
-                        const displayValue = Array.isArray(value) ? value.join(", ") : value;
-                        return <span key={fieldId} className="block">{field.label}: {displayValue}</span>;
-                      })}
-                    </p>
-                  </CardContent>
-                </Card>
+                <ResponseCard
+                  key={response.id}
+                  response={response}
+                  form={form}
+                  onDelete={(id) => deleteResponseMutation.mutate(id)}
+                  onView={handleViewResponse}
+                />
               ))}
             </div>
           ) : (

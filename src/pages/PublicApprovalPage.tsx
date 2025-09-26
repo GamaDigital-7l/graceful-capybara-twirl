@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState, useCallback } from "react"; // Adicionado useCallback
 import { useParams } from "react-router-dom";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -23,6 +23,59 @@ const fetchApprovalData = async (token: string) => {
   if (error) throw new Error(error.message);
   return data;
 };
+
+const ApprovalTaskCard = React.memo(({ task, processedTasks, onApprove, onEditRequest, onImageClick }: {
+  task: any;
+  processedTasks: Set<string>;
+  onApprove: (taskId: string) => void;
+  onEditRequest: (task: any) => void;
+  onImageClick: (url: string) => void;
+}) => {
+  const handleApproveClick = useCallback(() => onApprove(task.id), [onApprove, task.id]);
+  const handleEditRequestClick = useCallback(() => onEditRequest(task), [onEditRequest, task]);
+  const handleImageClickCallback = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (task.attachments?.[0]?.url) {
+      onImageClick(task.attachments[0].url);
+    }
+  }, [onImageClick, task.attachments]);
+
+  return (
+    <Card key={task.id} className={processedTasks.has(task.id) ? "opacity-50" : ""}>
+      <CardHeader>
+        <CardTitle>{task.title}</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {task.attachments?.[0]?.url && (
+          <AspectRatio ratio={1 / 1} className="bg-muted rounded-md group relative">
+            <img src={task.attachments[0].url} alt={task.title} className="rounded-md object-cover w-full h-full" loading="lazy" />
+            <div 
+              className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+              onClick={handleImageClickCallback}
+            >
+              <Eye className="h-8 w-8 text-white" />
+            </div>
+          </AspectRatio>
+        )}
+        {task.description && <p className="text-sm text-muted-foreground whitespace-pre-wrap">{task.description}</p>}
+      </CardContent>
+      <CardFooter className="flex flex-col sm:flex-row gap-4"> {/* Ajustado para responsividade */}
+        {processedTasks.has(task.id) ? (
+          <p className="text-sm font-medium text-green-600">Tarefa já revisada.</p>
+        ) : (
+          <>
+            <Button className="w-full sm:w-1/2 bg-green-600 hover:bg-green-700" onClick={handleApproveClick}> {/* Ajustado para responsividade */}
+              <CheckCircle className="h-4 w-4 mr-2" /> Aprovar
+            </Button>
+            <Button variant="outline" className="w-full sm:w-1/2" onClick={handleEditRequestClick}> {/* Ajustado para responsividade */}
+              <Edit className="h-4 w-4 mr-2" /> Solicitar Edição
+            </Button>
+          </>
+        )}
+      </CardFooter>
+    </Card>
+  );
+});
 
 const PublicApprovalPage = () => {
   const { token } = useParams<{ token: string }>();
@@ -62,23 +115,23 @@ const PublicApprovalPage = () => {
     onError: (e: Error) => showError(e.message),
   });
 
-  const handleEditRequest = (task: any) => {
+  const handleEditRequest = useCallback((task: any) => {
     setSelectedTask(task);
     setIsEditModalOpen(true);
-  };
+  }, []);
 
-  const handleConfirmEdit = () => {
+  const handleConfirmEdit = useCallback(() => {
     if (selectedTask && editComment.trim()) {
       processApprovalMutation.mutate({ taskId: selectedTask.id, action: 'edit', comment: editComment });
     } else {
       showError("Por favor, adicione um comentário de edição.");
     }
-  };
+  }, [selectedTask, editComment, processApprovalMutation]);
 
-  const handleImageClick = (imageUrl: string) => {
+  const handleImageClick = useCallback((imageUrl: string) => {
     setPreviewImageUrl(imageUrl);
     setIsPreviewModalOpen(true);
-  };
+  }, []);
 
   if (isLoading) {
     return <div className="flex justify-center items-center min-h-screen p-4"><Skeleton className="h-64 w-full max-w-md" /></div>;
@@ -117,39 +170,14 @@ const PublicApprovalPage = () => {
             <CardDescription>Todas as tarefas foram revisadas. Agradecemos a sua colaboração!</CardDescription>
           </Card>
         ) : data.tasks.map((task: any) => (
-          <Card key={task.id} className={processedTasks.has(task.id) ? "opacity-50" : ""}>
-            <CardHeader>
-              <CardTitle>{task.title}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {task.attachments?.[0]?.url && (
-                <AspectRatio ratio={1 / 1} className="bg-muted rounded-md group relative">
-                  <img src={task.attachments[0].url} alt={task.title} className="rounded-md object-cover w-full h-full" loading="lazy" />
-                  <div 
-                    className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
-                    onClick={() => handleImageClick(task.attachments[0].url)}
-                  >
-                    <Eye className="h-8 w-8 text-white" />
-                  </div>
-                </AspectRatio>
-              )}
-              {task.description && <p className="text-sm text-muted-foreground whitespace-pre-wrap">{task.description}</p>}
-            </CardContent>
-            <CardFooter className="flex flex-col sm:flex-row gap-4"> {/* Ajustado para responsividade */}
-              {processedTasks.has(task.id) ? (
-                <p className="text-sm font-medium text-green-600">Tarefa já revisada.</p>
-              ) : (
-                <>
-                  <Button className="w-full sm:w-1/2 bg-green-600 hover:bg-green-700" onClick={() => processApprovalMutation.mutate({ taskId: task.id, action: 'approve' })}> {/* Ajustado para responsividade */}
-                    <CheckCircle className="h-4 w-4 mr-2" /> Aprovar
-                  </Button>
-                  <Button variant="outline" className="w-full sm:w-1/2" onClick={() => handleEditRequest(task)}> {/* Ajustado para responsividade */}
-                    <Edit className="h-4 w-4 mr-2" /> Solicitar Edição
-                  </Button>
-                </>
-              )}
-            </CardFooter>
-          </Card>
+          <ApprovalTaskCard
+            key={task.id}
+            task={task}
+            processedTasks={processedTasks}
+            onApprove={(taskId) => processApprovalMutation.mutate({ taskId, action: 'approve' })}
+            onEditRequest={handleEditRequest}
+            onImageClick={handleImageClick}
+          />
         ))}
       </main>
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>

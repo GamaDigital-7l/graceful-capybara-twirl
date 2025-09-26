@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useCallback } from "react"; // Adicionado useCallback
 import {
   DndContext,
   DragEndEvent,
@@ -11,9 +11,9 @@ import {
   TouchSensor,
 } from "@dnd-kit/core";
 import { SortableContext, arrayMove } from "@dnd-kit/sortable";
+import { createPortal } from "react-dom";
 import { KanbanColumn, Column } from "./KanbanColumn";
 import { KanbanCard, Task } from "./KanbanCard";
-import { createPortal } from "react-dom";
 import { TaskModal } from "./TaskModal";
 import { EditRequestModal } from "./EditRequestModal";
 import { Button } from "./ui/button";
@@ -141,13 +141,13 @@ export function KanbanBoard({ groupId }: KanbanBoardProps) {
   });
   const workspaceName = workspaceData?.workspaces?.[0]?.name || 'Workspace Desconhecido'; // Acessar o primeiro item do array
 
-  const triggerNotification = (message: string) => {
+  const triggerNotification = useCallback((message: string) => {
     // Envia notificação se o usuário atual for 'equipe' ou 'user' (cliente)
     if (currentUser?.role === 'equipe' || currentUser?.role === 'user') {
       supabase.functions.invoke('send-telegram-notification', { body: { message } })
         .catch(err => console.error("Erro ao enviar notificação:", err));
     }
-  };
+  }, [currentUser?.role]);
 
   const columns = data?.columns || [];
   const tasks = data?.tasks || [];
@@ -166,7 +166,7 @@ export function KanbanBoard({ groupId }: KanbanBoardProps) {
     })
   );
 
-  const invalidateKanbanData = () => queryClient.invalidateQueries({ queryKey: ["kanbanData", groupId] });
+  const invalidateKanbanData = useCallback(() => queryClient.invalidateQueries({ queryKey: ["kanbanData", groupId] }), [queryClient, groupId]);
 
   const createColumnMutation = useMutation({
     mutationFn: async () => supabase.from("columns").insert({ group_id: groupId, title: "Nova Coluna", position: columns.length }),
@@ -229,7 +229,7 @@ export function KanbanBoard({ groupId }: KanbanBoardProps) {
 
   const requestEditMutation = useMutation({
     mutationFn: async ({ taskId, comment, targetColumnId }: { taskId: string, comment: string, targetColumnId: string }) => {
-      const { data: currentTask, error: fetchError } = await supabase.from("tasks").select("comments, title").eq("id", taskId).single();
+      const { data: currentTask, error: fetchError } = await supabase.from("tasks").select("comments, title").eq("id', taskId).single();
       if (fetchError) throw fetchError;
 
       const newComment = { id: Date.now().toString(), text: comment, author: currentUser?.full_name || "Usuário", createdAt: new Date().toISOString() };
@@ -263,7 +263,7 @@ export function KanbanBoard({ groupId }: KanbanBoardProps) {
     onError: (e: Error) => showError(e.message),
   });
 
-  const handleApproveTask = (taskId: string) => {
+  const handleApproveTask = useCallback((taskId: string) => {
     const approvedColumn = columns.find(c => c.title === "Aprovado");
     const task = tasks.find(t => t.id === taskId);
     if (approvedColumn && task) {
@@ -272,9 +272,9 @@ export function KanbanBoard({ groupId }: KanbanBoardProps) {
     } else {
       showError("A coluna 'Aprovado' não foi encontrada.");
     }
-  };
+  }, [columns, tasks, saveTaskMutation, triggerNotification, currentUser?.full_name, workspaceName]);
 
-  const handleEditRequestTask = (taskId: string) => {
+  const handleEditRequestTask = useCallback((taskId: string) => {
     const editColumn = columns.find(c => c.title === "Editar");
     const task = tasks.find(t => t.id === taskId);
     if (editColumn && task) {
@@ -283,18 +283,18 @@ export function KanbanBoard({ groupId }: KanbanBoardProps) {
     } else {
       showError("A coluna 'Editar' ou a tarefa não foi encontrada.");
     }
-  };
+  }, [columns, tasks]);
 
-  const onDragStart = (event: DragStartEvent) => {
+  const onDragStart = useCallback((event: DragStartEvent) => {
     const { active } = event;
     if (active.data.current?.type === "Column") {
       setActiveEl({ type: "Column", data: active.data.current.column as Column }); // Adicionado cast
     } else if (active.data.current?.type === "Task") {
       setActiveEl({ type: "Task", data: active.data.current.task as Task }); // Adicionado cast
     }
-  };
+  }, []);
 
-  const onDragEnd = (event: DragEndEvent) => {
+  const onDragEnd = useCallback((event: DragEndEvent) => {
     setActiveEl(null);
     const { active, over } = event;
     if (!over) return;
@@ -366,7 +366,21 @@ export function KanbanBoard({ groupId }: KanbanBoardProps) {
         
         updateTaskPositionMutation.mutate(finalTasksToUpdate);
     }
-  };
+  }, [columns, tasks, updateColumnPositionMutation, updateTaskPositionMutation, triggerNotification, currentUser?.full_name, workspaceName]);
+
+  const handleCardClick = useCallback((task: Task) => {
+    setSelectedTask(task);
+    setIsModalOpen(true);
+  }, []);
+
+  const handleAddTask = useCallback((colId: string) => {
+    setSelectedTask(null);
+    setNewCardColumn(colId);
+    setIsModalOpen(true);
+  }, []);
+
+  const MemoizedKanbanColumn = React.memo(KanbanColumn);
+  const MemoizedKanbanCard = React.memo(KanbanCard);
 
   if (isLoading || isLoadingUsersForAssignment) return <div className="p-8 text-center">Carregando quadro...</div>;
   if (error) return <div className="p-8 text-center text-destructive">Erro ao carregar o quadro: ${error.message}</div>;
@@ -378,12 +392,12 @@ export function KanbanBoard({ groupId }: KanbanBoardProps) {
           <div className="inline-flex gap-6 items-start"> {/* Adicionado items-start */}
             <SortableContext items={columnsId}>
               {columns.map((col) => (
-                <KanbanColumn
+                <MemoizedKanbanColumn
                   key={col.id}
                   column={col}
                   tasks={tasks.filter((task) => task.columnId === col.id)}
-                  onCardClick={(task) => { setSelectedTask(task); setIsModalOpen(true); }}
-                  onAddTask={(colId) => { setSelectedTask(null); setNewCardColumn(colId); setIsModalOpen(true); }}
+                  onCardClick={handleCardClick}
+                  onAddTask={handleAddTask}
                   onDeleteColumn={(id) => deleteColumnMutation.mutate(id)}
                   onUpdateColumn={(id, title) => updateColumnMutation.mutate({ id, title })}
                   onApproveTask={handleApproveTask}
@@ -397,10 +411,10 @@ export function KanbanBoard({ groupId }: KanbanBoardProps) {
           </div>
         </div>
         {createPortal(<DragOverlay>{
-          activeEl?.type === "Task" && <KanbanCard task={activeEl.data as Task} onClick={() => {}} />
+          activeEl?.type === "Task" && <MemoizedKanbanCard task={activeEl.data as Task} onClick={() => {}} />
         }
         {
-          activeEl?.type === "Column" && <KanbanColumn column={activeEl.data as Column} tasks={[]} onCardClick={() => {}} onAddTask={() => {}} onDeleteColumn={() => {}} onUpdateColumn={() => {}} onApproveTask={() => {}} onEditRequestTask={() => {}} />
+          activeEl?.type === "Column" && <MemoizedKanbanColumn column={activeEl.data as Column} tasks={[]} onCardClick={() => {}} onAddTask={() => {}} onDeleteColumn={() => {}} onUpdateColumn={() => {}} onApproveTask={() => {}} onEditRequestTask={() => {}} />
         }
         </DragOverlay>, document.body)}
       </DndContext>

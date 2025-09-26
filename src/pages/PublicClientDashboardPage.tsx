@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useCallback } from "react"; // Adicionado useCallback
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -62,6 +62,47 @@ const fetchPublicDashboardData = async (token: string): Promise<PublicDashboardD
   return data;
 };
 
+const KanbanTaskCard = React.memo(({ task, onImageClick }: { task: PublicDashboardData['kanbanTasks'][0], onImageClick: (url: string) => void }) => {
+  const coverImage = task.attachments?.[0]?.url;
+
+  const handleImageClickCallback = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (coverImage) {
+      onImageClick(coverImage);
+    }
+  }, [coverImage, onImageClick]);
+
+  return (
+    <Card className="hover:shadow-md transition-shadow">
+      <CardContent className="p-4">
+        {coverImage && (
+          <AspectRatio ratio={16 / 9} className="bg-muted rounded-md mb-2 group relative">
+            <img src={coverImage} alt={task.title} className="rounded-md object-cover w-full h-full" loading="lazy" />
+            <div 
+              className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+              onClick={handleImageClickCallback}
+            >
+              <BarChart className="h-8 w-8 text-white" />
+            </div>
+          </AspectRatio>
+        )}
+        <p className="font-medium">{task.title}</p>
+        {task.description && <p className="text-sm text-muted-foreground line-clamp-2">{task.description}</p>}
+        <div className="flex justify-between items-center text-xs text-muted-foreground mt-2">
+          <span className={cn("font-semibold", task.column_title === "Editar" && "text-yellow-600", task.column_title === "Para aprovação" && "text-blue-600")}>
+            {task.column_title}
+          </span>
+          {task.due_date && (
+            <span className="flex items-center gap-1">
+              <CalendarDays className="h-3 w-3" /> {formatSaoPauloDate(task.due_date)}
+            </span>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+});
+
 const PublicClientDashboardPage = () => {
   const { token } = useParams<{ token: string }>();
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
@@ -74,10 +115,10 @@ const PublicClientDashboardPage = () => {
     retry: false,
   });
 
-  const handleImageClick = (imageUrl: string) => {
+  const handleImageClick = useCallback((imageUrl: string) => {
     setPreviewImageUrl(imageUrl);
     setIsPreviewModalOpen(true);
-  };
+  }, []);
 
   const { pendingTasks, approvedTasks } = useMemo(() => {
     if (!data?.kanbanTasks) return { pendingTasks: [], approvedTasks: [] };
@@ -181,7 +222,7 @@ const PublicClientDashboardPage = () => {
                 </div>
                 <div className="p-4 border rounded-lg bg-muted/20 flex flex-col items-center justify-center text-center">
                   <BarChart className="h-8 w-8 text-orange-500 mb-2" />
-                  <p className="text-sm font-medium text-muted-foreground">Impressões</p>
+                  <p className className="text-sm font-medium text-muted-foreground">Impressões</p>
                   <p className="text-2xl font-bold">{instagramInsights.impressions.toLocaleString('pt-BR')}</p>
                 </div>
                 <div className="p-4 border rounded-lg bg-muted/20 flex flex-col items-center justify-center text-center">
@@ -239,33 +280,7 @@ const PublicClientDashboardPage = () => {
                 <div className="space-y-4">
                   {pendingTasks.length > 0 ? (
                     pendingTasks.map(task => (
-                      <Card key={task.id} className="hover:shadow-md transition-shadow">
-                        <CardContent className="p-4">
-                          {task.attachments?.[0]?.url && (
-                            <AspectRatio ratio={16 / 9} className="bg-muted rounded-md mb-2 group relative">
-                              <img src={task.attachments[0].url} alt={task.title} className="rounded-md object-cover w-full h-full" loading="lazy" />
-                              <div 
-                                className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
-                                onClick={() => handleImageClick(task.attachments[0].url)}
-                              >
-                                <BarChart className="h-8 w-8 text-white" />
-                              </div>
-                            </AspectRatio>
-                          )}
-                          <p className="font-medium">{task.title}</p>
-                          {task.description && <p className="text-sm text-muted-foreground line-clamp-2">{task.description}</p>}
-                          <div className="flex justify-between items-center text-xs text-muted-foreground mt-2">
-                            <span className={cn("font-semibold", task.column_title === "Editar" && "text-yellow-600", task.column_title === "Para aprovação" && "text-blue-600")}>
-                              {task.column_title}
-                            </span>
-                            {task.due_date && (
-                              <span className="flex items-center gap-1">
-                                <CalendarDays className="h-3 w-3" /> {formatSaoPauloDate(task.due_date)}
-                              </span>
-                            )}
-                          </div>
-                        </CardContent>
-                      </Card>
+                      <KanbanTaskCard key={task.id} task={task} onImageClick={handleImageClick} />
                     ))
                   ) : (
                     <p className="text-muted-foreground">Nenhuma tarefa pendente ou em revisão.</p>
@@ -277,31 +292,7 @@ const PublicClientDashboardPage = () => {
                 <div className="space-y-4">
                   {approvedTasks.length > 0 ? (
                     approvedTasks.map(task => (
-                      <Card key={task.id} className="border-green-500/50 hover:shadow-md transition-shadow">
-                        <CardContent className="p-4">
-                          {task.attachments?.[0]?.url && (
-                            <AspectRatio ratio={16 / 9} className="bg-muted rounded-md mb-2 group relative">
-                              <img src={task.attachments[0].url} alt={task.title} className="rounded-md object-cover w-full h-full" loading="lazy" />
-                              <div 
-                                className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
-                                onClick={() => handleImageClick(task.attachments[0].url)}
-                              >
-                                <BarChart className="h-8 w-8 text-white" />
-                              </div>
-                            </AspectRatio>
-                          )}
-                          <p className="font-medium">{task.title}</p>
-                          {task.description && <p className="text-sm text-muted-foreground line-clamp-2">{task.description}</p>}
-                          <div className="flex justify-between items-center text-xs text-muted-foreground mt-2">
-                            <span className="font-semibold text-green-600">{task.column_title}</span>
-                            {task.due_date && (
-                              <span className="flex items-center gap-1">
-                                <CalendarDays className="h-3 w-3" /> {formatSaoPauloDate(task.due_date)}
-                              </span>
-                            )}
-                          </div>
-                        </CardContent>
-                      </Card>
+                      <KanbanTaskCard key={task.id} task={task} onImageClick={handleImageClick} />
                     ))
                   ) : (
                     <p className="text-muted-foreground">Nenhuma tarefa aprovada ainda.</p>
