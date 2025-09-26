@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react"; // Adicionado useCallback
 import { Link, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -162,12 +162,12 @@ const Dashboard = () => {
     onError: (e: Error) => showError(e.message),
   });
 
-  const handleOpenSettings = (workspace: Workspace) => {
+  const handleOpenSettings = useCallback((workspace: Workspace) => {
     setSelectedWorkspace(workspace);
     setIsSettingsModal(true);
-  };
+  }, []);
 
-  const renderStaffDashboard = () => {
+  const renderStaffDashboard = useCallback(() => {
     const isStaff = userRole === 'admin' || userRole === 'equipe';
     return (
       <Tabs defaultValue="tasks">
@@ -258,7 +258,7 @@ const Dashboard = () => {
         </TabsContent>
       </Tabs>
     );
-  };
+  }, [userRole, internalWorkspaceId, isLoadingWorkspaces, workspaces, createWorkspaceMutation, handleOpenSettings]);
 
   const renderContent = () => {
     if (isProfileLoading) {

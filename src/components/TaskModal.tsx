@@ -18,7 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Task, TaskActionType, Comment } from "./KanbanCard";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react"; // Adicionado useCallback
 import { Trash2, Upload, Calendar as CalendarIcon, Download, Eye, User, Clock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { showError, showSuccess } from "@/utils/toast";
@@ -102,19 +102,19 @@ export function TaskModal({
     setNewComment("");
   }, [task, isOpen]);
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
       setSelectedFile(event.target.files[0]);
       setAttachmentUrl(URL.createObjectURL(event.target.files[0]));
     }
-  };
+  }, []);
 
-  const handleRemoveImage = () => {
+  const handleRemoveImage = useCallback(() => {
     setAttachmentUrl("");
     setSelectedFile(null);
-  };
+  }, []);
 
-  const handleAddComment = () => {
+  const handleAddComment = useCallback(() => {
     if (!newComment.trim() || !currentUser) return;
     const comment: Comment = {
       id: new Date().getTime().toString(),
@@ -122,11 +122,11 @@ export function TaskModal({
       author: currentUser.full_name,
       createdAt: new Date().toISOString(),
     };
-    setComments([...comments, comment]);
+    setComments(prev => [...prev, comment]);
     setNewComment("");
-  };
+  }, [newComment, currentUser]);
 
-  const handleSave = async () => {
+  const handleSave = useCallback(async () => {
     let finalAttachmentUrl = attachmentUrl;
 
     if (selectedFile) {
@@ -174,14 +174,14 @@ export function TaskModal({
     };
     onSave(savedTask);
     onClose();
-  };
+  }, [attachmentUrl, selectedFile, task, columnId, title, description, actionType, dueDate, dueTime, comments, assignedTo, onSave, onClose]);
 
-  const handleDelete = () => {
+  const handleDelete = useCallback(() => {
     if (task && onDelete) {
       onDelete(task.id);
       onClose();
     }
-  };
+  }, [task, onDelete, onClose]);
 
   const canAssignTasks = currentUser?.role === 'admin' || currentUser?.role === 'equipe';
 
@@ -295,7 +295,7 @@ export function TaskModal({
                             <div className="flex items-center gap-2">
                               <Avatar className="h-6 w-6">
                                 <AvatarImage src={user.avatar_url || undefined} loading="lazy" />
-                                <AvatarFallback>{user.full_name?.charAt(0) || <User className="h-4 w-4" />}</AvatarFallback>
+                                <AvatarFallback className="text-xs">{user.full_name?.charAt(0) || <User className="h-4 w-4" />}</AvatarFallback>
                               </Avatar>
                               {user.full_name}
                             </div>

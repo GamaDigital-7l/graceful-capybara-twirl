@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react"; // Adicionado useCallback
 import {
   Dialog,
   DialogContent,
@@ -71,7 +71,7 @@ export function PersonalTaskModal({
     }
   }, [existingTask, isOpen]);
 
-  const handleReminderChange = (reminderType: string, checked: boolean | 'indeterminate') => {
+  const handleReminderChange = useCallback((reminderType: string, checked: boolean | 'indeterminate') => {
     setReminderPreferences(prev => {
       if (checked) {
         return [...prev, reminderType];
@@ -79,9 +79,9 @@ export function PersonalTaskModal({
         return prev.filter(type => type !== reminderType);
       }
     });
-  };
+  }, []);
 
-  const handleSave = () => {
+  const handleSave = useCallback(() => {
     if (!title.trim() || !dueDate) {
       // TODO: Add a toast for validation error
       return;
@@ -99,7 +99,7 @@ export function PersonalTaskModal({
     };
     onSave(taskToSave);
     onClose();
-  };
+  }, [title, description, dueDate, dueTime, reminderPreferences, priority, existingTask, onSave, onClose]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>

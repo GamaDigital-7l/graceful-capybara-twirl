@@ -4,7 +4,7 @@ import { ThemeToggle } from "./ThemeToggle";
 import { Button } from "@/components/ui/button";
 import { LogOut, Home, Banknote, Brain, UserCog, Palette, Users, BookOpen, Menu, BarChart, FileText, LayoutTemplate, ListTodo, MessageSquareText, NotebookText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react"; // Adicionado useMemo e useCallback
 import { showError } from "@/utils/toast";
 import { MobileSidebar } from "./MobileSidebar";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -48,11 +48,11 @@ export function Header({ pageTitle }: HeaderProps) {
     fetchUserRole();
   }, []);
 
-  const handleLogout = async () => {
+  const handleLogout = useCallback(async () => {
     await supabase.auth.signOut();
-  };
+  }, []);
 
-  const getPageTitle = () => {
+  const getPageTitle = useCallback(() => {
     if (pageTitle) return pageTitle;
     const path = location.pathname;
     if (path === "/") return "Dashboard";
@@ -75,17 +75,23 @@ export function Header({ pageTitle }: HeaderProps) {
     if (path.startsWith("/onboarding-templates")) return "Templates de Onboarding";
     if (path.startsWith("/crm")) return "CRM - Funil de Vendas";
     return "Gama Creative Flow";
-  };
+  }, [pageTitle, location.pathname]);
 
-  const navItems = [
+  const navItems = useMemo(() => [
     { name: "Dashboard", icon: Home, path: "/", roles: ["admin", "equipe", "user"] },
     { name: "Todoist", icon: ListTodo, path: "/personal-tasks", roles: ["admin", "equipe"] },
     { name: "Financeiro", icon: Banknote, path: "/financial", roles: ["admin"] },
     { name: "Segundo Cérebro", icon: Brain, path: "/second-brain", roles: ["admin", "equipe"] },
     { name: "Briefings", icon: FileText, path: "/briefings", roles: ["admin", "equipe"] },
-    // Removido "Playbook da Agência" daqui, agora acessível via aba no Dashboard
     { name: "CRM", icon: MessageSquareText, path: "/crm", roles: ["admin", "equipe"] },
-  ];
+  ], []);
+
+  const settingsDropdownItems = useMemo(() => [
+    { name: "Gerenciar Usuários", icon: Users, path: "/admin", roles: ["admin"] },
+    { name: "Visão Geral da Equipe", icon: Users, path: "/employees", roles: ["admin"] },
+    { name: "Configurações do App", icon: Palette, path: "/settings", roles: ["admin", "equipe"] },
+    { name: "Templates de Onboarding", icon: LayoutTemplate, path: "/onboarding-templates", roles: ["admin", "equipe"] },
+  ], []);
 
   if (isProfileLoading) {
     return (
@@ -146,40 +152,16 @@ export function Header({ pageTitle }: HeaderProps) {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                {userRole === 'admin' && (
-                  <>
-                    <DropdownMenuItem asChild>
-                      <Link to="/admin">
+                {settingsDropdownItems.map((item) =>
+                  item.roles.includes(userRole || "") ? (
+                    <DropdownMenuItem key={item.path} asChild>
+                      <Link to={item.path}>
                         <span>
-                          <Users className="mr-2 h-4 w-4" /> Gerenciar Usuários
+                          <item.icon className="mr-2 h-4 w-4" /> {item.name}
                         </span>
                       </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link to="/employees">
-                        <span>
-                          <Users className="mr-2 h-4 w-4" /> Visão Geral da Equipe
-                        </span>
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                  </>
-                )}
-                <DropdownMenuItem asChild>
-                  <Link to="/settings">
-                    <span>
-                      <Palette className="mr-2 h-4 w-4" /> Configurações do App
-                    </span>
-                  </Link>
-                </DropdownMenuItem>
-                {(userRole === 'admin' || userRole === 'equipe') && (
-                  <DropdownMenuItem asChild>
-                    <Link to="/onboarding-templates">
-                      <span>
-                        <LayoutTemplate className="mr-2 h-4 w-4" /> Templates de Onboarding
-                      </span>
-                    </Link>
-                  </DropdownMenuItem>
+                  ) : null
                 )}
               </DropdownMenuContent>
             </DropdownMenu>

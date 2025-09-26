@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react"; // Adicionado useCallback
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -39,23 +39,23 @@ export function FinancialControlModal({ isOpen, onClose, onSave, existingData, w
     setFormData(existingData || { status: 'Ativo', contract_type: 'Mensal', client_type: 'Fixo' });
   }, [existingData, isOpen]);
 
-  const handleChange = (field: keyof FinancialData, value: any) => {
+  const handleChange = useCallback((field: keyof FinancialData, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
-  };
+  }, []);
 
-  const handleAvulsoToggle = (checked: boolean) => {
+  const handleAvulsoToggle = useCallback((checked: boolean) => {
     setIsAvulso(checked);
     if (checked) {
       setFormData(prev => ({ ...prev, workspace_id: null }));
     } else {
       setFormData(prev => ({ ...prev, client_name: undefined }));
     }
-  };
+  }, []);
 
-  const handleSave = () => {
+  const handleSave = useCallback(() => {
     onSave(formData as FinancialData);
     onClose();
-  };
+  }, [formData, onSave, onClose]);
 
   const availableWorkspaces = workspaces.filter(ws => !usedWorkspaceIds.includes(ws.id) || ws.id === existingData?.workspace_id);
 

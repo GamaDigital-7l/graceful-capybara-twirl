@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react"; // Adicionado useCallback
 import {
   Dialog,
   DialogContent,
@@ -62,15 +62,15 @@ export function EditUserModal({ isOpen, onClose, user, onSave }: EditUserModalPr
     }
   }, [user, isOpen]);
 
-  const handleAvatarChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
       const file = event.target.files[0];
       setAvatarFile(file);
       setAvatarPreviewUrl(URL.createObjectURL(file));
     }
-  };
+  }, []);
 
-  const handleSave = async () => {
+  const handleSave = useCallback(async () => {
     if (!user) return;
 
     setIsSaving(true);
@@ -111,7 +111,7 @@ export function EditUserModal({ isOpen, onClose, user, onSave }: EditUserModalPr
     } finally {
       setIsSaving(false);
     }
-  };
+  }, [user, avatarFile, email, password, fullName, onSave, onClose]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>

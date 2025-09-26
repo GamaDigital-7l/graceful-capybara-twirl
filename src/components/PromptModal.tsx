@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react"; // Adicionado useCallback
 import {
   Dialog,
   DialogContent,
@@ -47,7 +47,7 @@ export function PromptModal({
     }
   }, [existingPrompt, isOpen]);
 
-  const handleSave = () => {
+  const handleSave = useCallback(() => {
     if (!title.trim() || !content.trim()) {
       // Optionally show an error toast
       return;
@@ -59,7 +59,7 @@ export function PromptModal({
       content: content.trim(),
     });
     onClose();
-  };
+  }, [title, content, existingPrompt, clientId, onSave, onClose]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>

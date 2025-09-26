@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react"; // Adicionado useCallback
 import { Playbook } from "@/pages/Playbook";
 import { Button } from "@/components/ui/button";
 import {
@@ -42,7 +42,7 @@ export function PlaybookEditor({ isOpen, onClose, playbook, onSave }: PlaybookEd
     }
   }, [playbook, isOpen]);
 
-  const handleSave = () => {
+  const handleSave = useCallback(() => {
     onSave({
       briefing,
       contract_url: contractUrl,
@@ -50,25 +50,29 @@ export function PlaybookEditor({ isOpen, onClose, playbook, onSave }: PlaybookEd
       social_media_logins: socialLogins,
       documents: documents,
     });
-  };
+  }, [briefing, contractUrl, assetLinks, socialLogins, documents, onSave]);
 
-  const addAssetLink = () => setAssetLinks([...assetLinks, { name: "", url: "" }]);
-  const updateAssetLink = (index: number, field: 'name' | 'url', value: string) => {
-    const newLinks = [...assetLinks];
-    newLinks[index][field] = value;
-    setAssetLinks(newLinks);
-  };
-  const removeAssetLink = (index: number) => setAssetLinks(assetLinks.filter((_, i) => i !== index));
+  const addAssetLink = useCallback(() => setAssetLinks(prev => [...prev, { name: "", url: "" }]), []);
+  const updateAssetLink = useCallback((index: number, field: 'name' | 'url', value: string) => {
+    setAssetLinks(prev => {
+      const newLinks = [...prev];
+      newLinks[index][field] = value;
+      return newLinks;
+    });
+  }, []);
+  const removeAssetLink = useCallback((index: number) => setAssetLinks(prev => prev.filter((_, i) => i !== index)), []);
 
-  const addSocialLogin = () => setSocialLogins([...socialLogins, { platform: "", username: "", password: "" }]);
-  const updateSocialLogin = (index: number, field: 'platform' | 'username' | 'password', value: string) => {
-    const newLogins = [...socialLogins];
-    newLogins[index][field] = value;
-    setSocialLogins(newLogins);
-  };
-  const removeSocialLogin = (index: number) => setSocialLogins(socialLogins.filter((_, i) => i !== index));
+  const addSocialLogin = useCallback(() => setSocialLogins(prev => [...prev, { platform: "", username: "", password: "" }]), []);
+  const updateSocialLogin = useCallback((index: number, field: 'platform' | 'username' | 'password', value: string) => {
+    setSocialLogins(prev => {
+      const newLogins = [...prev];
+      newLogins[index][field] = value;
+      return newLogins;
+    });
+  }, []);
+  const removeSocialLogin = useCallback((index: number) => setSocialLogins(prev => prev.filter((_, i) => i !== index)), []);
 
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -88,12 +92,12 @@ export function PlaybookEditor({ isOpen, onClose, playbook, onSave }: PlaybookEd
       .from("playbook-documents")
       .getPublicUrl(data.path);
     
-    setDocuments([...documents, { name: file.name, url: publicUrlData.publicUrl }]);
+    setDocuments(prev => [...prev, { name: file.name, url: publicUrlData.publicUrl }]);
     showSuccess("Documento enviado!");
     setIsUploading(false);
-  };
+  }, [playbook.workspace_id]);
 
-  const removeDocument = (index: number) => setDocuments(documents.filter((_, i) => i !== index));
+  const removeDocument = useCallback((index: number) => setDocuments(prev => prev.filter((_, i) => i !== index)), []);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>

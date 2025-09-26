@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react"; // Adicionado useCallback
 import {
   Select,
   SelectContent,
@@ -41,13 +41,13 @@ export function WorkspaceSwitcher({
   const [newWorkspaceName, setNewWorkspaceName] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  const handleCreate = () => {
+  const handleCreate = useCallback(() => {
     if (newWorkspaceName.trim()) {
       onCreateWorkspace(newWorkspaceName.trim());
       setNewWorkspaceName("");
       setIsDialogOpen(false);
     }
-  };
+  }, [newWorkspaceName, onCreateWorkspace]);
 
   return (
     <div className="flex items-center gap-4">

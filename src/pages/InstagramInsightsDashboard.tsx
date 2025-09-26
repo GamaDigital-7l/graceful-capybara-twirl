@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useCallback } from "react"; // Adicionado useCallback
 import { useParams, Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -90,7 +90,7 @@ const InstagramInsightsDashboard = () => {
     enabled: !!workspaceId,
   });
 
-  const handleGenerateInsights = async () => {
+  const handleGenerateInsights = useCallback(async () => {
     if (!workspaceId) {
       showError("ID do workspace não encontrado.");
       return;
@@ -139,7 +139,7 @@ const InstagramInsightsDashboard = () => {
       setIsGenerating(false);
       dismissToast(loadingToastId);
     }
-  };
+  }, [workspaceId, insightDate, followers, engagementRate, reach, impressions, profileViews, postsCount, interactions, settings?.gemini_api_key, aiPrompt]);
 
   const chartData = useMemo(() => {
     if (!geminiOutput || !insightDate || followers === "" || engagementRate === "" || reach === "" || impressions === "" || profileViews === "" || postsCount === "" || interactions === "") return [];

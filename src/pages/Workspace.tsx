@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react"; // Adicionado useCallback
 import { useParams, Link } from "react-router-dom";
 import { GroupTabs, Group } from "@/components/GroupTabs";
 import { supabase } from "@/integrations/supabase/client";
@@ -248,23 +248,23 @@ const WorkspacePage = ({ initialWorkspaceId }: WorkspacePageProps) => {
     }
   }, [groups, activeGroupId]);
 
-  const handleOpenApprovalModal = (groupId: string) => {
+  const handleOpenApprovalModal = useCallback((groupId: string) => {
     setGeneratedApprovalLink("");
     setIsApprovalModalOpen(true);
     generateApprovalLinkMutation.mutate(groupId);
-  };
+  }, [generateApprovalLinkMutation]);
 
-  const handleOpenDashboardLinkModal = (groupId: string) => {
+  const handleOpenDashboardLinkModal = useCallback((groupId: string) => {
     setGeneratedDashboardLink("");
     setIsDashboardLinkModalOpen(true);
     generateDashboardLinkMutation.mutate(groupId);
-  };
+  }, [generateDashboardLinkMutation]);
 
   if (!workspaceId) {
     return <div className="p-8 text-center">Workspace não encontrado.</div>;
   }
 
-  const renderActions = () => {
+  const renderActions = useCallback(() => {
     const sendApprovalButton = userRole === 'admin' && activeGroupId && (
       <Button
         variant="default"
@@ -320,13 +320,13 @@ const WorkspacePage = ({ initialWorkspaceId }: WorkspacePageProps) => {
         )}
       </div>
     );
-  };
+  }, [userRole, activeGroupId, handleOpenApprovalModal, generateApprovalLinkMutation.isPending, handleOpenDashboardLinkModal, generateDashboardLinkMutation.isPending, workspaceId, endMonthMutation]);
 
   const backLinkPath = userRole === 'user' ? '/client-dashboard' : '/';
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="flex items-center gap-4">
             <Button asChild variant="outline" size="icon">
                 <Link to={backLinkPath}>

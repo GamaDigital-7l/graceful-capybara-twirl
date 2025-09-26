@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react"; // Adicionado useCallback
 import {
   Dialog,
   DialogContent,
@@ -30,12 +30,12 @@ export function PublicLinkModal({ isOpen, onClose, link, isGenerating, messageTe
   const fullMessage = `${messageTemplate || 'Acesse o link:'}\n\n${link}`;
   const [isSendingWhatsapp, setIsSendingWhatsapp] = useState(false);
 
-  const handleCopyMessage = () => {
+  const handleCopyMessage = useCallback(() => {
     navigator.clipboard.writeText(fullMessage);
     showSuccess("Mensagem copiada para a área de transferência!");
-  };
+  }, [fullMessage]);
 
-  const handleSendWhatsApp = async () => {
+  const handleSendWhatsApp = useCallback(async () => {
     if (!clientPhoneNumber && !whatsappGroupId) {
       showError("Nenhum número de telefone ou ID de grupo do cliente configurado para este workspace.");
       return;
@@ -56,7 +56,7 @@ export function PublicLinkModal({ isOpen, onClose, link, isGenerating, messageTe
     } finally {
       setIsSendingWhatsapp(false);
     }
-  };
+  }, [clientPhoneNumber, whatsappGroupId, fullMessage, onClose]);
 
   const canSendWhatsapp = !!clientPhoneNumber || !!whatsappGroupId;
 

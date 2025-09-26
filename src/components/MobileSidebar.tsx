@@ -6,6 +6,7 @@ import { ThemeToggle } from "./ThemeToggle";
 import { LogOut, Home, Banknote, Brain, UserCog, Palette, Users, BookOpen, Menu, BarChart, FileText, LayoutTemplate, ListTodo, MessageSquareText, NotebookText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { useCallback, useMemo } from "react"; // Adicionado useCallback e useMemo
 
 interface MobileSidebarProps {
   userRole: string | null;
@@ -14,27 +15,26 @@ interface MobileSidebarProps {
 
 export function MobileSidebar({ userRole, onClose }: MobileSidebarProps) {
   const location = useLocation();
-  const handleLogout = async () => {
+  const handleLogout = useCallback(async () => {
     await supabase.auth.signOut();
     onClose();
-  };
+  }, [onClose]);
 
-  const navItems = [
+  const navItems = useMemo(() => [
     { name: "Dashboard", icon: Home, path: "/", roles: ["admin", "equipe", "user"] },
     { name: "Todoist", icon: ListTodo, path: "/personal-tasks", roles: ["admin", "equipe"] },
     { name: "Financeiro", icon: Banknote, path: "/financial", roles: ["admin"] },
     { name: "Segundo Cérebro", icon: Brain, path: "/second-brain", roles: ["admin", "equipe"] },
     { name: "Briefings", icon: FileText, path: "/briefings", roles: ["admin", "equipe"] },
-    // Removido "Playbook da Agência" daqui, agora acessível via aba no Dashboard
     { name: "CRM", icon: MessageSquareText, path: "/crm", roles: ["admin", "equipe"] },
-  ];
+  ], []);
 
-  const settingsItems = [
+  const settingsItems = useMemo(() => [
     { name: "Gerenciar Usuários", icon: Users, path: "/admin", roles: ["admin"] },
     { name: "Visão Geral da Equipe", icon: Users, path: "/employees", roles: ["admin"] },
     { name: "Configurações do App", icon: Palette, path: "/settings", roles: ["admin", "equipe"] },
     { name: "Templates de Onboarding", icon: LayoutTemplate, path: "/onboarding-templates", roles: ["admin", "equipe"] },
-  ];
+  ], []);
 
   return (
     <SheetContent side="left" className="w-[250px] p-4 flex flex-col">

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react"; // Adicionado useCallback
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { showError, showSuccess } from "@/utils/toast";
@@ -53,7 +53,7 @@ const AgencyPlaybookPage = () => {
     onError: (e: Error) => showError(e.message),
   });
 
-  const togglePasswordVisibility = (platform: string) => {
+  const togglePasswordVisibility = useCallback((platform: string) => {
     setVisiblePasswords(prev => {
       const newSet = new Set(prev);
       if (newSet.has(platform)) {
@@ -63,21 +63,21 @@ const AgencyPlaybookPage = () => {
       }
       return newSet;
     });
-  };
+  }, []);
 
-  const handleCopyText = (text: string) => {
+  const handleCopyText = useCallback((text: string) => {
     navigator.clipboard.writeText(text);
     toast.success("Copiado para a área de transferência!");
-  };
+  }, []);
 
-  const renderSkeletons = () => (
+  const renderSkeletons = useCallback(() => (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <Skeleton className="h-48 w-full" />
       <Skeleton className="h-48 w-full" />
       <Skeleton className="h-48 w-full" />
       <Skeleton className="h-48 w-full col-span-1 lg:col-span-2" />
     </div>
-  );
+  ), []);
 
   return (
     <React.Fragment>

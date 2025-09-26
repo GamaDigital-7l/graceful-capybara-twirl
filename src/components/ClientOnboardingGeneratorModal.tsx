@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react"; // Adicionado useCallback
 import {
   Dialog,
   DialogContent,
@@ -61,7 +61,7 @@ export function ClientOnboardingGeneratorModal({
     }
   }, [isOpen]);
 
-  const handleGeneratePage = async () => {
+  const handleGeneratePage = useCallback(async () => {
     if (!clientName.trim()) {
       showError("O nome do cliente é obrigatório.");
       return;
@@ -108,14 +108,14 @@ export function ClientOnboardingGeneratorModal({
       setIsGenerating(false);
       dismissToast(loadingToastId);
     }
-  };
+  }, [clientName, selectedTemplateId, settings?.site_url, companyName]);
 
-  const handleCopyLink = () => {
+  const handleCopyLink = useCallback(() => {
     if (generatedLink) {
       navigator.clipboard.writeText(generatedLink);
       showSuccess("Link copiado para a área de transferência!");
     }
-  };
+  }, [generatedLink]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>

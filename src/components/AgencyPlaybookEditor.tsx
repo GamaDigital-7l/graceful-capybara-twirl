@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react"; // Adicionado useCallback
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -59,7 +59,7 @@ export function AgencyPlaybookEditor({ isOpen, onClose, playbook, onSave }: Agen
     }
   }, [playbook, isOpen]);
 
-  const handleSave = () => {
+  const handleSave = useCallback(() => {
     onSave({
       briefings,
       ai_agents: aiAgents,
@@ -71,39 +71,47 @@ export function AgencyPlaybookEditor({ isOpen, onClose, playbook, onSave }: Agen
       culture_and_values: cultureAndValues,
       // Salvamento de campos de onboarding removido
     });
-  };
+  }, [briefings, aiAgents, usefulLinks, commercialProposalLink, agencyProcesses, driveLink, logins, cultureAndValues, onSave]);
 
-  const addBriefing = () => setBriefings([...briefings, { name: "", url: "" }]);
-  const updateBriefing = (index: number, field: 'name' | 'url', value: string) => {
-    const newBriefings = [...briefings];
-    newBriefings[index][field] = value;
-    setBriefings(newBriefings);
-  };
-  const removeBriefing = (index: number) => setBriefings(briefings.filter((_, i) => i !== index));
+  const addBriefing = useCallback(() => setBriefings(prev => [...prev, { name: "", url: "" }]), []);
+  const updateBriefing = useCallback((index: number, field: 'name' | 'url', value: string) => {
+    setBriefings(prev => {
+      const newBriefings = [...prev];
+      newBriefings[index][field] = value;
+      return newBriefings;
+    });
+  }, []);
+  const removeBriefing = useCallback((index: number) => setBriefings(prev => prev.filter((_, i) => i !== index)), []);
 
-  const addAiAgent = () => setAiAgents([...aiAgents, { name: "", url: "" }]);
-  const updateAiAgent = (index: number, field: 'name' | 'url', value: string) => {
-    const newAgents = [...aiAgents];
-    newAgents[index][field] = value;
-    setAiAgents(newAgents);
-  };
-  const removeAiAgent = (index: number) => setAiAgents(aiAgents.filter((_, i) => i !== index));
+  const addAiAgent = useCallback(() => setAiAgents(prev => [...prev, { name: "", url: "" }]), []);
+  const updateAiAgent = useCallback((index: number, field: 'name' | 'url', value: string) => {
+    setAiAgents(prev => {
+      const newAgents = [...prev];
+      newAgents[index][field] = value;
+      return newAgents;
+    });
+  }, []);
+  const removeAiAgent = useCallback((index: number) => setAiAgents(prev => prev.filter((_, i) => i !== index)), []);
 
-  const addUsefulLink = () => setUsefulLinks([...usefulLinks, { name: "", url: "" }]);
-  const updateUsefulLink = (index: number, field: 'name' | 'url', value: string) => {
-    const newLinks = [...usefulLinks];
-    newLinks[index][field] = value;
-    setUsefulLinks(newLinks);
-  };
-  const removeUsefulLink = (index: number) => setUsefulLinks(usefulLinks.filter((_, i) => i !== index));
+  const addUsefulLink = useCallback(() => setUsefulLinks(prev => [...prev, { name: "", url: "" }]), []);
+  const updateUsefulLink = useCallback((index: number, field: 'name' | 'url', value: string) => {
+    setUsefulLinks(prev => {
+      const newLinks = [...prev];
+      newLinks[index][field] = value;
+      return newLinks;
+    });
+  }, []);
+  const removeUsefulLink = useCallback((index: number) => setUsefulLinks(prev => prev.filter((_, i) => i !== index)), []);
 
-  const addLogin = () => setLogins([...logins, { platform: "", username: "", password: "" }]);
-  const updateLogin = (index: number, field: 'platform' | 'username' | 'password', value: string) => {
-    const newLogins = [...logins];
-    newLogins[index][field] = value;
-    setLogins(newLogins);
-  };
-  const removeLogin = (index: number) => setLogins(logins.filter((_, i) => i !== index));
+  const addLogin = useCallback(() => setLogins(prev => [...prev, { platform: "", username: "", password: "" }]), []);
+  const updateLogin = useCallback((index: number, field: 'platform' | 'username' | 'password', value: string) => {
+    setLogins(prev => {
+      const newLogins = [...prev];
+      newLogins[index][field] = value;
+      return newLogins;
+    });
+  }, []);
+  const removeLogin = useCallback((index: number) => setLogins(prev => prev.filter((_, i) => i !== index)), []);
 
   // Funções para onboarding briefing links removidas
   // Funções para onboarding tutorial videos removidas

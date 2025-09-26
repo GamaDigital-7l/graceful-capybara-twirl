@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react"; // Adicionado useCallback
 import { Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -163,9 +163,9 @@ const FinancialDashboard = () => {
     };
   }, [financialData, expenses]);
 
-  const formatCurrency = (value: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+  const formatCurrency = useCallback((value: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value), []);
 
-  const usedWorkspaceIds = financialData?.filter(d => d.workspace_id).map(d => d.workspace_id!) || [];
+  const usedWorkspaceIds = useMemo(() => financialData?.filter(d => d.workspace_id).map(d => d.workspace_id!) || [], [financialData]);
 
   const monthOptions = useMemo(() => {
     const options = [];

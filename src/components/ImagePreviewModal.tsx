@@ -8,6 +8,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Download, ExternalLink } from "lucide-react";
 import { showSuccess, showError } from "@/utils/toast"; // Importar toasts
+import { useCallback } from "react"; // Adicionado useCallback
 
 interface ImagePreviewModalProps {
   isOpen: boolean;
@@ -18,7 +19,7 @@ interface ImagePreviewModalProps {
 export function ImagePreviewModal({ isOpen, onClose, imageUrl }: ImagePreviewModalProps) {
   if (!imageUrl) return null;
 
-  const handleDownload = async () => {
+  const handleDownload = useCallback(async () => {
     try {
       const response = await fetch(imageUrl);
       const blob = await response.blob();
@@ -35,12 +36,12 @@ export function ImagePreviewModal({ isOpen, onClose, imageUrl }: ImagePreviewMod
       console.error("Erro ao baixar imagem:", error);
       showError("Erro ao iniciar download. Tente 'Abrir para Salvar' e use as opções do navegador."); // Toast de erro
     }
-  };
+  }, [imageUrl]);
 
-  const handleOpenImageInNewTab = () => {
+  const handleOpenImageInNewTab = useCallback(() => {
     window.open(imageUrl, '_blank');
     showSuccess("Imagem aberta em nova aba. Use as opções do navegador para salvar."); // Informar o usuário
-  };
+  }, [imageUrl]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react"; // Adicionado useCallback
 import {
   Dialog,
   DialogContent,
@@ -42,7 +42,7 @@ export function SecondBrainClientModal({
     }
   }, [existingClient, isOpen]);
 
-  const handleSave = async () => {
+  const handleSave = useCallback(async () => {
     if (!name.trim()) {
       showError("O nome do cliente é obrigatório.");
       return;
@@ -64,7 +64,7 @@ export function SecondBrainClientModal({
     } finally {
       setIsSaving(false);
     }
-  };
+  }, [name, existingClient, onSave, onClose]);
 
   const isDisabled = isSaving;
 

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react"; // Adicionado useCallback
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -47,7 +47,7 @@ export function ExpenseModal({ isOpen, onClose, onSave, existingData }: ExpenseM
     }
   }, [existingData, isOpen]);
 
-  const handleSave = () => {
+  const handleSave = useCallback(() => {
     if (!description.trim() || !amount || !expenseDate) {
       // Optionally show an error toast
       return;
@@ -60,7 +60,7 @@ export function ExpenseModal({ isOpen, onClose, onSave, existingData }: ExpenseM
       expense_date: expenseDate,
     });
     onClose();
-  };
+  }, [description, amount, category, expenseDate, existingData, onSave, onClose]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>

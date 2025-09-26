@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react"; // Adicionado useCallback
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { showError, showSuccess } from "@/utils/toast";
@@ -83,7 +83,7 @@ const SettingsPage = () => {
     onError: (e: Error) => showError(e.message),
   });
 
-  const handleSave = async () => {
+  const handleSave = useCallback(async () => {
     setIsSaving(true);
     
     const cleanedSiteUrl = siteUrl.endsWith('/') ? siteUrl.slice(0, -1) : siteUrl;
@@ -106,7 +106,7 @@ const SettingsPage = () => {
       evolution_api_instance: evolutionApiInstance, // Salvar novo campo
     });
     setIsSaving(false);
-  };
+  }, [appName, siteUrl, primaryColor, backgroundColor, telegramBotToken, telegramChatId, telegramBotTokenDeadlines, telegramChatIdDeadlines, whatsappMessageTemplate, whatsappApiToken, whatsappPhoneNumberId, geminiApiKey, evolutionApiUrl, evolutionApiToken, evolutionApiInstance, updateSettingsMutation]);
 
   return (
     <div className="space-y-8">

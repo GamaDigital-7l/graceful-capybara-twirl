@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react"; // Adicionado useCallback
 import { useParams, Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -77,7 +77,7 @@ const PlaybookPage = () => {
     onError: (e: Error) => showError(e.message),
   });
 
-  const togglePasswordVisibility = (platform: string) => {
+  const togglePasswordVisibility = useCallback((platform: string) => {
     setVisiblePasswords(prev => {
       const newSet = new Set(prev);
       if (newSet.has(platform)) {
@@ -87,16 +87,16 @@ const PlaybookPage = () => {
       }
       return newSet;
     });
-  };
+  }, []);
 
-  const renderSkeletons = () => (
+  const renderSkeletons = useCallback(() => (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <Skeleton className="h-64 w-full" />
       <Skeleton className="h-64 w-full" />
       <Skeleton className="h-64 w-full" />
       <Skeleton className="h-64 w-full col-span-1 lg:col-span-2" />
     </div>
-  );
+  ), []);
 
   return (
     <div className="space-y-6">

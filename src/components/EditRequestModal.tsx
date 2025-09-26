@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react"; // Adicionado useCallback
 import {
   Dialog,
   DialogContent,
@@ -33,12 +33,12 @@ export function EditRequestModal({
     }
   }, [isOpen]);
 
-  const handleConfirm = () => {
+  const handleConfirm = useCallback(() => {
     if (task && comment.trim()) {
       onConfirm(task.id, comment.trim(), task.columnId);
       onClose();
     }
-  };
+  }, [task, comment, onConfirm, onClose]);
 
   if (!task) return null;
 

@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useCallback } from "react"; // Adicionado useCallback
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -77,7 +77,7 @@ const fetchOnboardingPageData = async (publicToken: string): Promise<FullOnboard
 };
 
 // Componente para renderizar vídeos do YouTube/Vimeo a partir de links Markdown
-const MarkdownVideoRenderer = ({ node, ...props }: any) => {
+const MarkdownVideoRenderer = React.memo(({ node, ...props }: any) => {
   const url = props.src;
   if (!url) return null;
 
@@ -109,7 +109,7 @@ const MarkdownVideoRenderer = ({ node, ...props }: any) => {
   }
   // Fallback para imagem se não for um vídeo reconhecido
   return <img {...props} className="max-w-full h-auto rounded-md my-4" loading="lazy" />;
-};
+});
 
 const PublicClientOnboardingPage = () => {
   const { publicToken } = useParams<{ publicToken: string }>();

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react"; // Adicionado useCallback
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { showError, showSuccess } from "@/utils/toast";
@@ -115,7 +115,7 @@ export function WorkspaceSettingsModal({ isOpen, onClose, workspace }: Workspace
     onError: (e: Error) => showError(e.message),
   });
 
-  const handleSave = async () => {
+  const handleSave = useCallback(async () => {
     if (!workspace) return;
     let logoUrl = workspace.logo_url;
     if (selectedFile) {
@@ -132,7 +132,7 @@ export function WorkspaceSettingsModal({ isOpen, onClose, workspace }: Workspace
       setIsUploading(false);
     }
     updateWorkspaceMutation.mutate({ name, logo_url: logoUrl, client_phone_number: clientPhoneNumber, whatsapp_group_id: whatsappGroupId }); // Incluir o ID do grupo
-  };
+  }, [workspace, selectedFile, name, clientPhoneNumber, whatsappGroupId, updateWorkspaceMutation]);
 
   const memberIds = members?.map(m => m.user_id) || [];
   const availableUsers = allUsers?.filter((user: any) => !memberIds.includes(user.id)) || [];
