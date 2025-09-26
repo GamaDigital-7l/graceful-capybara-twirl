@@ -126,8 +126,8 @@ export function KanbanBoard({ groupId }: KanbanBoardProps) {
   // Definir a interface para os dados do workspace
   interface WorkspaceFromGroupData {
     workspaces: {
-      name: any; // Alterado para 'any' para corresponder à inferência do Supabase
-    }[] | null;
+      name: string; // Corrigido: agora é um objeto único, não um array
+    } | null;
   }
 
   const { data: workspaceData } = useQuery<WorkspaceFromGroupData, Error>({ // Tipagem explícita
@@ -139,7 +139,8 @@ export function KanbanBoard({ groupId }: KanbanBoardProps) {
     },
     enabled: !!groupId
   });
-  const workspaceName = workspaceData?.workspaces?.[0]?.name || 'Workspace Desconhecido'; // Acessar o primeiro item do array
+  // Corrigido: Acessar diretamente a propriedade 'name' do objeto 'workspaces'
+  const workspaceName = workspaceData?.workspaces?.name || 'Workspace Desconhecido'; 
 
   const triggerNotification = useCallback((message: string) => {
     // Envia notificação se o usuário atual for 'equipe' ou 'user' (cliente)

@@ -24,7 +24,7 @@ interface RawEmployeeTask {
   title: string;
   due_date: string | null;
   column_id: string;
-  columns: { title: any }[] | null; // Alterado para array de objetos com 'title: any'
+  columns: { title: string } | null; // Corrigido: agora é um objeto único, não um array
   assigned_to: string | null;
 }
 
@@ -51,7 +51,8 @@ const fetchAllStaffTasks = async (): Promise<EmployeeTask[]> => {
     id: task.id,
     title: task.title,
     due_date: task.due_date,
-    column_title: task.columns?.[0]?.title || 'Unknown', // Acessa o primeiro item do array
+    // Corrigido: Acessar diretamente a propriedade 'title' do objeto 'columns'
+    column_title: task.columns?.title || 'Unknown', 
     assigned_to: task.assigned_to,
   })) || [];
 };
