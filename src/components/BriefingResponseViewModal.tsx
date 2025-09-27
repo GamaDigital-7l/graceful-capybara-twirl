@@ -86,7 +86,7 @@ export function BriefingResponseViewModal({ isOpen, onClose, response, form }: B
 
     form.form_structure?.forEach((field) => {
       responseText += `${field.label}:\n`;
-      responseText += `${getRawFieldValue(field, response.response_data[field.id])}\n\n`;
+responseText += `${getRawFieldValue(field, response.response_data[field.id])}\n\n`;
     });
 
     navigator.clipboard.writeText(responseText);

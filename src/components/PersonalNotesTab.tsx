@@ -112,6 +112,7 @@ export function PersonalNotesTab() {
     queryKey: ["personalNotes", currentUserId],
     queryFn: () => fetchPersonalNotes(currentUserId!),
     enabled: !!currentUserId,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   const saveNoteMutation = useMutation({
@@ -139,7 +140,7 @@ export function PersonalNotesTab() {
   const deleteNoteMutation = useMutation({
     mutationFn: async (noteId: string) => {
       const { error } = await supabase.from("personal_notes").delete().eq("id", noteId);
-      if (error) throw error;
+    if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["personalNotes", currentUserId] });

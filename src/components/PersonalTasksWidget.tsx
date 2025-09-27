@@ -47,6 +47,7 @@ export const PersonalTasksWidget = React.memo(function PersonalTasksWidget() {
     queryKey: ["personalTasks", currentUserId],
     queryFn: () => fetchPersonalTasks(currentUserId!),
     enabled: !!currentUserId,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   const saveTaskMutation = useMutation({

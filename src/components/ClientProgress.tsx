@@ -37,6 +37,7 @@ export const ClientProgress = React.memo(function ClientProgress() {
   const { data: tasks, isLoading } = useQuery<Task[]>({
     queryKey: ["all_workspace_tasks_for_progress"],
     queryFn: fetchAllWorkspaceTasksForProgress,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   const progressByWorkspace = useMemo(() => {

@@ -113,13 +113,15 @@ export function EditUserModal({ isOpen, onClose, user, onSave }: EditUserModalPr
     }
   }, [user, avatarFile, email, password, fullName, onSave, onClose]);
 
+  const isDisabled = isSaving;
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Editar Usuário: {user?.full_name || user?.email}</DialogTitle>
         </DialogHeader>
-        <div className="py-4 space-y-4">
+        <div className="py-4 space-y-4 p-4 sm:p-6"> {/* Ajustado padding */}
           <div className="flex items-center gap-4">
             <Avatar className="h-20 w-20">
               <AvatarImage src={avatarPreviewUrl || undefined} loading="lazy" /> {/* Adicionado loading="lazy" */}
@@ -165,11 +167,11 @@ export function EditUserModal({ isOpen, onClose, user, onSave }: EditUserModalPr
         </div>
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="secondary" disabled={isSaving}>
+            <Button type="button" variant="secondary" disabled={isDisabled}>
               Cancelar
             </Button>
           </DialogClose>
-          <Button onClick={handleSave} disabled={isSaving}>
+          <Button type="button" onClick={handleSave} disabled={isDisabled}>
             {isSaving ? "Salvando..." : "Salvar Alterações"}
           </Button>
         </DialogFooter>

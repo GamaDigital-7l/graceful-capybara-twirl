@@ -11,6 +11,6 @@ export const AppLogo = React.memo(function AppLogo({ className, loading }: AppLo
   const logoSrc = theme === "dark" ? "/logo-gama-dark.png" : "/logo-gama-light.png";
 
   return (
-    <img src={logoSrc} alt="Gama Creative Logo" className={className} loading={loading} />
+    <img src={logoSrc} alt="Gama Creative Logo" className={className} loading={loading || "lazy"} />
   );
 });
