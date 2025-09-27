@@ -190,7 +190,7 @@ const PersonalTasksPage = () => {
     for (let i = 0; i < 12; i++) { // Last 12 months including current
       options.push({
         value: current.toISOString(),
-        label: formatSaoPauloTime(current, "MMMM yyyy", { locale: ptBR }),
+        label: formatSaoPauloTime(current, "MMMM yyyy"),
       });
       current = subMonths(current, 1);
     }

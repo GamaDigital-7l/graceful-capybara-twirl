@@ -19,12 +19,12 @@ interface EmployeeProfile {
   role: string;
 }
 
-interface RawEmployeeTask {
+interface RawSupabaseTask {
   id: string;
   title: string;
   due_date: string | null;
   column_id: string;
-  columns: { title: string } | null;
+  columns: { title: string } | null; // Expecting a single object or null
   assigned_to: string | null;
 }
 
@@ -47,7 +47,8 @@ const fetchAllStaffTasks = async (): Promise<EmployeeTask[]> => {
   if (error) throw new Error(error.message);
   
   // Flatten the data to include column_title directly
-  return data.map((task: RawEmployeeTask) => ({
+  const rawTasks: RawSupabaseTask[] = data as RawSupabaseTask[];
+  return rawTasks.map((task) => ({
     id: task.id,
     title: task.title,
     due_date: task.due_date,

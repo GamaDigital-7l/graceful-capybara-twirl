@@ -135,7 +135,7 @@ export function KanbanBoard({ groupId }: KanbanBoardProps) {
     queryFn: async () => {
       const { data, error } = await supabase.from('groups').select('workspaces(name)').eq('id', groupId).single();
       if (error) throw error;
-      return data as WorkspaceFromGroupData; // Adicionado cast para garantir a tipagem
+      return data as unknown as WorkspaceFromGroupData; // Adicionado cast para garantir a tipagem
     },
     enabled: !!groupId
   });
